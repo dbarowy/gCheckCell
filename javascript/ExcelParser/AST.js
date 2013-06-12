@@ -1,4 +1,4 @@
-var _ref, _ref1, __hasProp = {}.hasOwnProperty,
+var ReferenceRange, ReferenceFunction, ReferenceConstant, ReferenceNamed, Reference, Range, Address, ReferenceString, _ref, _ref1, _ref2, _ref3,, _ref4, __hasProp = {}.hasOwnProperty,
     __extends = function (child, parent) {
         for (var key in parent) {
             if (__hasProp.call(parent, key)) child[key] = parent[key];
@@ -14,7 +14,7 @@ var _ref, _ref1, __hasProp = {}.hasOwnProperty,
     };
 
 
-var Address = (function () {
+Address = (function () {
     //TODO CharColToInt and IntToColChars must be made static
     Address.CharColToInt = function (/*string */ col) {
         function ccti(/*int */ idx) {
@@ -116,7 +116,7 @@ var Address = (function () {
     return Address;
 })();
 
-var Range = (function () {
+Range = (function () {
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
         this._tl = topleft;
         this._br = bottomright;
@@ -156,7 +156,7 @@ var Range = (function () {
     return Range;
 })();
 
-var Reference = (function () {
+Reference = (function () {
     function Reference(/*string*/ wsname) {
         this._wbn = null;
         this._wsn = wsname;
@@ -193,7 +193,7 @@ var Reference = (function () {
     return Reference;
 })();
 
-var ReferenceRange = (function (_super) {
+ReferenceRange = (function (_super) {
     __extends(ReferenceRange, _super);
     function ReferenceRange(/*string*/wsname, /*Range*/ rng) {
         _ref = ReferenceRange.__super__.constructor.apply(this, arguments);
@@ -246,7 +246,7 @@ var ReferenceRange = (function (_super) {
 
 })(Reference);
 
-var ReferenceFunction = (function (_super) {
+ReferenceFunction = (function (_super) {
     __extends(ReferenceFunction, _super);
     function ReferenceFunction(/*string*/wsname, /*string*/ fnname, /*Expression list*/ arglist) {
         _ref1 = ReferenceFunction.__super__.constructor.apply(this, arguments);
@@ -265,3 +265,48 @@ var ReferenceFunction = (function (_super) {
     return ReferenceFunction;
 
 })(Reference);
+
+ReferenceConstant = (function (_super) {
+    __extends(ReferenceConstant, _super);
+    function ReferenceConstant(/*string */wsname, /*int*/ value) {
+        _ref2 = ReferenceConstant.__super__.constructor.apply(this, arguments);
+        this.value = value;
+        return _ref2;
+    }
+
+    ReferenceConstant.prototype.toString = function () {
+        return "Constant(" + this.value + ")";
+    };
+    return ReferenceConstant;
+})(Reference);
+
+ReferenceString = (function (_super) {
+    __extends(ReferenceString, _super);
+    function ReferenceString(/*string*/ wsname, /*string*/value) {
+        _ref3 = ReferenceString.__super__.constructor.apply(this, arguments);
+        this.value = value;
+        return _ref3;
+    }
+
+    ReferenceString.prototype.toString = function () {
+        return "String(" + this.valueOf + ")";
+    };
+    return ReferenceString;
+})(Reference);
+
+ReferenceNamed = (function (_super) {
+    __extends(ReferenceNamed, _super);
+    function ReferenceNamed(/*string*/wsname, /*string*/ varname) {
+        _ref4 = ReferenceNamed.__super__.constructor.apply(this, arguments);
+        this.varname = varname;
+    }
+
+    ReferenceNamed.prototype.toString = function () {
+        if (this.WorksheetName != null && typeof(this.WorksheetName) != 'undefined') {
+            return "ReferenceName(" + this.WorksheetName + "," + this.varname + ")";
+        }
+        else
+            return "ReferenceName(None, " + this.varname + ")";
+    };
+})(Reference);
+
