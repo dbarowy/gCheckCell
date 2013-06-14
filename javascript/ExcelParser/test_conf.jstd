@@ -1,0 +1,5 @@
+load:
+  - src/AST.js
+  - src/FSharp.js
+test:
+  - test/testAST.js

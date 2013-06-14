@@ -1,7 +1,8 @@
 /**
  * @Author Alexandru Toader
  * @Description This file contains the definition of the Abstract Syntax Tree
- * The class inheritance pattern is based on the one used by CoffeeScript
+ * The class inheritance pattern is based on the one used by CoffeeScript.
+ * Any object member named "_*" might be made private and should not be used.
  */
 var AST;
 AST = (function () {
@@ -23,14 +24,21 @@ AST = (function () {
     function AST() {
     }
 
-//TODO Define generic Workbook type and Worksheet type that act like wrappers for the GoogleDocs/ Office types
+//TODO Define generic Workbook type and Worksheet type that act like wrappers for the GoogleDocs/ Office types.
+// Find a good place to define them
     Address = (function () {
-        //Private:
-        var _wsn, _wbn, x, y;
-        //Public
+        /**
+         * Converts the string representing a column to an equivalent integer.
+         * The counting starts from 1
+         * @param col String representing the column. It must be of the form [A-Z]+
+         * @returns {number} Column number
+         */
         Address.CharColToInt = function (/*string */ col) {
             var idx = col.length - 1;
             var num = 0, ltr = 0;
+            var reg = new RegExp("\\b[A-Z]+\\b");
+            if (!reg.test(col))
+                throw new Error("The column string doesn't respect the specification");
             do {
                 var ltr = col.charCodeAt(idx) - 64;
                 var num = num + Math.pow(26.0, (col.length - idx - 1)) * ltr;
@@ -38,101 +46,135 @@ AST = (function () {
             } while (idx >= 0);
             return num;
         };
-        //TODO Debug and test
+        /**
+         * Returns the string equivalent for the given column. Column 1 = A, column 2=B etc.
+         * @param dividend Integer representing the column number. If an integer is not supplied, an error is thrown
+         * @returns {string} String representing the column
+         */
         Address.IntToColChars = function (/*int*/dividend) {
-            var quot = Math.floor(dividend / 26);
-            var rem = Math.floor(dividend % 26);
-            if (rem == 0)
-                quot--;
-            else;
-            if (rem == 0)
-                ltr = "Z";
-            else {
-                console.log(rem);
-                ltr = String.fromCharCode(64 + rem);
-                console.log(ltr);
-            }
-            if (quot == 0) {
-                console.log(quot);
-                return ltr;
-            }
-            else {
-                console.log(quot);
-                return Address.IntToColChars(quot) + ltr;
-            }
+            var quot, rem, ltr = "";
+            if (Math.floor(dividend) != dividend)
+                throw new Error("This works only for integers");
+            do {
+                quot = dividend / 26;
+                rem = dividend % 26;
+                if (rem == 0) {
+                    quot--;
+                }
+                if (rem == 0) {
+                    ltr = "Z" + ltr;
+                }
+                else
+                    ltr = String.fromCharCode(64 + rem) + ltr;
+                dividend = quot;
+
+            } while (quot >= 1);
+            return ltr;
         };
 
         function Address(/*int*/ R, /*int*/C, /*string*/wsname, /*string*/ wbname) {
-            _wsn = wsname;
-            _wbn = wbname;
+            //TODO these variables should be made private, find a pattern that guarantees this otherwise, remove excess code
+            this._wsn = wsname;
+            this._wbn = wbname;
             //If the column is given as a string convert it to the number
             if (isNaN(C)) {
-                x = Address.CharColToInt(C);
+                this._x = Address.CharColToInt(C);
             }
             else
-                x = C;
-            y = R;
+                this._x = C;
+            this._y = R;
         }
 
         Object.defineProperties(Address.prototype, { "X": {"get": function () {
-            return x;
+            return this._x;
         }}});
         Object.defineProperties(Address.prototype, { "Y": {"get": function () {
-            return y;
+            return this._y;
         }}});
 
+        /**
+         * Returns the string representation in A1 for the current address
+         * @returns {string}
+         * @constructor
+         */
         Address.prototype.A1Local = function () {
             return Address.IntToColChars(this.X) + this.Y.toString();
         };
+        /**
+         * Get the Worksheet name.
+         * @returns {*} Worksheet name associated with this address. If the Worksheet name is not set, it throws an error.
+         */
         Address.prototype.A1Worksheet = function () {
-            if (typeof(_wsn) != "undefined" && _wsn != null)
-                return _wsn;
+            if (typeof(this._wsn) != "undefined" && this._wsn != null && !(this._wsn instanceof  FSharp.None))
+                return this._wsn;
             else
                 throw "Worksheet string should never be unset";
         };
+        /**
+         * Get the Workbook name
+         * @returns {*} Workbook name associated with this address. If the Workbook name is not set, it throws an error.
+         */
         Address.prototype.A1Workbook = function () {
-            if (typeof(_wbn) != "undefined" && _wbn != null)
-                return _wbn;
+            if (typeof(this._wbn) != "undefined" && this._wbn != null && !(this._wbn instanceof  FSharp.None))
+                return this._wbn;
             else
                 throw "Workbook string should never be unset";
         };
+        /**
+         * String representation of the Address in A1 format with the worksheet and workbook names
+         * @returns {string}
+         * @constructor
+         */
         Address.prototype.A1FullyQualified = function () {
             return "[" + this.A1Workbook() + "]" + this.A1Worksheet() + "!" + this.A1Local();
         };
+        /**
+         * Return the R1C1 string representation of the address
+         * @returns {string}
+         * @constructor
+         */
         Address.prototype.R1C1 = function () {
             var wsstr, wbstr;
-            if (typeof(_wsn) != "undefined" && _wsn != null)
-                wsstr = _wsn + "!";
+            if (typeof(this._wsn) != "undefined" && this._wsn != null && !(this._wsn instanceof  FSharp.None))
+                wsstr = this._wsn + "!";
             else
                 wsstr = "";
-            if (typeof(_wbn) != "undefined" && _wbn != null)
-                wbstr = "[" + _wbn + "]";
+            if (typeof(this._wbn) != "undefined" && this._wbn != null && !(this._wbn instanceof  FSharp.None))
+                wbstr = "[" + this._wbn + "]";
             else
                 wbstr = "";
             return wbstr + wsstr + "R" + this.Y + "C" + this.X;
         };
 
         Object.defineProperties(Address.prototype, { "WorksheetName": {"get": function () {
-            return _wsn;
+            return this._wsn;
         }, "set": function (value) {
-            _wsn = value;
+            this._wsn = value;
         }}});
         Object.defineProperties(Address.prototype, { "WorkbookName": {"get": function () {
-            return _wbn;
+            return this._wbn;
         }, "set": function (value) {
-            _wbn = value;
+            this._wbn = value;
         }}});
+
         Address.prototype.AddressAsInt32 = function () {
+            // convert to zero-based indices
+            // the modulus catches overflow; collisions are OK because our equality
+            // operator does an exact check
+            // underflow should throw an exception
             var col_idx, row_idx;
             col_idx = Math.floor(this.X - 1) % 65536;
             row_idx = Math.floor(this.Y - 1) % 65536;
+            if (col_idx < 0 || row_idx < 0)
+                throw new Error("Underflow occured.");
             return row_idx + (col_idx * Math.pow(2, 16));
         };
-        /*
-         //TODO Equals, SameAs and GetHashCode have to be implemented
-         */
+
+        //TODO Equals, SameAs and GetHashCode have to be implemented
+        // but it is not exactly clear what they will be used for
+        //TODO Maybe this should check if they are on the same sheet
         Address.prototype.InsideRange = function (/*Range*/ rng) {
-            return !(this.X < rng.getXLeft() || this.Y < rng.getYTop() || this.X > rng.getXRight() || this.Y > rng.getYBotton());
+            return !(this.X < rng.getXLeft() || this.Y < rng.getYTop() || this.X > rng.getXRight() || this.Y > rng.getYBottom());
         };
         //TODO GetComObject method has to be implemented but I don't know what it is needed for
 
@@ -144,29 +186,28 @@ AST = (function () {
     })();
 
     Range = (function () {
-        //Private:
-        var _tl, _br;
 
         function Range(/*Address*/ topleft, /*Address*/bottomright) {
-            _tl = topleft;
-            _br = bottomright;
+            this._tl = topleft;
+            this._br = bottomright;
         }
 
         Range.prototype.toString = function () {
-            return _tl.toString() + "," + _br.toString();
+            return this._tl.toString() + "," + this._br.toString();
         };
         Range.prototype.getXLeft = function () {
-            return _tl.X;
+            return this._tl.X;
         };
         Range.prototype.getXRight = function () {
-            return _br.X;
+            return this._br.X;
         };
         Range.prototype.getYTop = function () {
-            return _tl.Y;
+            return this._tl.Y;
         };
         Range.prototype.getYBottom = function () {
-            return _br.Y;
+            return this._br.Y;
         };
+        //TODO The logic behind these two functions seems a bit off. Check with Dan what these are actually supposed to do
         Range.prototype.InsideRange = function (/*Range*/ rng) {
             return !(this.getXLeft() < rng.getXLeft() || this.getYTop() < rng.getYTop() || this.getXRight() > rng.getXRight() || this.getYBottom() > rng.getYBottom());
         };
@@ -175,35 +216,32 @@ AST = (function () {
         }
         ;
         Range.prototype.SetWorksheetName = function (/*string*/ wsname) {
-            _tl.WorksheetName = wsname;
-            _br.WorksheetName = wsname;
+            this._tl.WorksheetName = wsname;
+            this._br.WorksheetName = wsname;
         };
         Range.prototype.SetWorkbookName = function (/*string*/ wbname) {
-            _tl.WorkbookName = wbname;
-            _br.WorkbookName = wbname;
+            this._tl.WorkbookName = wbname;
+            this._br.WorkbookName = wbname;
         };
         //TODO Implement GetComObject and find out what it actually does
         return Range;
     })();
 
     Reference = (function () {
-        //Private:
-        var _wbn, _wsn;
-        //Public:
         function Reference(/*string*/ wsname) {
-            _wbn = null;
-            _wsn = wsname;
+            this._wbn = null;
+            this._wsn = wsname;
         }
 
         Object.defineProperties(Reference.prototype, { "WorkbookName": {"get": function () {
-            return _wbn;
+            return this._wbn;
         }, "set": function (value) {
-            _wbn = value;
+            this._wbn = value;
         }}});
         Object.defineProperties(Reference.prototype, { "WorksheetName": {"get": function () {
-            return _wsn;
+            return this._wsn;
         }, "set": function (value) {
-            _wsn = value;
+            this._wsn = value;
         }}});
         Reference.prototype.InsideRef = function (/*Reference*/ ref) {
             return false;
@@ -212,42 +250,32 @@ AST = (function () {
             // we assume that missing workbook and worksheet
             // names mean that the address is local to the current
             // workbook and worksheet
-            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined") {
-                _wbn = this.WorkbookName;
+            if (this.WorkbookName == null || typeof(this.WorkbookName) == "undefined" || (this._wsn instanceof  FSharp.None)) {
+                this._wbn = wb.Name;
             }
-            else  {
-                _wbn = wb.Name;
-            }
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined") {
-                console.log("set");
-                _wsn = this.WorksheetName;
-            }
-            else {
-                console.log("reset");
-                _wsn = ws.Name;
+            if (this.WorksheetName == null || typeof(this.WorksheetName) == "undefined" && (this._wsn instanceof  FSharp.None)) {
+                this._wsn = ws.Name;
             }
         };
         return Reference;
     })();
-
+    //Left here!!!
     ReferenceRange = (function (_super) {
         __extends(ReferenceRange, _super);
-        //private:
-        var range;
 
         function ReferenceRange(/*string*/wsname, /*Range*/ rng) {
             _ref = ReferenceRange.__super__.constructor.apply(this, arguments);
-            range = rng;
-            range.SetWorksheetName(wsname);
+            this._range = rng;
+            this._range.SetWorksheetName(wsname);
             return _ref;
         }
 
         Object.defineProperties(ReferenceRange.prototype, { "Range": {"get": function () {
-            return range;
+            return this._range;
         }}});
 
         ReferenceRange.prototype.toString = function () {
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined") {
+            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined" && !(this.WorksheetName instanceof  FSharp.None)) {
                 return "ReferenceRange(" + this.WorksheetName + "," + this.Range.toString() + ")";
             }
             else
@@ -266,14 +294,14 @@ AST = (function () {
             // we assume that missing workbook and worksheet
             // names mean that the address is local to the current
             // workbook and worksheet
-            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined") {
+            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined"  && !(this.WorksheetName instanceof  FSharp.None)) {
                 this.Range.SetWorkbookName(this.WorkbookName);
             }
             else {
                 this.Range.SetWorkbookName(wb.Name);
                 this.WorkbookName = wb.Name;
             }
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined") {
+            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined"  && !(this.WorksheetName instanceof  FSharp.None)) {
                 this.Range.SetWorksheetName(this.WorksheetName);
             }
             else {
@@ -289,18 +317,17 @@ AST = (function () {
 
     ReferenceAddress = (function (_super) {
         __extends(ReferenceAddress, _super);
-        //private:
-        var address;
+
 
         function ReferenceAddress(/*string*/ wsname, /*Address*/ addr) {
             _ref9 = ReferenceAddress.__super__.constructor.apply(this, arguments);
-            address = addr;
-            address.WorksheetName = wsname;
+            this.address = addr;
+            this.address.WorksheetName = wsname;
             return _ref9;
         }
 
         Object.defineProperties(ReferenceAddress.prototype, { "Address": {"get": function () {
-            return address;
+            return  this.address;
         }}});
 
         ReferenceAddress.prototype.toString = function () {
@@ -344,26 +371,26 @@ AST = (function () {
     ReferenceFunction = (function (_super) {
         __extends(ReferenceFunction, _super);
         //private
-        var argumentList, functionName;
 
         function ReferenceFunction(/*string*/wsname, /*string*/ fnname, /*Expression list*/ arglist) {
             _ref1 = ReferenceFunction.__super__.constructor.apply(this, arguments);
-            argumentList = arglist;
-            functionName = fnname;
+            this.argumentList = arglist;
+            this.functionName = fnname;
             return _ref1;
         }
 
         Object.defineProperties(ReferenceFunction.prototype, { "ArgumentList": {"get": function () {
-            return argumentList;
+            return this.argumentList;
         }}});
         Object.defineProperties(ReferenceFunction.prototype, { "FunctionName": {"get": function () {
-            return functionName;
+            return this.functionName;
         }}});
         ReferenceFunction.prototype.toString = function () {
-            return functionName + "(" + argumentList.join(",") + ")";
+            return this.functionName + "(" + this.argumentList.join(",") + ")";
         };
         ReferenceFunction.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            for (var a in argumentList)
+            //TODO Maybe this should be considered an array
+            for (var a in this.argumentList)
                 a.Resolve(wb, ws);
         };
         return ReferenceFunction;
@@ -372,52 +399,48 @@ AST = (function () {
 
     ReferenceConstant = (function (_super) {
         __extends(ReferenceConstant, _super);
-        var _value;
-
         function ReferenceConstant(/*string */wsname, /*int*/ value) {
             _ref2 = ReferenceConstant.__super__.constructor.apply(this, arguments);
-            _value = value;
+            this._value = value;
             return _ref2;
         }
 
         ReferenceConstant.prototype.toString = function () {
-            return "Constant(" + _value + ")";
+            return "Constant(" + this._value + ")";
         };
         return ReferenceConstant;
     })(Reference);
 
     ReferenceString = (function (_super) {
         __extends(ReferenceString, _super);
-        var _value;
 
         function ReferenceString(/*string*/ wsname, /*string*/value) {
             _ref3 = ReferenceString.__super__.constructor.apply(this, arguments);
-            _value = value;
+            this._value = value;
             return _ref3;
         }
 
         ReferenceString.prototype.toString = function () {
-            return "String(" + _value + ")";
+            return "String(" + this._value + ")";
         };
         return ReferenceString;
     })(Reference);
 
     ReferenceNamed = (function (_super) {
         __extends(ReferenceNamed, _super);
-        var _varname;
 
         function ReferenceNamed(/*string*/wsname, /*string*/ varname) {
             _ref4 = ReferenceNamed.__super__.constructor.apply(this, arguments);
-            _varname = varname;
+            this._varname = varname;
             return _ref4;
         }
 
         ReferenceNamed.prototype.toString = function () {
             if (this.WorksheetName != null && typeof(this.WorksheetName) != 'undefined') {
-                return "ReferenceName(" + this.WorksheetName + "," + _varname + ")";
+                return "ReferenceName(" + this.WorksheetName + "," + this._varname + ")";
             }
             else
-                return "ReferenceName(None, " + _varname + ")";
+                return "ReferenceName(None, " + this._varname + ")";
         };
         return ReferenceNamed;
     })(Reference);
@@ -434,92 +457,88 @@ AST = (function () {
 
     ReferenceExpr = (function (_super) {
         __extends(ReferenceExpr, _super);
-        var reference;
 
         function ReferenceExpr(/*Reference*/ ref) {
             _ref5 = ReferenceExpr.__super__.constructor.apply(this, arguments);
-            reference = ref;
+            this.reference = ref;
             return _ref5;
         }
 
         Object.defineProperties(ReferenceExpr.prototype, { "Ref": {"get": function () {
-            return reference;
+            return this.reference;
         }}});
         ReferenceExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            reference.Resolve(wb, ws);
+            this.reference.Resolve(wb, ws);
         };
         return ReferenceExpr;
     })(Expression);
 
     BinOpExpr = (function (_super) {
         __extends(BinOpExpr, _super);
-        var _expr1, _expr2, _str;
-
         function BinOpExpr(/*string*/str, /*Expression*/expr1, /*Expression*/expr2) {
             _ref6 = BinOpExpr.__super__.constructor.apply(this, arguments);
-            _str = str;
-            _expr1 = expr1;
-            _expr2 = expr2;
+            this._str = str;
+            this._expr1 = expr1;
+            this._expr2 = expr2;
             return _ref6;
         }
 
         Object.defineProperties(BinOpExpr.prototype, { "Expr1": {"get": function () {
-            return _expr1;
+            return this._expr1;
         }}});
         Object.defineProperties(BinOpExpr.prototype, { "Expr2": {"get": function () {
-            return _expr2;
+            return this._expr2;
         }}});
         Object.defineProperties(BinOpExpr.prototype, { "Str": {"get": function () {
-            return _str;
+            return this._str;
         }}});
 
         BinOpExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            _expr1.Resolve(wb, ws);
-            _expr2.Resolve(wb, ws);
+            this._expr1.Resolve(wb, ws);
+            this._expr2.Resolve(wb, ws);
         };
         return BinOpExpr;
     })(Expression);
 
     UnaryOpExpr = (function (_super) {
         __extends(UnaryOpExpr, _super);
-        var _expr, _chr;
 
         function UnaryOpExpr(/*char*/chr, /*Expression*/expr) {
             _ref7 = UnaryOpExpr.__super__.constructor.apply(this, arguments);
-            _expr = expr;
-            _chr = chr;
+            this._expr = expr;
+            this._chr = chr;
             return _ref7;
         }
 
         Object.defineProperties(UnaryOpExpr.prototype, { "Expr": {"get": function () {
-            return _expr;
+            return this._expr;
         }}});
         Object.defineProperties(UnaryOpExpr.prototype, { "Chr": {"get": function () {
-            return _chr;
+            return this._chr;
         }}});
 
         UnaryOpExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            _expr.Resolve(wb, ws);
+            this._expr.Resolve(wb, ws);
         };
         return UnaryOpExpr;
     })(Expression);
 
     ParensExpr = (function (_super) {
         __extends(ParensExpr, _super);
-        var expr;
+
 
         function ParensExpr(/*Expression*/expr) {
             _ref8 = ParensExpr.__super__.constructor.apply(this, arguments);
-            expr = expr;
+            this.expr = expr;
             return _ref8;
         }
 
         Object.defineProperties(ParensExpr.prototype, { "Expr": {"get": function () {
-            return expr;
+            return this.expr;
         }}});
 
         ParensExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            expr.Resolve(wb, ws);
+            this.expr.Resolve(wb, ws);
         };
 
         return ParensExpr;
