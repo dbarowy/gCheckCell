@@ -1,5 +1,7 @@
 load:
   - src/AST.js
   - src/FSharp.js
+  - src/PEG.js
 test:
   - test/testAST.js
+  - test/testPEG.js

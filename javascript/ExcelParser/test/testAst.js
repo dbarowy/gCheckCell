@@ -64,6 +64,12 @@ TestCase("AddressTest", {
     "testAddressToString": function () {
         assertEquals("Whad did you do wrong?!", "(2,3)", this.address.toString());
     },
+    "testInsideAddr": function () {
+        var a = new AST.Address(1, 1, "sheet", "book");
+        var b = new AST.Address(2, 3, "sheet", "book");
+        assertEquals("This address is not inside the other address", false, this.address.InsideAddr(a));
+        assertEquals("This address is inside the other address", true, this.address.InsideAddr(b));
+    },
     setUp: function () {
         this.address = new AST.Address(2, 3, "sheetName", "workbookName");
     },
@@ -141,7 +147,53 @@ TestCase("ReferenceRangeTest", {
         assertEquals("This should be equal", "ReferenceRange(" + this.refRange.WorksheetName + "," + this.refRange.Range.toString() + ")", this.refRange.toString());
     },
     "testInsideRefRng": function () {
-    //    var addr = new AST.Address(2, 3, "sheetName", "workbookName");
+        //TODO Find a good mocking library and implement this test with mocks to assert that the right branch of the if/else statement is followed
+        /*
+         var a = new AST.ReferenceAddress("sheet",new AST.Address(1, 1, "sheet", "book"));
+         var b = new AST.ReferenceRange("sheetName", new AST.Range(new AST.Address(1, 1, "sheet", "book"), new AST.Address(5, 5, "sheet", "book")));
+         var c={};
+         */
+
+    },
+    "testResolve": function () {
+        var wb = new Object();
+        wb.Name = "WbName";
+        var ws = new Object();
+        ws.Name = "WsName";
+        this.refRange.Resolve(wb, ws);
+        assertEquals("Resolve failed1", wb.Name, this.refRange.WorkbookName);
+        assertEquals("Resolve failed2", "sheetName", this.refRange.WorksheetName);
+    }
+
+});
+
+TestCase("ReferenceAddressTest", {
+    setUp: function () {
+        this.refAddr = new AST.ReferenceAddress("sheetName", new AST.Address(1, 1, "sheet", "book"));
+    },
+    tearDown: function () {
+        delete this.refAddr;
+    },
+    "testToString": function () {
+        var a = new AST.ReferenceAddress("sheetName", new AST.Address(2, 3, "sheet", "book"));
+        a.WorksheetName = new FSharp.None();
+
+        assertEquals("This should be equal", "ReferenceAddress(" + this.refAddr.WorksheetName + ", " + this.refAddr.Address + ")", this.refAddr.toString());
+        assertEquals("This should be equal", "ReferenceAddress(None" + ", " + a.Address + ")", a.toString());
+    },
+    "testInsideRef": function () {
+        //TODO Find a good mocking library and implement this test with mocks to assert that the right branch of the if/else statement is followed
+
+    },
+    "testResolve": function () {
+        var wb = new Object();
+        wb.Name = "WbName";
+        var ws = new Object();
+        ws.Name = "WsName";
+        this.refRange.Resolve(wb, ws);
+        assertEquals("Resolve failed1", wb.Name, this.refRange.WorkbookName);
+        assertEquals("Resolve failed2", "sheetName", this.refRange.WorksheetName);
+
     }
 
 });

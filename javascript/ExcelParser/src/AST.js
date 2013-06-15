@@ -176,6 +176,9 @@ AST = (function () {
         Address.prototype.InsideRange = function (/*Range*/ rng) {
             return !(this.X < rng.getXLeft() || this.Y < rng.getYTop() || this.X > rng.getXRight() || this.Y > rng.getYBottom());
         };
+        Address.prototype.InsideAddr = function(/*Address*/addr){
+            return this.X == addr.X && this.Y == addr.Y;
+        }
         //TODO GetComObject method has to be implemented but I don't know what it is needed for
 
         Address.prototype.toString = function () {
@@ -259,7 +262,6 @@ AST = (function () {
         };
         return Reference;
     })();
-    //Left here!!!
     ReferenceRange = (function (_super) {
         __extends(ReferenceRange, _super);
 
@@ -282,10 +284,12 @@ AST = (function () {
                 return "ReferenceRange(None, " + this.Range.toString() + ")";
         };
         ReferenceRange.prototype.InsideRef = function (/*Reference*/ ref) {
-            if (ref instanceof ReferenceAddress)
+            if (ref instanceof ReferenceAddress) {
                 return  this.Range.InsideAddr(ref.Address);
-            else if (ref instanceof  ReferenceRange)
+            }
+            else if (ref instanceof  ReferenceRange){
                 return  this.Range.InsideRange(ref.Range);
+            }
             else
                 throw "Unknown Reference subclass.";
         };
@@ -294,14 +298,14 @@ AST = (function () {
             // we assume that missing workbook and worksheet
             // names mean that the address is local to the current
             // workbook and worksheet
-            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined"  && !(this.WorksheetName instanceof  FSharp.None)) {
+            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined" && !(this.WorksheetName instanceof  FSharp.None)) {
                 this.Range.SetWorkbookName(this.WorkbookName);
             }
             else {
                 this.Range.SetWorkbookName(wb.Name);
                 this.WorkbookName = wb.Name;
             }
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined"  && !(this.WorksheetName instanceof  FSharp.None)) {
+            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined" && !(this.WorksheetName instanceof  FSharp.None)) {
                 this.Range.SetWorksheetName(this.WorksheetName);
             }
             else {
@@ -331,7 +335,7 @@ AST = (function () {
         }}});
 
         ReferenceAddress.prototype.toString = function () {
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined") {
+            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined" && !(this.WorksheetName instanceof FSharp.None)) {
                 return "ReferenceAddress(" + this.WorksheetName.toString() + ", " + this.Address.toString() + ")";
             }
             else
@@ -343,21 +347,22 @@ AST = (function () {
                 return this.Address.InsideAddr(ref.Address);
             } else if (ref instanceof  ReferenceRange) {
                 return this.Address.InsideRange(ref.Range);
-            } else throw "Invalid Reference subclass.";
+            } else
+                throw new Error("Invalid Reference subclass.");
         };
 
         ReferenceAddress.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
             // always resolve the workbook name when it is missing
             // but only resolve the worksheet name when the
             // workbook name is not set
-            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined") {
+            if (this.WorkbookName != null && typeof(this.WorkbookName) != "undefined" && !(this.WorkbookName instanceof FSharp.None)) {
                 this.Address.WorkbookName = this.WorkbookName;
             }
             else {
                 this.Address.WorkbookName = wb.Name;
                 this.WorkbookName = wb.Name;
             }
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined") {
+            if (this.WorksheetName != null && typeof(this.WorksheetName) != "undefined" && !(this.WorksheetName instanceof  FSharp.None)) {
                 this.Address.WorksheetName = this.WorksheetName;
             }
             else {
@@ -372,7 +377,7 @@ AST = (function () {
         __extends(ReferenceFunction, _super);
         //private
 
-        function ReferenceFunction(/*string*/wsname, /*string*/ fnname, /*Expression list*/ arglist) {
+        function ReferenceFunction(/*string*/wsname, /*string*/ fnname, /*Expression[]*/ arglist) {
             _ref1 = ReferenceFunction.__super__.constructor.apply(this, arguments);
             this.argumentList = arglist;
             this.functionName = fnname;
@@ -389,9 +394,8 @@ AST = (function () {
             return this.functionName + "(" + this.argumentList.join(",") + ")";
         };
         ReferenceFunction.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            //TODO Maybe this should be considered an array
-            for (var a in this.argumentList)
-                a.Resolve(wb, ws);
+            for(var i=0; i < this.argumentList.length; i++)
+                this.argumentList[i].Resolve(wb,ws);
         };
         return ReferenceFunction;
 
@@ -436,7 +440,7 @@ AST = (function () {
         }
 
         ReferenceNamed.prototype.toString = function () {
-            if (this.WorksheetName != null && typeof(this.WorksheetName) != 'undefined') {
+            if (this.WorksheetName != null && typeof(this.WorksheetName) != 'undefined' && !(this.WorksheetName instanceof FSharp.None)) {
                 return "ReferenceName(" + this.WorksheetName + "," + this._varname + ")";
             }
             else
@@ -529,16 +533,16 @@ AST = (function () {
 
         function ParensExpr(/*Expression*/expr) {
             _ref8 = ParensExpr.__super__.constructor.apply(this, arguments);
-            this.expr = expr;
+            this._expr = expr;
             return _ref8;
         }
 
         Object.defineProperties(ParensExpr.prototype, { "Expr": {"get": function () {
-            return this.expr;
+            return this._expr;
         }}});
 
         ParensExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            this.expr.Resolve(wb, ws);
+            this._expr.Resolve(wb, ws);
         };
 
         return ParensExpr;
