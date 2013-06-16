@@ -1,4 +1,6 @@
-Int32 = s:[+-]?number: (d:[0-9]+ {return d.join("");} / h:("0"[xX][0-9a-fA-F]+) {return h.join("");} / o:("0"[oO][0-7]+) {return o.join("");}/ b:("0"[bB][01]+) {return b.join("");}) {return parseInt(s+number);} 
+Int32 = s:[+-]?number: ( oct:("0"[oO][0-7]+) { var res=[]; for(var i=0; i<oct.length; i++) if(oct[i] instanceof Array) res.push(oct[i].join("")); else res.push(oct[i]); var a = res.join(""); return parseInt(a.slice(0,1)+a.slice(2), 8);} / b:("0"[bB][01]+) 
+{ var res=[]; for(var i=0; i<b.length; i++) if(b[i] instanceof Array) res.push(b[i].join("")); else res.push(b[i]); var a = res.join(""); return parseInt(a.slice(0,1)+a.slice(2), 2);} / h:("0"[xX][0-9a-fA-F]+) { var res=[]; for(var i=0; i<h.length; i++)
+if(h[i] instanceof Array) res.push(h[i].join("")); else res.push(h[i]); var a = res.join(""); return parseInt(a, 16);} / d:[0-9]+ {return d.join("");}  ) {return parseInt(s+number);};
 AsciiUpper = [A-Z];
 character = [^\ufffe-\uffff] ;
 letter = [a-z] / [A-Z];
@@ -20,13 +22,12 @@ MoreAddrA1 = ":" r:AddrA1 {return r;};
 RangeA1 = r:AddrA1 l:MoreAddrA1 {return new AST.Range(r, l);};
 RangeAny = RangeR1C1 / RangeA1;
 
-WorksheetNameQuoted = "'" r:((! ['] character )+) "'" { var res=[]; for(var i=0; i<r.length; i++) res.push(r[i].join("")); return res.join("");};
+WorksheetNameQuoted = "\'" r:((! "\'" character )+) "\'" { var res=[]; for(var i=0; i<r.length; i++) res.push(r[i].join("")); return res.join("");};
 WorksheetNameUnquoted = r:((digit / letter) + ) {return r.join("");};
 WorksheetName = WorksheetNameQuoted / WorksheetNameUnquoted;
 
-WorkbookName = "[" r:((! [ \[ \] ] character )+) "]" { var res=[]; for(var i=0; i<r.length; i++) res.push(r[i].join("")); return res.join("");};
-//This should return null but null is already used to show an error parsing, I need to modify the AST accordingly.
-Workbook = WorkbookName / "" {return 0;};
+WorkbookName = "[" r:((! ("["/"]") character )+) "]" { var res=[]; for(var i=0; i<r.length; i++) res.push(r[i].join("")); return res.join("");};
+Workbook = WorkbookName / "" {return new FSharp.None();};
 
 RangeReferenceWorksheet =  (wsname:WorksheetName "!") rng:RangeAny {return new AST.ReferenceRange(wsname, rng);}
 RangeReferenceNoWorksheet = rng:RangeAny {return new AST.ReferenceRange(null, rng);}
@@ -46,11 +47,11 @@ ReferenceKinds = RangeReference / AddressReference / ConstantReference / StringR
 Reference = w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;}
 FunctionName = r:((letter / ".") +) {return r.join("");}
 Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFunction(null, f, args);} 
-ArgumentList = (ExpressionDecl (ExpressionDecl ",") *) ?	/*No idea what to return here*/
+ArgumentList = (ExpressionDecl (ExpressionDecl ",") *) ?	
 
 BinOpChar = "+" / "-" / "*" / "<" / ">"
 BinOp2Char = "<="
-BinOpLong = op:BinOp2Char exp:ExpressionDecl {return {operator:op, expression:exp};}	//Check if this is right
+BinOpLong = op:BinOp2Char exp:ExpressionDecl {return {operator:op, expression:exp};}	
 BinOpShort = BinOpChar ExpressionDecl {return {operator:op, expression:exp};}
 BinOp = BinOpLong / BinOpShort
 
