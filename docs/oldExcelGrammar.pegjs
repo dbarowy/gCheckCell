@@ -29,46 +29,42 @@ WorksheetName = WorksheetNameQuoted / WorksheetNameUnquoted;
 WorkbookName = "[" r:((! ("["/"]") character )+) "]" { var res=[]; for(var i=0; i<r.length; i++) res.push(r[i].join("")); return res.join("");};
 Workbook = WorkbookName / "" {return new FSharp.None();};
 
-RangeReferenceWorksheet =  (wsname:WorksheetName "!") rng:RangeAny {return new AST.ReferenceRange(wsname, rng);}
-RangeReferenceNoWorksheet = rng:RangeAny {return new AST.ReferenceRange(null, rng);}
+RangeReferenceWorksheet =  (wsname:WorksheetName "!") rng:RangeAny {return new AST.ReferenceRange(wsname, rng);};
+RangeReferenceNoWorksheet = rng:RangeAny {return new AST.ReferenceRange(null, rng);};
 RangeReference = RangeReferenceWorksheet / RangeReferenceNoWorksheet;
 
-AddressReferenceWorksheet = wsname:WorksheetName "!" addr:AnyAddr {return new AST.ReferenceAddress(wsname, addr);}
-AddressReferenceNoWorksheet = addr:AnyAddr {return new AST.ReferenceAddress(null, addr);}
-AddressReference = AddressReferenceWorksheet / AddressReferenceNoWorksheet
+AddressReferenceWorksheet = wsname:WorksheetName "!" addr:AnyAddr {return new AST.ReferenceAddress(wsname, addr);};
+AddressReferenceNoWorksheet = addr:AnyAddr {return new AST.ReferenceAddress(null, addr);};
+AddressReference = AddressReferenceWorksheet / AddressReferenceNoWorksheet;
 
 NamedReferenceFirstChar = "_" / letter;
 NamedReferenceLastChars = r:(("_" / letter / digit) *){return r.join("");};
-NamedReference = c:NamedReferenceFirstChar s:NamedReferenceLastChars {return new AST.ReferenceNamed(null, c+s);}
+NamedReference = c:NamedReferenceFirstChar s:NamedReferenceLastChars {return new AST.ReferenceNamed(null, c+s);};
 StringReference = ["] r:(!["] character) + ["] { var res=[]; for(var i=0; i<r.length; i++) res.push(r[i].join("")); return new AST.ReferenceString(null, res.join(""));};
-ConstantReference = r:Int32 {return new AST.ReferenceConstant(null, r);}
+ConstantReference = r:Int32 {return new AST.ReferenceConstant(null, r);};
 
-ReferenceKinds = RangeReference / AddressReference / ConstantReference / StringReference / NamedReference
-Reference = w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;}
-FunctionName = r:((letter / ".") +) {return r.join("");}
-Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFunction(null, f, args);} 
-ArgumentList = (ExpressionDecl (ExpressionDecl ",") *) ?	
+ReferenceKinds = RangeReference / AddressReference / ConstantReference / StringReference / NamedReference;
+Reference = w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;};
 
-BinOpChar = "+" / "-" / "*" / "<" / ">"
-BinOp2Char = "<="
-BinOpLong = op:BinOp2Char exp:ExpressionDecl {return {operator:op, expression:exp};}	
-BinOpShort = BinOpChar ExpressionDecl {return {operator:op, expression:exp};}
-BinOp = BinOpLong / BinOpShort
 
-UnaryOpChar = "+" / "-"
-Formula = "=" ExpressionDecl;
-ExpressionDecl = "(" ExpressionDecl ")" aux
-				/ "(" ExpressionDecl ")"
-				/ Function aux
-				/ Function 
-				/ Reference aux
-				/ Reference 
-				/ UnaryOpChar ExpressionDecl aux
-				/ UnaryOpChar ExpressionDecl;
-aux = BinOp ExpressionDecl
-	 / BinOp ExpressionDecl aux;
+BinOpChar = "+" / "-" / "*" / "<" / ">";
+BinOp2Char = "<=";
+BinOpLong = op:BinOp2Char exp:ExpressionDecl {return {operator:op, expression:exp};};	
+BinOpShort = op:BinOpChar exp:ExpressionDecl {return {operator:op, expression:exp};};
+BinOp = BinOpLong / BinOpShort;
 
-Formula = "=" ExpressionDecl
- 
+UnaryOpChar = "+" / "-";
+ParensExpr = "(" exp:ExpressionDecl ")" {return new AST.ParensExpr(exp);};
+ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);};
+ExpressionSimple = ExpressionAtom /  ParensExpr;
+UnaryOpExpr = op:UnaryOpChar exp:ExpressionDecl {return new AST.UnaryOpExpr(op,exp);};
+BinOpExpr = exp:ExpressionSimple lhs:BinOp {return new AST.BinOpExpr(lhs.operator, exp, lhs.expression);}
+ExpressionDecl =  UnaryOpExpr / BinOpExpr / ExpressionSimple;
+
+FunctionName = r:((letter / ".") +) {return r.join("");};
+Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFunction(null, f, args);} ;
+ArgumentList = res:((hd:ExpressionDecl tl:("," ExpressionDecl) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+
+Formula = "=" res:ExpressionDecl{return res;};
 
 

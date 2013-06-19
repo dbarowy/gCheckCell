@@ -45,7 +45,7 @@ FSharp = (function(){
         }}});
 
         return Some;
-    })()
+    })();
     FSharp.None = None;
     FSharp.Some = Some;
     return FSharp;
