@@ -6,6 +6,7 @@
  */
 var AST;
 AST = (function () {
+    "use strict";
     var ReferenceAddress, UnaryOpExpr, ParensExpr, Expression, BinOpExpr, ReferenceExpr, ReferenceRange, ReferenceFunction, ReferenceConstant, ReferenceNamed, Reference, Range, Address, ReferenceString, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9, __hasProp = {}.hasOwnProperty,
         __extends = function (child, parent) {
             for (var key in parent) {
@@ -105,10 +106,11 @@ AST = (function () {
          * @returns {*} Worksheet name associated with this address. If the Worksheet name is not set, it throws an error.
          */
         Address.prototype.A1Worksheet = function () {
-            if (typeof(this._wsn) != "undefined" && this._wsn != null && !(this._wsn instanceof  FSharp.None))
+            if (typeof(this._wsn) != "undefined" && this._wsn != null && !(this._wsn instanceof  FSharp.None)){
                 return this._wsn;
+            }
             else
-                throw "Worksheet string should never be unset";
+                throw new Error("Worksheet string should never be unset");
         };
         /**
          * Get the Workbook name
