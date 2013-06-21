@@ -1,3 +1,4 @@
+
 TestCase("AddressTest", {
     "testCharColToInt": function () {
         assertEquals("Should return the same result!", 1, AST.Address.CharColToInt("A"));
@@ -190,9 +191,9 @@ TestCase("ReferenceAddressTest", {
         wb.Name = "WbName";
         var ws = new Object();
         ws.Name = "WsName";
-        this.refRange.Resolve(wb, ws);
-        assertEquals("Resolve failed1", wb.Name, this.refRange.WorkbookName);
-        assertEquals("Resolve failed2", "sheetName", this.refRange.WorksheetName);
+        this.refAddr.Resolve(wb, ws);
+        assertEquals("Resolve failed1", wb.Name, this.refAddr.WorkbookName);
+        assertEquals("Resolve failed2", "sheetName", this.refAddr.WorksheetName);
 
     }
 
