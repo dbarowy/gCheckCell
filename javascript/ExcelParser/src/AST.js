@@ -226,7 +226,6 @@ AST = (function () {
         Range.prototype.getYBottom = function () {
             return this._br.Y;
         };
-        //TODO The logic behind these two functions seems a bit off. Check with Dan what these are actually supposed to do
         Range.prototype.InsideRange = function (/*Range*/ rng) {
             return !(this.getXLeft() < rng.getXLeft() || this.getYTop() < rng.getYTop() || this.getXRight() > rng.getXRight() || this.getYBottom() > rng.getYBottom());
         };
@@ -411,8 +410,8 @@ AST = (function () {
             return this._functionName + "(" + this._argumentList.join(",") + ")";
         };
         ReferenceFunction.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-            var i = this._argumentList.length;
-            while (--i) {
+            var i, len = this._argumentList.length;
+            for (i = 0; i < len; i++) {
                 this._argumentList[i].Resolve(wb, ws);
             }
         };
@@ -485,8 +484,8 @@ AST = (function () {
 
         inheritPrototype(ReferenceExpr, _super);
 
-        ReferenceExpr.prototype.toString = function(){
-            return this._reference.toString();
+        ReferenceExpr.prototype.toString = function () {
+            return "ReferenceExpr " + this._reference.toString();
         };
 
         Object.defineProperties(ReferenceExpr.prototype, { "Ref": {"get": function () {
@@ -501,16 +500,16 @@ AST = (function () {
 
     BinOpExpr = (function (_super) {
         function BinOpExpr(/*string*/op, /*Expression*/expr1, /*Expression*/expr2) {
-            _super.apply(this, _arguments);
+            _super.apply(this, arguments);
             this._op = op;
             this._expr1 = expr1;
             this._expr2 = expr2;
-            return _ref6;
         }
+
         inheritPrototype(BinOpExpr, _super);
 
-        BinOpExpr.prototype.toString = function(){
-            return this._expr1.toString() + this._op + this._expr2.toString();
+        BinOpExpr.prototype.toString = function () {
+            return "BinOpExpr (\"" + this._op + "\"," + this._expr1.toString() + "," + this._expr2.toString() + ")";
         };
 
         Object.defineProperties(BinOpExpr.prototype, { "Expr1": {"get": function () {
@@ -536,10 +535,11 @@ AST = (function () {
             this._expr = expr;
             this._op = op;
         }
+
         inheritPrototype(UnaryOpExpr, _super);
 
-        UnaryOpExpr.prototype.toString = function(){
-            return this._op +this._expr;
+        UnaryOpExpr.prototype.toString = function () {
+            return "UnaryOpExpr ('" + this._op + "'," + this._expr + ")";
         };
 
         Object.defineProperties(UnaryOpExpr.prototype, { "Expr": {"get": function () {
@@ -561,8 +561,8 @@ AST = (function () {
             this._expr = expr;
         }
 
-        ParensExpr.prototype.toString = function(){
-          return "("+this._expr +")";
+        ParensExpr.prototype.toString = function () {
+            return "ParensExpr (" + this._expr + ")";
         };
 
         Object.defineProperties(ParensExpr.prototype, { "Expr": {"get": function () {

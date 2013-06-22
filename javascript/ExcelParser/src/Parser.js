@@ -11,11 +11,9 @@ Parser = (function () {
     var Reference = PEG.buildParser("start=Reference;" + grammar);
     var Formula = PEG.buildParser("start=Formula;" + grammar);
 
-    function Parser() {
-    }
-
+    Parser={};
     //Take another look at the following 2 methods
-    Parser.RefAddrResolve = function (/*Reference*/ref, /*Workbook*/wb, /*Worksheet*/ws) {
+    Parser.refAddrResolve = function (/*Reference*/ref, /*Workbook*/wb, /*Worksheet*/ws) {
         ref.Resolve(wb, ws);
     };
 
@@ -25,24 +23,23 @@ Parser = (function () {
      * @param wb The current workbook
      * @param ws The current worksheet
      */
-    Parser.ExprAddrResolve = function (/*Expression*/expr, /*Workbook*/wb, /*Worksheet*/ws) {
+    Parser.exprAddrResolve = function (/*Expression*/expr, /*Workbook*/wb, /*Worksheet*/ws) {
         if (expr instanceof AST.ReferenceExpr) {
-            this.RefAddrResolve(expr.Ref, wb, ws);
+            this.refAddrResolve(expr.Ref, wb, ws);
         }
         if (expr instanceof  AST.BinOpExpr) {
-            this.ExprAddrResolve(expr.Expr1, wb, ws);
-            this.ExprAddrResolve(expr.Expr2, wb, ws);
+            this.exprAddrResolve(expr.Expr1, wb, ws);
+            this.exprAddrResolve(expr.Expr2, wb, ws);
         }
         if (expr instanceof AST.UnaryOpExpr) {
-            this.ExprAddrResolve(expr.Expr, wb, ws);
+            this.exprAddrResolve(expr.Expr, wb, ws);
         }
         if (expr instanceof AST.ParensExpr) {
-            this.ExprAddrResolve(expr.Expr);
+            this.exprAddrResolve(expr.Expr);
         }
     };
     /**
      * Strips spaces before parsing. It makes parsing easier but changes the formula semantics
-     * //TODO Ask Dan about the space operator as defined in the Excel specification
      * @param str
      * @returns {string}
      */
@@ -57,7 +54,7 @@ Parser = (function () {
      * @param ws Worksheet the address is part of
      * @returns {*} On success, it return an AST.Address object and on failure it returns FSharp.None()
      */
-    Parser.GetAddress = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
+    Parser.getAddress = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var address;
         try {
             address = AddrR1C1.parse(this.no_ws(str));
@@ -74,7 +71,7 @@ Parser = (function () {
      * @param str String representing an R1C1 range
      * @returns {*} On success, it return an AST.Range object, otherwise it returns FSharp.None
      */
-    Parser.GetRange = function (/*string*/str) {
+    Parser.getRange = function (/*string*/str) {
         try {
             return RangeR1C1.parse(this.no_ws(str));
         } catch (e) {
@@ -89,11 +86,11 @@ Parser = (function () {
      * @returns {*} On success it returns an AST.Reference object, on failure it returns FSharp.None()
      * @constructor
      */
-    Parser.GetReference = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
+    Parser.getReference = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var reference;
         try {
             reference = Reference.parse(this.no_ws(str));
-            this.RefAddrResolve(reference, wb, ws);
+            this.refAddrResolve(reference, wb, ws);
             return reference;
         } catch (e) {
             return new FSharp.None();
@@ -108,20 +105,17 @@ Parser = (function () {
      * @returns {*}Return the Expression generated from parsing the formula or FSharp.None on failure
      * @constructor
      */
-    Parser.ParseFormula = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
+    Parser.parseFormula = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var formula;
         try {
             formula = Formula.parse(this.no_ws(str));
-            this.ExprAddrResolve(formula, wb, ws);
+            this.exprAddrResolve(formula, wb, ws);
             return formula;
         } catch (e) {
             return new FSharp.None();
         }
     };
-    //TODO this seems inefficient. Extra overhead from calling the function. Could use !isNaN instead
-    Parser.isNumeric = function (/*string*/str) {
-        return !isNaN(str);
-    };
+
 
     return Parser;
 })();

@@ -15,6 +15,9 @@ FSharp = (function () {
      */
     function None() {
     }
+    None.prototype.toString=function(){
+      return "None";
+    };
 
     FSharp.None = None;
     return FSharp;

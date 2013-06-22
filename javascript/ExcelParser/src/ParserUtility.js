@@ -59,7 +59,7 @@ ParserUtility = (function () {
     ParserUtility.GetReferencesFromFormula = function (/*string*/formula, /*Workbook*/wb, /*Worksheet*/ws) {
         throw "Not implemented";
         /* let app = wb.Application
-         match ExcelParser.ParseFormula(formula, wb, ws) with
+         match ExcelParser.parseFormula(formula, wb, ws) with
          | Some(tree) ->
          let refs = GetExprRanges(tree)
          List.map (fun (r: AST.Range) -> r.GetCOMObject(wb.Application)) refs |> Seq.ofList
@@ -111,7 +111,7 @@ ParserUtility = (function () {
     ParserUtility.GetSingleCellReferencesFromFormula = function (/*string*/formula, /*Workbook*/wb, /*Worksheet*/ws) {
         throw "You must implement this method";
         /* let app = wb.Application
-         match ExcelParser.ParseFormula(formula, wb, ws) with
+         match ExcelParser.parseFormula(formula, wb, ws) with
          | Some(tree) -> GetSCExprRanges(tree) |> Seq.ofList
          | None -> [] |> Seq.ofList*/
     };
