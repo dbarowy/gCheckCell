@@ -1,3 +1,0 @@
-UnitTests:
--Address.CharColToInt
--Address.IntToColChars
