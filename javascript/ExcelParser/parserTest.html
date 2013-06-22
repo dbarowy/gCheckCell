@@ -14,14 +14,28 @@
             formula = formula.replace(" ", "")
             try{
                 aux = formulaParser.parse(formula);
-                console.log("Success:\n"+aux.toString());
+                return ("Success:\n"+aux.toString());
             }catch(e){
-                console.log("Failure:\n"+e);
+                return ("Failure:\n"+e);
             }
+        }
+
+        function process(){
+            var input, output, res;
+            input=document.getElementById("formulain");
+            output=document.getElementById("output");
+            output.innerHTML = test(input.value); 
         }
     </script>
 </head>
 <body>
+<form name="input" >
+<textarea id="formulain" rows="10" cols="30">
+</textarea>
+<input type="button" value="Parse" onClick="return process();">
+</form>
 
+<div id="output">
+</div>
 </body>
 </html>
