@@ -485,7 +485,7 @@ AST = (function () {
         inheritPrototype(ReferenceExpr, _super);
 
         ReferenceExpr.prototype.toString = function () {
-            return "ReferenceExpr " + this._reference.toString();
+            return "ReferenceExpr." + this._reference.toString();
         };
 
         Object.defineProperties(ReferenceExpr.prototype, { "Ref": {"get": function () {
@@ -509,7 +509,7 @@ AST = (function () {
         inheritPrototype(BinOpExpr, _super);
 
         BinOpExpr.prototype.toString = function () {
-            return "BinOpExpr (\"" + this._op + "\"," + this._expr1.toString() + "," + this._expr2.toString() + ")";
+            return "BinOpExpr(\"" + this._op + "\"," + this._expr1.toString() + "," + this._expr2.toString() + ")";
         };
 
         Object.defineProperties(BinOpExpr.prototype, { "Expr1": {"get": function () {
@@ -539,7 +539,7 @@ AST = (function () {
         inheritPrototype(UnaryOpExpr, _super);
 
         UnaryOpExpr.prototype.toString = function () {
-            return "UnaryOpExpr ('" + this._op + "'," + this._expr + ")";
+            return "UnaryOpExpr('" + this._op + "'," + this._expr + ")";
         };
 
         Object.defineProperties(UnaryOpExpr.prototype, { "Expr": {"get": function () {
@@ -562,7 +562,7 @@ AST = (function () {
         }
 
         ParensExpr.prototype.toString = function () {
-            return "ParensExpr (" + this._expr + ")";
+            return "ParensExpr(" + this._expr + ")";
         };
 
         Object.defineProperties(ParensExpr.prototype, { "Expr": {"get": function () {

@@ -51,7 +51,7 @@ TestCase("ParserTest", {
         "use strict";
         //I have already tested the formula parser in the PEG parser. This is a bit redundant
         var form = Parser.parseFormula("=ABS($A2:$A3)", this.wb, this.ws);
-        assertEquals("ReferenceExpr ABS(ReferenceExpr ReferenceRange(Worksheet,(2,1),(3,1)))", form.toString());
+        assertEquals("ReferenceExpr.ABS(ReferenceExpr.ReferenceRange(Worksheet,(2,1),(3,1)))", form.toString());
     }
 
 });

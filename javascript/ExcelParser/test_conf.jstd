@@ -3,6 +3,7 @@ load:
   - src/FSharp.js
   - src/PEG.js
   - src/Parser.js
+  - src/PEGParser.js
 test:
   - test/testAST.js
   - test/testPEG.js
