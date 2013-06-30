@@ -4,7 +4,9 @@ load:
   - src/PEG.js
   - src/Parser.js
   - src/PEGParser.js
+  - src/ParserUtility.js
 test:
   - test/testAST.js
   - test/testPEG.js
   - test/testParser.js
+  - test/testParserUtility.js

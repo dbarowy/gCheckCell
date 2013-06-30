@@ -178,16 +178,16 @@ AST = (function () {
             return row_idx + (col_idx * Math.pow(2, 16));
         };
 
-        //TODO Equals, SameAs and GetHashCode have to be implemented
+        //TODO equals, sameAs and getHashCode have to be implemented
         // but it is not exactly clear what they will be used for
 
-        Address.prototype.GetHashCode = function () {
-            return this.AddressAsInt32();
+        Address.prototype.getHashCode = function () {
+            return (""+this._wbn+"_"+this._wsn+"_"+this._x +"_"+ this._y);
         };
-        Address.prototype.SameAs = function () {
+        Address.prototype.sameAs = function () {
             throw new Error("This method must be implemented");
         };
-        Address.prototype.Equals = function () {
+        Address.prototype.equals = function () {
             throw new Error("This method must be implemented");
         };
 

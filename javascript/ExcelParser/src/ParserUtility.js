@@ -1,119 +1,139 @@
 /**
  * Author: Alexandru Toader
  */
-//TODO A plain old object is enough for this case but I realized it too late. Refactor it when you understand RequiredJS
-var ParserUtility;
-ParserUtility = (function () {
+var ParserUtility = {};
+
+
+ParserUtility.puntedFunction = function (/*string*/fnname) {
     "use strict";
+    return (fnname === "INDEX" || fnname === "HLOOKUP" || fnname === "VLOOKUP" || fnname === "LOOKUP" || fnname === "OFFSET");
+};
 
-    var ParserUtility = {};
-
-
-    ParserUtility.PuntedFunction = function (/*string*/fnname) {
-        return (fnname === "INDEX" || fnname === "HLOOKUP" || fnname === "VLOOKUP" || fnname === "LOOKUP" || fnname !== "OFFSET");
-    };
-
-    ParserUtility.GetRangeReferenceRanges = function (/*AST.ReferenceRange*/ ref) {
+ParserUtility.getRangeReferenceRanges = function (/*AST.ReferenceRange*/ ref) {
+    "use strict";
+    if (ref instanceof AST.ReferenceRange) {
         return new Array(ref.Range);
-    };
+    } else {
+        throw new Error("Unsupported type.");
+    }
 
-    ParserUtility.GetFunctionRanges = function (/*AST.ReferenceFunction*/ ref) {
-        var i = ref.ArgumentList.length, res = [];
-        if (this.PuntedFunction(ref.FunctionName)) {
-            return [];
-        } else {
-            while (--i) {
-                res.concat(this.GetExprRanges(ref.ArgumentList[i]));
-            }
+};
+
+ParserUtility.getFunctionRanges = function (/*AST.ReferenceFunction*/ ref) {
+    "use strict";
+    var i, len = ref.ArgumentList.length, res = [];
+    if (this.puntedFunction(ref.FunctionName)) {
+        return [];
+    } else {
+        for (i = 0; i < len; i++) {
+            res = res.concat(this.getExprRanges(ref.ArgumentList[i]));
         }
         return res;
-    };
+    }
 
-    ParserUtility.GetExprRanges = function (/*AST.Expression*/ expr) {
-        if (expr instanceof  AST.ReferenceExpr) {
-            return this.GetRanges(expr.Ref);
-        } else if (expr instanceof AST.BinOpExpr) {
-            return (this.GetExprRanges(expr.Expr1)).concat(this.GetExprRanges(expr.Expr2));
-        } else if (expr instanceof AST.UnaryOpExpr) {
-            return this.GetExprRanges(expr.Expr);
-        } else if (expr instanceof AST.ParensExpr) {
-            return this.GetExprRanges(expr.Expr);
-        } else {
-            throw new Error("Unknow reference type.");
+};
+
+ParserUtility.getExprRanges = function (/*AST.Expression*/ expr) {
+    "use strict";
+    if (expr instanceof  AST.ReferenceExpr) {
+        return this.getRanges(expr.Ref);
+    } else if (expr instanceof AST.BinOpExpr) {
+        return (this.getExprRanges(expr.Expr1)).concat(this.getExprRanges(expr.Expr2));
+    } else if (expr instanceof AST.UnaryOpExpr) {
+        return this.getExprRanges(expr.Expr);
+    } else if (expr instanceof AST.ParensExpr) {
+        return this.getExprRanges(expr.Expr);
+    } else {
+        throw new Error("Unknow reference type.");
+    }
+};
+
+ParserUtility.getRanges = function (/*AST.Reference*/ ref) {
+    "use strict";
+    if ((ref instanceof AST.ReferenceAddress) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ReferenceConstant) || (ref instanceof AST.ReferenceString)) {
+        return [];
+    }
+    else if (ref instanceof AST.ReferenceRange) {
+        return this.getRangeReferenceRanges(ref);
+    } else if (ref instanceof AST.ReferenceFunction) {
+        return this.getFunctionRanges(ref);
+    } else {
+        throw new Error("Unknow reference type.");
+    }
+};
+//TODO Test
+ParserUtility.getReferencesFromFormula = function (/*string*/formula, /*Workbook*/wb, /*Worksheet*/ws) {
+    var tree = Parser.parseFormula(formula, wb, ws), res = [];
+    var refs, i, len;
+    if (tree instanceof FSharp.None) {
+        return [];
+    }
+    else {
+        refs = ParserUtility.getExprRanges(tree);
+        len = refs.length;
+        for (i = 0; i < len; i++) {
+            //TODO getCOMObject has not been implemented and this might be subject to change
+            res.push(refs[i].getComObject());
         }
-    };
+    }
+    return res;
+};
+//Single cell variants
+ParserUtility.getSCExprRanges = function (/*AST.Expression*/expr) {
+    if (expr instanceof AST.ReferenceExpr) {
+        return this.getSCRanges(expr.Ref);
+    } else if (expr instanceof AST.BinOpExpr) {
+        return (this.getSCExprRanges(expr.Expr1)).concat(this.getSCExprRanges(expr.Expr2));
+    } else if (expr instanceof AST.UnaryOpExpr) {
+        return this.getSCExprRanges(expr.Expr);
+    } else if (expr instanceof AST.ParensExpr) {
+        return this.getSCExprRanges(expr.Expr);
+    } else {
+        throw new Error("Unknow expression type.");
+    }
+};
 
-    ParserUtility.GetRanges = function (/*AST.Reference*/ ref) {
-        if ((ref instanceof AST.ReferenceAddress) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ReferenceConstant) || (ref instanceof AST.ReferenceString)) {
-            return [];
+ParserUtility.getSCRanges = function (/*AST.Reference*/ref) {
+    if ((ref instanceof AST.ReferenceRange) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ReferenceConstant) || (ref instanceof AST.ReferenceString)) {
+        return [];
+    } else if (ref instanceof AST.ReferenceAddress) {
+        return this.getSCAddressReferenceRanges(ref);
+    } else if (ref instanceof AST.ReferenceFunction) {
+        return this.getSCFunctionRanges(ref);
+    } else {
+        throw new Error("Unknown reference type.");
+    }
+};
+
+ParserUtility.getSCAddressReferenceRanges = function (/*AST.ReferenceAddress*/ ref) {
+    "use strict";
+    if (ref instanceof AST.ReferenceAddress) {
+        return new Array(ref.Address);
+    }
+    else {
+        throw new Error("Unsupported type.");
+    }
+};
+
+ParserUtility.getSCFunctionRanges = function (/*AST.ReferenceFunction*/ ref) {
+    "use strict";
+    var i, len = ref.ArgumentList.length, res = [];
+    if (this.puntedFunction(ref.FunctionName)) {
+        return [];
+    } else {
+        for (i = 0; i < len; i++) {
+            res = res.concat(this.getSCExprRanges(ref.ArgumentList[i]));
         }
-        else if (ref instanceof AST.ReferenceRange) {
-            return this.GetRangeReferenceRanges(ref);
-        } else if (ref instanceof AST.ReferenceFunction) {
-            return this.GetFunctionRanges(ref);
-        } else {
-            throw new Error("Unknow reference type.");
-        }
-    };
+        return res;
+    }
+};
 
-    ParserUtility.GetReferencesFromFormula = function (/*string*/formula, /*Workbook*/wb, /*Worksheet*/ws) {
-        throw "Not implemented";
-        /* let app = wb.Application
-         match ExcelParser.parseFormula(formula, wb, ws) with
-         | Some(tree) ->
-         let refs = GetExprRanges(tree)
-         List.map (fun (r: AST.Range) -> r.GetCOMObject(wb.Application)) refs |> Seq.ofList
-         | None -> [] |> Seq.ofList*/
-    };
-
-    ParserUtility.GetSCExprRanges = function (/*AST.Expression*/expr) {
-        if (expr instanceof AST.ReferenceExpr) {
-            return this.GetSCRanges(expr.Ref);
-        } else if (expr instanceof AST.BinOpExpr) {
-            return (this.GetSCExprRanges(expr.Expr1)).concat(this.GetSCExprRanges(expr.Expr2));
-        } else if (expr instanceof AST.UnaryOpExpr) {
-            return this.GetSCExprRanges(expr.Expr);
-        } else if (expr instanceof AST.ParensExpr) {
-            return this.GetSCExprRanges(expr.Expr);
-        } else {
-            throw new Error("Unknow expression type.");
-        }
-    };
-
-    ParserUtility.GetSCRanges = function (/*AST.Reference*/ref) {
-        if ((ref instanceof AST.ReferenceRange) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ReferenceConstant) || (ref instanceof AST.ReferenceString)) {
-            return [];
-        } else if (ref instanceof AST.ReferenceAddress) {
-            return this.GetSCAddressReferenceRange(ref);
-        } else if (ref instanceof AST.ReferenceFunction) {
-            return this.GetSCFunctionRanges(ref);
-        } else {
-            throw new Error("Unknown reference type.");
-        }
-    };
-
-    ParserUtility.GetSCAddressReferenceRanges = function (/*AST.ReferenceAddress*/ ref) {
-        return new Array(ref);
-    };
-
-    ParserUtility.GetSCFunctionRanges = function (/*AST.ReferenceFunction*/ ref) {
-        var i = ref.ArgumentList.length, res = [];
-        if (this.PuntedFunction(ref.FunctionName)) {
-            return [];
-        } else {
-            while (--i) {
-                res.concat(this.GetSCExprRanges(ref.ArgumentList[i]));
-            }
-            return res;
-        }
-    };
-
-    ParserUtility.GetSingleCellReferencesFromFormula = function (/*string*/formula, /*Workbook*/wb, /*Worksheet*/ws) {
-        throw "You must implement this method";
-        /* let app = wb.Application
-         match ExcelParser.parseFormula(formula, wb, ws) with
-         | Some(tree) -> GetSCExprRanges(tree) |> Seq.ofList
-         | None -> [] |> Seq.ofList*/
-    };
-
-})();
+ParserUtility.getSingleCellReferencesFromFormula = function (/*string*/formula, /*Workbook*/wb, /*Worksheet*/ws) {
+    "use strict";
+    var tree = Parser.parseFormula(formula, wb, ws), res = [], i, len;
+    if (tree instanceof FSharp.None) {
+        return [];
+    } else {
+        return this.getSCExprRanges(tree);
+    }
+};
