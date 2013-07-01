@@ -1,49 +1,93 @@
-function XRange(/*XWorkbook*/wb, /*XWorksheet*/ws, /*int*/startRow, /*int*/startCol, /*int*/endRow, /*int*/endCol, /*string*/value, /*string*/formula) {
+/***
+ * Generic wrapper for domain specific objects.
+ * @param wb XWorkbook object that provides a link back to the context
+ * @param ws XWorksheet object that provides a link back to the context
+ * @param startRow
+ * @param startCol
+ * @param endRow
+ * @param endCol
+ * @param rng This parameter is provided when this range object has to be created from a domain specific Range object, not cached data.
+ * @constructor
+ */
+function XRange(/*XWorkbook*/wb, /*XWorksheet*/ws, /*int*/startRow, /*int*/startCol, /*int*/endRow, /*int*/endCol, /*optional Range*/rng) {
     "use strict";
+    this._GDocs = (typeof SpreadsheetApp !== "undefined");//Determines the type of the environment
     this.Workbook = wb;
     this.Worksheet = ws;
     this.startRow = startRow;
     this.startCol = startCol;
     this.endRow = endRow;
     this.endCol = endCol;
-    this._values = value;
-    this._formulas = formula;
+    this._range = rng;  //Domain specific range object
 }
+/**
+ * Check if all the cells in the range contain a formula.
+ * @returns {boolean}
+ */
 XRange.prototype.hasFormula = function () {
     "use strict";
-    if (this.startRow === this.endRow && this.startCol === this.endCol) {
-        return (this._formulas !== "" && this._formulas !== null);
-    }
-    else {
-        var ok = true, i, j;
-        for (i = 0; i < this.endRow - this.startRow + 1 && ok; i++) {
-            for (j = 0; j < this.endCol - this.startCol + 1 && ok; j++) {
-                if (this._formulas[i][j] === null || this._formulas[i][j] === "") {
-                    ok = false;
+    var formulas, i, j;
+    if (this._GDocs) {
+        if (typeof(this._range) !== "undefined") {
+            for (i = this.startRow - 1; i < this.endRow; i++) {
+                for (j = this.startCol - 1; j < this.endCol; j++) {
+                    if (this.Worksheet._formulas[i][j] === "" || this.Worksheet._formulas[i][j] === null) {
+                        return false;
+                    }
                 }
             }
+            return true;
+        } else {
+            formulas = this._range.getFormulas();
+            for (i = 0; i < formulas.length; i++) {
+                for (j = 0; j < formulas[i].length; j++) {
+                    if (formulas[i][j] === "" || formulas[i][j] === null) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
-        return ok;
+    } else {
+        throw new Error("Office implementation undefined");
     }
 
 };
+/**
+ * Get the formula in the top-left cell of the range.
+ * @returns {*}
+ */
 XRange.prototype.getFormula = function () {
     "use strict";
+    if (this._GDocs) {
+        if (typeof(this._range) !== "undefined") {
+            return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
+        } else {
+            this._range.getFormula();
+        }
+    } else {
+        throw new Error("Office implementation undefined");
+    }
     return this._formulas[0][0];
 };
-XRange.prototype.getFormulas = function () {
-    "use strict";
-    return this._formulas;
-};
+/**
+ * Get the number of rows in the range
+ * @returns {number}
+ */
 XRange.prototype.getRowCount = function () {
     "use strict";
     return this.endRow - this.startRow + 1;
 };
+/**
+ * Get the number of columns in the range
+ * @returns {number}
+ */
 XRange.prototype.getColumnCount = function () {
     "use strict";
     return this.endCol - this.startCol + 1;
 
 };
+
 XRange.prototype.getR1C1Address = function () {
     "use strict";
     if (this.startRow === this.endRow && this.startCol === this.endCol) {
@@ -53,6 +97,7 @@ XRange.prototype.getR1C1Address = function () {
     }
 
 };
+
 XRange.prototype.getA1Address = function () {
     "use strict";
     if (this.startRow === this.endRow && this.startCol === this.endCol) {
@@ -63,10 +108,10 @@ XRange.prototype.getA1Address = function () {
 };
 XRange.prototype.getWorksheet = function () {
     "use strict";
-    return this._ws;
+    return this.Worksheet;
 };
 XRange.prototype.getWorkbook = function () {
     "use strict";
-    return this._wb;
+    return this.Workbook;
 
 };

@@ -1,10 +1,17 @@
-function XWorkbook(/*Workbook*/ wb, /*XApplication*/app) {
+/**
+ * Generic Workbook interface.
+ * @param wb Domain specific workbook object
+ * @constructor
+ */
+function XWorkbook(/*Workbook*/ wb) {
     "use strict";
-    this._GDocs = (typeof SpreadsheetApp !== "undefined");
-    this._wb = wb;
-    this.Application=app;
+    this._GDocs = (typeof SpreadsheetApp !== "undefined");  //Determines if this is the GDocs environment
+    this._wb = wb;  //Domain specific workbook object
 }
 
+/**
+ * Getter for the name of the workbook
+ */
 Object.defineProperty(XWorkbook.prototype, "Name", {get: function () {
     "use strict";
     if (this._GDocs) {
@@ -13,7 +20,10 @@ Object.defineProperty(XWorkbook.prototype, "Name", {get: function () {
         throw new Error("Office implementation undefined.");
     }
 }});
-
+/**
+ * Get the sheets associated with this workbook.
+ * @returns {Array}
+ */
 XWorkbook.prototype.getWorksheets = function () {
     "use strict";
     var res = [], sheets, i, len;
