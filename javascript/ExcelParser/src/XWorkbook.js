@@ -38,5 +38,14 @@ XWorkbook.prototype.getWorksheets = function () {
     }
 };
 
+XWorkbook.prototype.getWorksheetByName = function(/*string*/name){
+    "use strict";
+    if(this._GDocs){
+        return new XWorksheet(this._wb.getSheetByName(name), this);
+    }else{
+        throw new Error("Office implementation undefined.");
+    }
+};
+
 
 

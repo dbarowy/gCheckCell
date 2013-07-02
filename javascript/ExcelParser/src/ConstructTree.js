@@ -6,7 +6,7 @@ var ConstructTree = {};
  * @param analysisData
  * @param app
  */
-ConstructTree.constructTree = function (/*AnalysisData*/analysisData, /*AppContext*/app) {
+ConstructTree.constructTree = function (/*AnalysisData*/analysisData, /*XApplication*/app) {
     "use strict";
     var nodes, i, formula_node, ranges, range_node, j, addresses, tn;
     analysisData.input_cells_in_computation_count = 0;
@@ -38,19 +38,60 @@ ConstructTree.constructTree = function (/*AnalysisData*/analysisData, /*AppConte
         //us to consider functions with single-cell inputs as outputs
         addresses = ParserUtility.getSingleCellReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
         for (j = 0; j < addresses.length; j++) {
-            if (analysisData.formula_nodes.containsKey(addresses[j])) {
-                tn = analysisData.formula_nodes.get(addresses[j]);
+            if (typeof(tn = analysisData.formula_nodes.get(addresses[j])) !== "undefined") {
                 if (tn.is_formula) {
                     tn.addChild(formula_node);
                     formula_node.addParent(tn);
                 }
             }
         }
+    }
+    //ConstructTree.storeOutputs(analysisData);
+};
 
+ConstructTree.generateGraphVizTree = function (/*HashMap*/nodes) {
+    "use strict";
+    var tree = "";
+    var i, entrySet = nodes.getEntrySet();
+    for (i = 0; i < entrySet.length; i++) {
+        tree += entrySet[i].Value.toGVString() + "\n";
+    }
+    return "digraph g{" + tree + "}";
+};
+
+ConstructTree.storeOutputs = function (/*AnalysisData*/data) {
+    "use strict";
+    var i, j, node, len, average, nodes = data.formula_nodes.getEntrySet(), sv;
+    var sum, parent_range, nodeWorksheet, cell, val;
+    for (i = 0, len = nodes.length; i < len; i++) {
+        node = nodes[i].Value;
+        if (!node.hasChildren() && node.hasParents()) {
+            data.output_cells.push(node);
+        }
     }
 
-
+    for (i = 0; i < data.output_cells.length; i++) {
+        if (data.output_cells[i].is_chart) {
+            sum = 0;
+            parent_range = data.output_cells[i].parents[0];
+            for (j = 0; j < parent_range.parents.length; j++) {
+                sum += parent_range.parents[j].worksheet.get_Range(parent_range.parents[j].name).getValue();
+            }
+            average = sum / parent_range.parents.length;
+            sv = new StartValue(average);
+            data.starting_outputs.push(sv);
+        } else {
+            //TODO the StartValue constrctor is overloaded but I do not take that into account
+            //Solve that when you find out why.
+            nodeWorksheet = data.output_cells[i].worksheet;//The worksheet where the node n is located
+            cell = nodeWorksheet.get_Range(data.output_cells[i].name);
+            val = cell.getValue();
+            sv = new StartValue(val);
+            data.starting_outputs.push(sv);
+        }
+    }
 };
+
 /**
  * Return a bidimensional array of cells with formulas.
  * Each item in the array represents an array of cells with formulas from the same sheet.
@@ -78,7 +119,6 @@ ConstructTree.getFormulaRanges = function (/*AppContext*/app) {
         }
     }
     return analysisRanges;
-
 };
 
 ConstructTree.countFormulaCells = function (/*XCell[][]*/ rs) {
@@ -87,7 +127,7 @@ ConstructTree.countFormulaCells = function (/*XCell[][]*/ rs) {
     for (i = 0, len = rs.length; i < len; i++) {
         count += rs[i].length;
     }
-    return i;
+    return count;
 };
 //Go through every sheet and create a node for every cell that contains a formula
 ConstructTree.createFormulaNodes = function (/*XRange[][]*/formulaRanges, /*XApplication*/app) {
@@ -102,7 +142,7 @@ ConstructTree.createFormulaNodes = function (/*XRange[][]*/formulaRanges, /*XApp
         }
         for (j = 0; j < formulaRanges[i].length; j++) {
             cell = formulaRanges[i][j];
-            if (cell.getValue() !== null) {
+            if (cell.getValue() !== null && cell.getValue() !== "") {
                 addr = Parser.getAddress(cell.getR1C1Address(), wb, ws);
                 n = new TreeNode(cell, cell.getA1Address(), ws, wb);
                 if (cell.hasFormula()) {

@@ -20,6 +20,20 @@ function XRange(/*XWorkbook*/wb, /*XWorksheet*/ws, /*int*/startRow, /*int*/start
     this.endCol = endCol;
     this._range = rng;  //Domain specific range object
 }
+
+XRange.prototype.getValue = function () {
+    "use strict";
+    if (this._GDocs) {
+        if (typeof(this._range) === "undefined") {
+            return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
+
+        } else {
+            return this._range.getValue();
+        }
+    } else {
+        throw new Error("Office implementation undefined");
+    }
+};
 /**
  * Check if all the cells in the range contain a formula.
  * @returns {boolean}
@@ -28,7 +42,7 @@ XRange.prototype.hasFormula = function () {
     "use strict";
     var formulas, i, j;
     if (this._GDocs) {
-        if (typeof(this._range) !== "undefined") {
+        if (typeof(this._range) === "undefined") {
             for (i = this.startRow - 1; i < this.endRow; i++) {
                 for (j = this.startCol - 1; j < this.endCol; j++) {
                     if (this.Worksheet._formulas[i][j] === "" || this.Worksheet._formulas[i][j] === null) {
@@ -60,15 +74,14 @@ XRange.prototype.hasFormula = function () {
 XRange.prototype.getFormula = function () {
     "use strict";
     if (this._GDocs) {
-        if (typeof(this._range) !== "undefined") {
+        if (typeof(this._range) === "undefined") {
             return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
         } else {
-            this._range.getFormula();
+            return this._range.getFormula();
         }
     } else {
         throw new Error("Office implementation undefined");
     }
-    return this._formulas[0][0];
 };
 /**
  * Get the number of rows in the range
@@ -105,13 +118,4 @@ XRange.prototype.getA1Address = function () {
     } else {
         return AST.Address.IntToColChars(this.startCol) + this.startRow + ":" + AST.Address.IntToColChars(this.endCol) + this.endRow;
     }
-};
-XRange.prototype.getWorksheet = function () {
-    "use strict";
-    return this.Worksheet;
-};
-XRange.prototype.getWorkbook = function () {
-    "use strict";
-    return this.Workbook;
-
 };

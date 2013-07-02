@@ -182,7 +182,7 @@ AST = (function () {
         // but it is not exactly clear what they will be used for
 
         Address.prototype.getHashCode = function () {
-            return (""+this._wbn+"_"+this._wsn+"_"+this._x +"_"+ this._y);
+            return ("" + this._wbn + "_" + this._wsn + "_" + this._x + "_" + this._y);
         };
         Address.prototype.sameAs = function () {
             throw new Error("This method must be implemented");
@@ -197,7 +197,9 @@ AST = (function () {
         Address.prototype.InsideAddr = function (/*Address*/addr) {
             return this.X === addr.X && this.Y === addr.Y;
         };
-        //TODO GetComObject method has to be implemented but I don't know what it is needed for
+        Address.prototype.GetCOMObject = function (/*XApplication*/app) {
+            return app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet).getRange(this._y, this._x);
+        };
 
         Address.prototype.toString = function () {
             return "(" + this.Y + "," + this.X + ")";
@@ -241,7 +243,9 @@ AST = (function () {
             this._tl.WorkbookName = wbname;
             this._br.WorkbookName = wbname;
         };
-        //TODO Implement GetComObject and find out what it actually does
+        Range.prototype.GetCOMObject = function (/*XApplication*/app) {
+            return app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
+        };
         return Range;
     })();
 

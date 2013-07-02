@@ -1,23 +1,25 @@
 /**
  * Data structure for representing nodes of the dependence graph (DAG) internally.
  * There are three type of nodes: cell, range, and formula nodes.
- * For normal cells, the name is just the address of the cell
- * For ranges, the name is of the format <EndCell>:<EndCell>, such as "A1:A5"
- * For chart nodes, the name begins with the string "Chart", followed by the name of the chart object from Excel, with the white spaces stripped
  * @param com Range object that represents the node in the document
  * @param name Name given to the node. It is used for identification
  * @param ws Worksheet object associated with the node
  * @param wb Workbook object associated with the node
  * @constructor
  */
+//TODO add functionality for charts
 function TreeNode(/*XRange*/com, /*string*/name, /*XWorksheet*/ws, /*XWorkbook*/wb) {
     "use strict";
-    this.parents = [];
-    this.children = [];
-    this.name = name;
+    this.parents = []; //these are the TreeNodes that feed into the current cell
+    this.children = []; //these are the TreeNodes that the current cell feeds into
+    this.name = name; //For normal cells, the name is just the address of the cell.
+                       // For ranges, the name is of the format <EndCell>:<EndCell>, such as "A1:A5"
+                       //For chart nodes, the name begins with the string "Chart", followed by the name of the chart object from Excel, with the white spaces stripped
     this.com = com;
-    this.worksheet = ws;
-    this.workbook = wb;
+    this.is_chart=false;
+    this.weight = 0; // The weight of the node as computed by propagating values down the tree
+    this.worksheet = ws; //Reference to the XWorksheet object where this range is located
+    this.workbook = wb; //Reference to the XWorkbook object where this range is located
     if (this.worksheet === null) {
         this.worksheet_name = "none";
     } else {
@@ -26,7 +28,7 @@ function TreeNode(/*XRange*/com, /*string*/name, /*XWorksheet*/ws, /*XWorkbook*/
     this.rows = this.com.getRowCount();
     this.columns = this.com.getColumnCount();
     if (this.rows === 1 && this.columns === 1) {
-        if (this.com.hasFormulas()) {
+        if (this.com.hasFormula()) {
             this.is_formula = true;
             this.formula = this.com.getFormula();
         } else {
@@ -39,14 +41,6 @@ function TreeNode(/*XRange*/com, /*string*/name, /*XWorksheet*/ws, /*XWorkbook*/
     this.dont_perturb = true;
 }
 
-TreeNode.prototype.dontPerturb = function () {
-    "use strict";
-    this.dont_perturb = true;
-};
-TreeNode.prototype.perturb = function () {
-    "use strict";
-    this.dont_perturb = false;
-};
 TreeNode.prototype.toString = function () {
     "use strict";
     var parents_string = "", children_string = "";
@@ -60,6 +54,15 @@ TreeNode.prototype.toString = function () {
     return this.name + "\nParents: " + parents_string + "\nChildren: " + children_string;
 };
 
+TreeNode.prototype.toGVString = function(){
+    "use strict";
+    var i, len, parents_string ="";
+    for(i=0, len=this.parents.length; i<len; i++){
+        parents_string+="\n"+this.parents[i].worksheet_name.replace(" ", "")+"_"+this.parents[i].name.replace(" ", "")+"->"+this.worksheet_name.replace(" ","")+"_"+this.name.replace(" ","");
+    }
+    return "\n"+this.worksheet_name.replace(" ","")+"_"+this.name.replace(" ","")+"[shape=ellipse]"+parents_string.replace("$","");
+};
+//TODO The iterating through the array can be optimized by implementing and replacing the array with a HashSet
 TreeNode.prototype.addParent = function (/*TreeNode*/node) {
     "use strict";
     var parent_already_added = false, i, len;
@@ -94,10 +97,10 @@ TreeNode.prototype.hasChildren = function () {
 
 TreeNode.prototype.hasParents = function () {
     "use strict";
-    return this.parents.length > 0;
+    return (this.parents.length > 0);
 };
 
-//TODO add functionality for charts
+
 TreeNode.prototype.isRange = function () {
     "use strict";
     return (this.name.indexOf(":") !== -1);

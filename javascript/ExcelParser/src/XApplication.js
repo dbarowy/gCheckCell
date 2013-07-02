@@ -7,8 +7,9 @@
 
 var XApplication = {
     _GDocs: typeof SpreadsheetApp !== "undefined",//Used to determine the environment
+
     /**
-     * Get the spreadsheets associated with the active document
+     * Get the spreadsheets in the active workbook
      * @returns {Array} an array of XSpreadsheet objects.
      */
     getWorksheets: function () {
@@ -40,6 +41,15 @@ var XApplication = {
             return new XWorkbook(SpreadsheetApp.getActiveSpreadsheet());
         } else {
             throw new Error("Office implementation inexistent.");
+        }
+    },
+    getWorkbookByName: function (name) {
+        "use strict";
+        if (this._GDocs) {
+            //TODO Figure out how cross workbook references work in GDocs
+            return new XWorkbook(SpreadsheetApp.getActiveSpreadsheet());
+        } else {
+            throw new Error("Office implementation not defined.");
         }
     }
 };
