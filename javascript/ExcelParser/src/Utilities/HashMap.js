@@ -1,5 +1,4 @@
-var HashMap;
-HashMap = (function () {
+define(function () {
     "use strict";
     function HashMap() {
         this._map = {};
@@ -27,4 +26,5 @@ HashMap = (function () {
         return res;
     };
     return HashMap;
-})();
+
+});

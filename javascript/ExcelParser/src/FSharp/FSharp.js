@@ -3,9 +3,7 @@
  * @Description This file contains implementation of FSharp specific objets or functionalities that were needed
  * to circumvent problems in PEG or other environment restrictions
  */
-
-var FSharp;
-FSharp = (function () {
+define(function () {
     "use strict";
     function FSharp() {
     }
@@ -15,10 +13,11 @@ FSharp = (function () {
      */
     function None() {
     }
-    None.prototype.toString=function(){
-      return "None";
+
+    None.prototype.toString = function () {
+        return "None";
     };
 
     FSharp.None = None;
     return FSharp;
-})();
+});

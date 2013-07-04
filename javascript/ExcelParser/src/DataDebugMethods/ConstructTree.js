@@ -109,8 +109,8 @@ ConstructTree.getFormulaRanges = function (/*AppContext*/app) {
         sheetRanges = [];
         for (j = 0, len1 = usedRange.length; j < len1; j++) {
             for (k = 0, len2 = usedRange[j].length; k < len2; k++) {
-                if (usedRange[i][j].hasFormula()) {
-                    sheetRanges.push(usedRange[i][j]);
+                if (usedRange[j][k].hasFormula()) {
+                    sheetRanges.push(usedRange[j][k]);
                 }
             }
         }

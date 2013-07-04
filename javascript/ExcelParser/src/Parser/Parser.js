@@ -2,12 +2,11 @@
  * Author: Alexandru Toader
  */
 
-var Parser;
-Parser = (function () {
+define(["AST/AST", "FSharp/FSharp", "Parser/PEGParser"], function (AST, FSharp, PEGParser) {
     "use strict";
-    Parser={};
+    var Parser = {};
     //Take another look at the following 2 methods
-    Parser.refAddrResolve = function (/*Reference*/ref, /*Workbook*/wb, /*Worksheet*/ws) {
+    Parser.refAddrResolve = function (/*Reference*/ref, /*XWorkbook*/wb, /*XWorksheet*/ws) {
         ref.Resolve(wb, ws);
     };
 
@@ -110,6 +109,7 @@ Parser = (function () {
         }
     };
 
-
     return Parser;
-})();
+
+})
+;
