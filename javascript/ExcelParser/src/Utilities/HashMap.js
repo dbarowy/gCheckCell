@@ -1,4 +1,4 @@
-define(function () {
+define("Utilities/HashMap", function () {
     "use strict";
     function HashMap() {
         this._map = {};

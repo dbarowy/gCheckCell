@@ -1,4 +1,4 @@
-define(["Parser/AST/Address", "AST/BinOpExpr", "AST/ParensExpr", "AST/Range", "AST/Reference", "AST/ReferenceAddress", "AST/ReferenceConstant", "AST/ReferenceExpr", "AST/ReferenceFunction", "AST/ReferenceNamed", "AST/ReferenceRange", "AST/ReferenceString", "AST/UnaryOpExpr"], function (Address, BinOpExpr, ParensExpr, Range, Reference, ReferenceAddress, ReferenceConstant, ReferenceExpr, ReferenceFunction, ReferenceNamed, ReferenceRange, ReferenceString, UnaryOpExpr) {
+define("Parser/AST/AST", ["Parser/AST/Address", "Parser/AST/BinOpExpr", "Parser/AST/ParensExpr", "Parser/AST/Range", "Parser/AST/Reference", "Parser/AST/ReferenceAddress", "Parser/AST/ReferenceConstant", "Parser/AST/ReferenceExpr", "Parser/AST/ReferenceFunction", "Parser/AST/ReferenceNamed", "Parser/AST/ReferenceRange", "Parser/AST/ReferenceString", "Parser/AST/UnaryOpExpr"], function (Address, BinOpExpr, ParensExpr, Range, Reference, ReferenceAddress, ReferenceConstant, ReferenceExpr, ReferenceFunction, ReferenceNamed, ReferenceRange, ReferenceString, UnaryOpExpr) {
     "use strict";
 
     return {

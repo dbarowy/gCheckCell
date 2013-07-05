@@ -2,7 +2,7 @@
  * Author: Alexandru Toader
  */
 
-define(["AST/AST", "FSharp/FSharp", "Parser/PEGParser"], function (AST, FSharp, PEGParser) {
+define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"], function (AST, FSharp, PEGParser) {
     "use strict";
     var Parser = {};
     //Take another look at the following 2 methods

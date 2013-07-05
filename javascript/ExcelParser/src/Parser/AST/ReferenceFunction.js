@@ -1,4 +1,4 @@
-define(["AST/Reference"], function (Reference) {
+define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);

@@ -1,13 +1,15 @@
-define(["XClasses/XWorksheet"], function (XWorksheet) {
+define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
     "use strict";
     /**
      * Generic Workbook interface.
      * @param wb Domain specific workbook object
      * @constructor
      */
-    function XWorkbook(/*Workbook*/ wb) {
+    function XWorkbook(/*Workbook*/ wb, /*XApplication*/app) {
         this._GDocs = (typeof SpreadsheetApp !== "undefined");  //Determines if this is the GDocs environment
         this._wb = wb;  //Domain specific workbook object
+        this.Application=app;
+
     }
 
     /**

@@ -1,6 +1,6 @@
 //TODO methods in this block use Range objects but those are not needed at initialization
 //Reference the range?
-define(["FSharp/FSharp"], function (FSharp) {
+define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
     "use strict";
     function Address(/*int*/ R, /*int*/C, /*string*/wsname, /*string*/ wbname) {
         this.WorksheetName = wsname;

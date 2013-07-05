@@ -1,4 +1,4 @@
-define(function () {
+define("Parser/AST/BinOpExpr", function () {
     "use strict";
     function BinOpExpr(/*string*/op, /*Expression*/expr1, /*Expression*/expr2) {
         this.Operator = op;

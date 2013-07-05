@@ -1,4 +1,4 @@
-define(function () {
+define("DataDebugMethods/TreeNode",function () {
     "use strict";
     /**
      * Data structure for representing nodes of the dependence graph (DAG) internally.
@@ -57,9 +57,9 @@ define(function () {
     TreeNode.prototype.toGVString = function () {
         var i, len, parents_string = "";
         for (i = 0, len = this.parents.length; i < len; i++) {
-            parents_string += "\n" + this.parents[i].worksheet_name.replace(" ", "") + "_" + this.parents[i].name.replace(" ", "") + "->" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "");
+            parents_string += "\n" + this.parents[i].worksheet_name.replace(" ", "") + "_" + this.parents[i].name.replace(" ", "").replace(":","") + "->" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":","");
         }
-        return "\n" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "") + "[shape=ellipse]" + parents_string.replace("$", "");
+        return "\n" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":","") + "[shape=ellipse]" + parents_string.replace("$", "");
     };
 //TODO The iterating through the array can be optimized by implementing and replacing the array with a HashSet
     TreeNode.prototype.addParent = function (/*TreeNode*/node) {

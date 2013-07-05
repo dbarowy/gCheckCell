@@ -1,4 +1,4 @@
-define(function(){
+define("Parser/PEG",function(){
     /*
      * PEG.js 0.7.0
      *

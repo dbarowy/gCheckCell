@@ -1,4 +1,4 @@
-define(["FSharp/FSharp"], function (FSharp) {
+define("Parser/AST/Reference", ["FSharp/FSharp"], function (FSharp) {
     "use strict";
     function Reference(/*string*/ wsname) {
         this.WorkbookName = null;

@@ -1,4 +1,4 @@
-define(["AST/AST"],function (AST) {
+define("XClasses/XRange", ["Parser/AST/AST"],function (AST) {
     "use strict";
 
     /***

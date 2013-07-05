@@ -1,7 +1,7 @@
 /**
  * Author: Alexandru Toader
  */
-define(["AST/AST", "Parser/Parser", "FSharp/FSharp"], function (AST, Parser, FSharp) {
+define("Parser/ParserUtility",["Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (AST, Parser, FSharp) {
     "use strict";
     var ParserUtility = {};
     ParserUtility.puntedFunction = function (/*string*/fnname) {

@@ -1,5 +1,5 @@
 //TODO We might have a case of circular referencing
-define(["AST/Reference", "AST/ReferenceAddress", "FSharp/FSharp"], function (Reference, ReferenceAddress, FSharp) {
+define("Parser/AST/ReferenceRange",["require","Parser/AST/Reference", "Parser/AST/ReferenceAddress", "FSharp/FSharp"], function (require,Reference, ReferenceAddress, FSharp) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -25,6 +25,9 @@ define(["AST/Reference", "AST/ReferenceAddress", "FSharp/FSharp"], function (Ref
     };
 
     ReferenceRange.prototype.InsideRef = function (/*Reference*/ ref) {
+        if(!ReferenceAddress){
+            ReferenceAddress=require("Parser/AST/ReferenceAddress");
+        }
         if (ref instanceof ReferenceAddress) {
             return this.Range.InsideAddr(ref.Address);
         }

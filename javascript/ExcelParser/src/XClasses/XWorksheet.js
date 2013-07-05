@@ -10,7 +10,7 @@
  * @constructor
  */
 
-define(["XClasses/XRange", "Parser/PEGParser"], function (XRange, PEGParser) {
+define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function (XRange, PEGParser) {
     "use strict";
     function XWorksheet(/*Worksheet*/ws, /*XWorkbook*/wb) {
         this._GDocs = (typeof SpreadsheetApp !== "undefined");

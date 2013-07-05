@@ -1,4 +1,4 @@
-define(function () {
+define("Parser/AST/ParensExpr", function () {
     "use strict";
     function ParensExpr(/*Expression*/expr) {
         this.Expr = expr;

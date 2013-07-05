@@ -1,4 +1,4 @@
-define(function () {
+define("Parser/AST/UnaryOpExpr", function () {
     "use strict";
     function UnaryOpExpr(/*char*/op, /*Expression*/expr) {
         this.Expr = expr;

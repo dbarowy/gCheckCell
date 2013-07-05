@@ -1,5 +1,5 @@
 //TODO Circular dependency
-define(["FSharp/FSharp", "AST/Reference", "AST/ReferenceRange"], function (FSharp, Reference, ReferenceRange) {
+define("Parser/AST/ReferenceAddress",["FSharp/FSharp", "Parser/AST/Reference", "Parser/AST/ReferenceRange"], function (FSharp, Reference, ReferenceRange) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);

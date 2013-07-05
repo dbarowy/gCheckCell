@@ -1,4 +1,4 @@
-define(["AST/Reference", "FSharp/FSharp"], function (Reference, FSharp) {
+define("Parser/AST/ReferenceNamed", ["Parser/AST/Reference", "FSharp/FSharp"], function (Reference, FSharp) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);

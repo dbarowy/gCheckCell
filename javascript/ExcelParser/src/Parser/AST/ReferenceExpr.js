@@ -1,4 +1,4 @@
-define(function () {
+define("Parser/AST/ReferenceExpr", function () {
     "use strict";
     function ReferenceExpr(/*Reference*/ ref) {
         this.Ref = ref;

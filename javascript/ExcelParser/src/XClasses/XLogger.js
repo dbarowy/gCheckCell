@@ -1,4 +1,4 @@
-define(function(){
+define("XClasses/XLogger", function(){
     "use strict";
     return {};
 });
