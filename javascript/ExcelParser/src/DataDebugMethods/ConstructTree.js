@@ -23,6 +23,7 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
 
         //Now we parse the formulas in nodes to extract any range and cell references
         nodes = analysisData.formula_nodes.getEntrySet();
+
         for (i = 0; i < nodes.length; i++) {
             formula_node = nodes[i].value;
             //For each of the ranges found in the formula by the parser
@@ -46,6 +47,7 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
                         formula_node.addParent(tn);
                     }
                 }
+
             }
         }
         //ConstructTree.storeOutputs(analysisData);
@@ -140,11 +142,11 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
         for (i = 0, len = formulaRanges.length; i < len; i++) {
             //All the cells in a list have the same sheet
             if (formulaRanges[i].length > 0) {
-                ws = formulaRanges[i][0].getSheet();
+                ws = formulaRanges[i][0].Worksheet;
             }
             for (j = 0; j < formulaRanges[i].length; j++) {
                 cell = formulaRanges[i][j];
-                if (cell.getValue() !== null && cell.getValue() !== "") {
+                if (cell.getValue()) {
                     addr = Parser.getAddress(cell.getR1C1Address(), wb, ws);
                     n = new TreeNode(cell, cell.getA1Address(), ws, wb);
                     if (cell.hasFormula()) {
@@ -153,6 +155,7 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
                         n.formula = cell.getFormula();
                         treeDict.put(addr, n);
                     }
+
                 }
             }
         }
@@ -165,7 +168,7 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
         var i, len;
         for (i = 0, len = range_nodes.length; i < len; i++) {
             //TODO This must be checked. Does getA1Address?
-            if (range_nodes[i].name === range.getA1Address()) {
+            if (range_nodes[i].name === range.getA1Address() && range_nodes[i].worksheet_name === range.Worksheet.Name) {
                 range_node = range_nodes[i];
                 break;
             }

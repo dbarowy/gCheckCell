@@ -47,7 +47,7 @@ ReferenceKinds = RangeReference / AddressReference / ConstantReference / StringR
 Reference = w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;};
 
 
-BinOpChar = "+" / "-" / "*" / "<" / ">";
+BinOpChar = "+" / "-" / "*" / "<" / ">" / "/";
 BinOp2Char = "<=";
 BinOpLong = op:BinOp2Char exp:ExpressionDecl {return {operator:op, expression:exp};};	
 BinOpShort = op:BinOpChar exp:ExpressionDecl {return {operator:op, expression:exp};};

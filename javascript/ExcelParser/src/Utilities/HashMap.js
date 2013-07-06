@@ -11,7 +11,8 @@ define("Utilities/HashMap", function () {
         delete this._map[key.getHashCode()];
     };
     HashMap.prototype.get = function (key) {
-        return this._map[key.getHashCode()];
+        var aux =this._map[key.getHashCode()];
+        return aux && aux.value;
     };
     HashMap.prototype.containsKey = function (key) {
         return (typeof(this._map[key.getHashCode()]) !== "undefined");

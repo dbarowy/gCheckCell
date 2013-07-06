@@ -1,4 +1,4 @@
-define("DataDebugMethods/TreeNode",function () {
+define("DataDebugMethods/TreeNode", function () {
     "use strict";
     /**
      * Data structure for representing nodes of the dependence graph (DAG) internally.
@@ -10,6 +10,7 @@ define("DataDebugMethods/TreeNode",function () {
      * @constructor
      */
 //TODO add functionality for charts
+//TODO add functionality for cross workbook references
     function TreeNode(/*XRange*/com, /*string*/name, /*XWorksheet*/ws, /*XWorkbook*/wb) {
         this.parents = []; //these are the TreeNodes that feed into the current cell
         this.children = []; //these are the TreeNodes that the current cell feeds into
@@ -57,15 +58,15 @@ define("DataDebugMethods/TreeNode",function () {
     TreeNode.prototype.toGVString = function () {
         var i, len, parents_string = "";
         for (i = 0, len = this.parents.length; i < len; i++) {
-            parents_string += "\n" + this.parents[i].worksheet_name.replace(" ", "") + "_" + this.parents[i].name.replace(" ", "").replace(":","") + "->" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":","");
+            parents_string += "\n" + this.parents[i].worksheet_name.replace(" ", "") + "_" + this.parents[i].name.replace(" ", "").replace(":", "") + "->" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":", "");
         }
-        return "\n" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":","") + "[shape=ellipse]" + parents_string.replace("$", "");
+        return "\n" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":", "") + "[shape=ellipse]" + parents_string.replace("$", "");
     };
 //TODO The iterating through the array can be optimized by implementing and replacing the array with a HashSet
     TreeNode.prototype.addParent = function (/*TreeNode*/node) {
         var parent_already_added = false, i, len;
         for (i = 0, len = this.parents.length; i < len; i++) {
-            if (node.name === this.parents[i].name) {
+            if (node.name === this.parents[i].name && node.worksheet_name === this.parents[i].worksheet_name) {
                 parent_already_added = true;
                 break;
             }
@@ -78,7 +79,7 @@ define("DataDebugMethods/TreeNode",function () {
         var child_already_added = false;
         var i, len;
         for (i = 0, len = this.children.length; i < len; i++) {
-            if (node.name === this.children[i].name) {
+            if (node.name === this.children[i].name && node.worksheet_name === this.parents[i].worksheet_name) {
                 child_already_added = true;
                 break;
             }
