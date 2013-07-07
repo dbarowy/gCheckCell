@@ -28,7 +28,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
             this.exprAddrResolve(expr.Expr, wb, ws);
         }
         if (expr instanceof AST.ParensExpr) {
-            this.exprAddrResolve(expr.Expr);
+            this.exprAddrResolve(expr.Expr,wb,ws);
         }
     };
     /**
