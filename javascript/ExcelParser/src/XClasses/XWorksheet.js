@@ -13,10 +13,9 @@
 define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function (XRange, PEGParser) {
     "use strict";
     function XWorksheet(/*Worksheet*/ws, /*XWorkbook*/wb) {
-        this._GDocs = (typeof SpreadsheetApp !== "undefined");
         this._ws = ws;
         this.Workbook = wb;
-        if (this._GDocs) {
+        if (typeof SpreadsheetApp !== "undefined") {
             this._range = this._ws.getDataRange();
             this._lastColumn = this._range.getLastColumn();
             this._lastRow = this._range.getLastRow();
@@ -25,13 +24,13 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
         }
     }
 
-    /**
-     * Get a matrix of Cells (XRange) representing the range in the sheet that has data.
-     * @returns {Array}
-     */
-    XWorksheet.prototype.getUsedRange = function () {
-        var i, j, len1, len2, range = [], row, aux;
-        if (this._GDocs) {
+    if ((typeof SpreadsheetApp !== "undefined")) {
+        /**
+         * Get a matrix of Cells (XRange) representing the range in the sheet that has data.
+         * @returns {Array}
+         */
+        XWorksheet.prototype.getUsedRange = function () {
+            var i, j, len1, len2, range = [], row, aux;
             for (i = 0, len1 = this._values.length; i < len1; i++) {
                 row = [];
                 for (j = 0, len2 = this._values[i].length; j < len2; j++) {
@@ -41,21 +40,16 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
                 range.push(row);
             }
             return range;
-        } else {
-            throw new Error("Office method not implemented.");
-        }
-    };
-    /**
-     * Get the specified range from the sheet.
-     * @param startRow
-     * @param startCol
-     * @param endRow This parameter is optional. If it is not specified, the cell at (startRow, startCol) will be returned.
-     * @param endCol This parameter is optional. If it is not specified, the cell at (startRow, startCol) will be returned.
-     * @returns {XRange}
-     * //TODO Bugs
-     */
-    XWorksheet.prototype.getRange = function (/*int*/startRow, /*int*/startCol, /*optional int*/endRow, /*optional int*/endCol) {
-        if (this._GDocs) {
+        };
+        /**
+         * Get the specified range from the sheet.
+         * @param startRow
+         * @param startCol
+         * @param endRow This parameter is optional. If it is not specified, the cell at (startRow, startCol) will be returned.
+         * @param endCol This parameter is optional. If it is not specified, the cell at (startRow, startCol) will be returned.
+         * @returns {XRange}
+         */
+        XWorksheet.prototype.getRange = function (/*int*/startRow, /*int*/startCol, /*optional int*/endRow, /*optional int*/endCol) {
             //Check if this range has the starting position in the used range
             if (typeof(endRow) === "undefined" && typeof(endCol) === "undefined") {
                 if (startRow <= this._lastRow && startCol <= this._lastColumn) {
@@ -70,20 +64,14 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
                     return new XRange(this.Workbook, this, startRow, startCol, endRow, endCol, this._ws.getRange(startRow, startCol, endRow - startRow + 1, endCol - startCol + 1));
                 }
             }
-        }
-        else {
-            throw new Error("Office method not implemented.");
-        }
-
-    };
-    /**
-     * Return the range given by the R1C1 or A1 notation. Works for both addresses and ranges.
-     * @param range
-     * @returns {*}
-     */
-    XWorksheet.prototype.get_Range = function (/*string*/range) {
-        var res;
-        if (this._GDocs) {
+        };
+        /**
+         * Return the range given by the R1C1 or A1 notation. Works for both addresses and ranges.
+         * @param range
+         * @returns {*}
+         */
+        XWorksheet.prototype.get_Range = function (/*string*/range) {
+            var res;
             try {
                 //Try to see if we have an address
                 res = PEGParser.parse(range, "AnyAddr");
@@ -94,20 +82,18 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
                 res = PEGParser.parse(range, "RangeAny");
                 return this.getRange(res.getYTop(), res.getXLeft(), res.getYBottom(), res.getXRight());
             }
-        } else {
-            throw new Error("Office method not implemented.");
-        }
-    };
-    /**
-     * Get the name of the sheet.
-     */
-    Object.defineProperty(XWorksheet.prototype, "Name", {get: function () {
-        if (this._GDocs) {
+        };
+        /**
+         * Get the name of the sheet.
+         */
+        Object.defineProperty(XWorksheet.prototype, "Name", {get: function () {
             return this._ws.getName();
-        }
-        else {
-            throw new Error("Office method not implemented.");
-        }
-    }});
+
+        }});
+    }
+    else {
+        throw new Error("Office methods not implemented.");
+    }
+
     return XWorksheet;
 });

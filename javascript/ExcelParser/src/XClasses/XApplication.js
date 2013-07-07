@@ -7,50 +7,41 @@
 
 define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet"], function (XWorkbook, XWorksheet) {
     "use strict";
-    return {
-        _GDocs: (typeof SpreadsheetApp !== "undefined"),//Used to determine the environment
-
-        /**
+    if (typeof SpreadsheetApp !== "undefined") {
+        var aux = new XWorkbook(SpreadsheetApp.getActiveSpreadsheet(), this);
+        return{  /**
          * Get the spreadsheets in the active workbook
          * @returns {Array} an array of XSpreadsheet objects.
          */
         getWorksheets: function () {
             var spread, xspread, res = [], i, len, sheets;
-            if (this._GDocs) {
-                if ((spread = SpreadsheetApp.getActiveSpreadsheet()) !== null) {
-                    xspread = new XWorkbook(spread, this);
-                    sheets = spread.getSheets();
-                    for (i = 0, len = sheets.length; i < len; i++) {
-                        res.push(new XWorksheet(sheets[i], xspread));
-                    }
-                    return res;
+            if ((spread = SpreadsheetApp.getActiveSpreadsheet()) !== null) {
+                xspread = new XWorkbook(spread, this);
+                sheets = spread.getSheets();
+                for (i = 0, len = sheets.length; i < len; i++) {
+                    res.push(new XWorksheet(sheets[i], xspread));
                 }
-                else {
-                    throw new Error("Fatal error retrieving the active spreadsheet.");
-                }
-            } else {
-                throw new Error("Office implementation inexistent.");
+                return res;
+            }
+            else {
+                throw new Error("Fatal error retrieving the active spreadsheet.");
             }
         },
-        /**
-         * Return the active workbook.
-         * @returns {XWorkbook}
-         */
-        getActiveWorkbook: function () {
-            if (this._GDocs) {
+            /**
+             * Return the active workbook.
+             * @returns {XWorkbook}
+             */
+            getActiveWorkbook: function () {
                 return new XWorkbook(SpreadsheetApp.getActiveSpreadsheet(), this);
-            } else {
-                throw new Error("Office implementation inexistent.");
-            }
-        },
-        getWorkbookByName: function (name) {
-            if (this._GDocs) {
+            },
+            getWorkbookByName: function (name) {
                 //TODO Figure out how cross workbook references work in GDocs
-                return new XWorkbook(SpreadsheetApp.getActiveSpreadsheet(), this);
-            } else {
-                throw new Error("Office implementation not defined.");
+                return aux;
             }
-        }
-    };
+
+        };
+    } else {
+        throw new Error("Office implementation inexistent.");
+    }
 
 });

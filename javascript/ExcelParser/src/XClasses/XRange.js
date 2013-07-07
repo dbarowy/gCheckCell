@@ -1,4 +1,4 @@
-define("XClasses/XRange", ["Parser/AST/AST"],function (AST) {
+define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
     "use strict";
 
     /***
@@ -13,7 +13,6 @@ define("XClasses/XRange", ["Parser/AST/AST"],function (AST) {
      * @constructor
      */
     function XRange(/*XWorkbook*/wb, /*XWorksheet*/ws, /*int*/startRow, /*int*/startCol, /*int*/endRow, /*int*/endCol, /*optional Range*/rng) {
-        this._GDocs = (typeof SpreadsheetApp !== "undefined");//Determines the type of the environment
         this.Workbook = wb;
         this.Worksheet = ws;
         this.startRow = startRow;
@@ -23,25 +22,21 @@ define("XClasses/XRange", ["Parser/AST/AST"],function (AST) {
         this._range = rng;  //Domain specific range object
     }
 
-    XRange.prototype.getValue = function () {
-        if (this._GDocs) {
+    if (typeof SpreadsheetApp !== "undefined") {
+        XRange.prototype.getValue = function () {
             if (typeof(this._range) === "undefined") {
                 return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
 
             } else {
                 return this._range.getValue();
             }
-        } else {
-            throw new Error("Office implementation undefined");
-        }
-    };
-    /**
-     * Check if all the cells in the range contain a formula.
-     * @returns {boolean}
-     */
-    XRange.prototype.hasFormula = function () {
-        var formulas, i, j;
-        if (this._GDocs) {
+        };
+        /**
+         * Check if all the cells in the range contain a formula.
+         * @returns {boolean}
+         */
+        XRange.prototype.hasFormula = function () {
+            var formulas, i, j;
             if (typeof(this._range) === "undefined") {
                 for (i = this.startRow - 1; i < this.endRow; i++) {
                     for (j = this.startCol - 1; j < this.endCol; j++) {
@@ -62,26 +57,52 @@ define("XClasses/XRange", ["Parser/AST/AST"],function (AST) {
                 }
                 return true;
             }
-        } else {
-            throw new Error("Office implementation undefined");
-        }
 
-    };
-    /**
-     * Get the formula in the top-left cell of the range.
-     * @returns {*}
-     */
-    XRange.prototype.getFormula = function () {
-        if (this._GDocs) {
+        };
+        /**
+         * Get the formula in the top-left cell of the range.
+         * @returns {*}
+         */
+        XRange.prototype.getFormula = function () {
             if (typeof(this._range) === "undefined") {
                 return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
             } else {
                 return this._range.getFormula();
             }
-        } else {
-            throw new Error("Office implementation undefined");
-        }
-    };
+        };
+
+        /**
+         * Return a bidimensional array of the cells that compose the range
+         * @returns {Array}
+         */
+        XRange.prototype.getCellMatrix = function () {
+            var i, j, row = [], range = [];
+            if (typeof(this._range) !== "undefined") {
+                for (i = this.startRow; i <= this.endRow; i++) {
+                    row = [];
+                    for (j = this.startCol; j <= this.endCol; j++) {
+                        row.push(this.Worksheet.getRange(i, j, i, j));
+                    }
+                    range.push(row);
+                }
+                return range;
+            } else {
+                for (i = this.startRow; i <= this.endRow; i++) {
+                    row = [];
+                    for (j = this.startCol; j <= this.endCol; j++) {
+                        row.push(new XRange(this.Workbook, this.Worksheet, i, j, i, j));
+                    }
+                    range.push(row);
+                }
+                return range;
+
+            }
+        };
+
+    } else {
+        throw new Error("Office methods not implemented.");
+    }
+
     /**
      * Get the number of rows in the range
      * @returns {number}
@@ -118,6 +139,7 @@ define("XClasses/XRange", ["Parser/AST/AST"],function (AST) {
     XRange.prototype.getSheet = function () {
         return this.Worksheet;
     };
+
     return XRange;
 
 });

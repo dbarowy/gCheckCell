@@ -10,11 +10,10 @@ define("DataDebugMethods/TreeNode", function () {
      * @constructor
      */
 //TODO add functionality for charts
-//TODO add functionality for cross workbook references
-    function TreeNode(/*XRange*/com, /*string*/name, /*XWorksheet*/ws, /*XWorkbook*/wb) {
+    function TreeNode(/*XRange*/com, /*XWorksheet*/ws, /*XWorkbook*/wb) {
         this.parents = []; //these are the TreeNodes that feed into the current cell
         this.children = []; //these are the TreeNodes that the current cell feeds into
-        this.name = name; //For normal cells, the name is just the address of the cell.
+        this.name = com.Workbook.Name + "_" + com.Worksheet.Name + "_" + com.getA1Address(); //For normal cells, the name is just the address of the cell.
         // For ranges, the name is of the format <EndCell>:<EndCell>, such as "A1:A5"
         //For chart nodes, the name begins with the string "Chart", followed by the name of the chart object from Excel, with the white spaces stripped
         this.com = com;
@@ -47,7 +46,7 @@ define("DataDebugMethods/TreeNode", function () {
         var parents_string = "", children_string = "";
         var i, len;
         for (i = 0, len = this.parents.length; i < len; i++) {
-            parents_string += this.parents[i].worksheet_name + " " + this.parents[i].name + ", ";
+            parents_string += this.parents[i].name + ", ";
         }
         for (i = 0, len = this.children.length; i < len; i++) {
             children_string += this.children[i].name + ", ";
@@ -58,15 +57,15 @@ define("DataDebugMethods/TreeNode", function () {
     TreeNode.prototype.toGVString = function () {
         var i, len, parents_string = "";
         for (i = 0, len = this.parents.length; i < len; i++) {
-            parents_string += "\n" + this.parents[i].worksheet_name.replace(" ", "") + "_" + this.parents[i].name.replace(" ", "").replace(":", "") + "->" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":", "");
+            parents_string += "\n" + this.parents[i].name.replace(" ", "").replace(":", "") + "->" + this.name.replace(" ", "").replace(":", "");
         }
-        return "\n" + this.worksheet_name.replace(" ", "") + "_" + this.name.replace(" ", "").replace(":", "") + "[shape=ellipse]" + parents_string.replace("$", "");
+        return "\n" + this.name.replace(" ", "").replace(":", "") + "[shape=ellipse]" + parents_string.replace("$", "");
     };
-//TODO The iterating through the array can be optimized by implementing and replacing the array with a HashSet
+
     TreeNode.prototype.addParent = function (/*TreeNode*/node) {
         var parent_already_added = false, i, len;
         for (i = 0, len = this.parents.length; i < len; i++) {
-            if (node.name === this.parents[i].name && node.worksheet_name === this.parents[i].worksheet_name) {
+            if (node.name === this.parents[i].name) {
                 parent_already_added = true;
                 break;
             }
@@ -79,7 +78,7 @@ define("DataDebugMethods/TreeNode", function () {
         var child_already_added = false;
         var i, len;
         for (i = 0, len = this.children.length; i < len; i++) {
-            if (node.name === this.children[i].name && node.worksheet_name === this.parents[i].worksheet_name) {
+            if (node.name === this.children[i].name) {
                 child_already_added = true;
                 break;
             }
@@ -88,6 +87,29 @@ define("DataDebugMethods/TreeNode", function () {
             this.children.push(node);
         }
     };
+    TreeNode.prototype.hasChild = function (/*TreeNode*/node) {
+        var child_already_added = false;
+        var i, len;
+        for (i = 0, len = this.children.length; i < len; i++) {
+            if (node.name === this.children[i].name) {
+                child_already_added = true;
+                break;
+            }
+        }
+        return child_already_added;
+    };
+
+    TreeNode.prototype.hasParent = function (/*TreeNode*/node) {
+        var parent_already_added = false, i, len;
+        for (i = 0, len = this.parents.length; i < len; i++) {
+            if (node.name === this.parents[i].name) {
+                parent_already_added = true;
+                break;
+            }
+        }
+        return parent_already_added;
+    };
+
     TreeNode.prototype.hasChildren = function () {
         return (this.children > 0);
     };
