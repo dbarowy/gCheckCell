@@ -8,25 +8,27 @@
 define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet"], function (XWorkbook, XWorksheet) {
     "use strict";
     if (typeof SpreadsheetApp !== "undefined") {
-        var aux = new XWorkbook(SpreadsheetApp.getActiveSpreadsheet(), this);
-        return{  /**
-         * Get the spreadsheets in the active workbook
-         * @returns {Array} an array of XSpreadsheet objects.
-         */
-        getWorksheets: function () {
-            var spread, xspread, res = [], i, len, sheets;
-            if ((spread = SpreadsheetApp.getActiveSpreadsheet()) !== null) {
-                xspread = new XWorkbook(spread, this);
-                sheets = spread.getSheets();
-                for (i = 0, len = sheets.length; i < len; i++) {
-                    res.push(new XWorksheet(sheets[i], xspread));
+        return{
+
+            _workbooks:{},
+            /**
+             * Get the spreadsheets in the active workbook
+             * @returns {Array} an array of XSpreadsheet objects.
+             */
+            getWorksheets: function () {
+                var spread, xspread, res = [], i, len, sheets;
+                if ((spread = SpreadsheetApp.getActiveSpreadsheet()) !== null) {
+                    xspread = new XWorkbook(spread, this);
+                    sheets = spread.getSheets();
+                    for (i = 0, len = sheets.length; i < len; i++) {
+                        res.push(new XWorksheet(sheets[i], xspread));
+                    }
+                    return res;
                 }
-                return res;
-            }
-            else {
-                throw new Error("Fatal error retrieving the active spreadsheet.");
-            }
-        },
+                else {
+                    throw new Error("Fatal error retrieving the active spreadsheet.");
+                }
+            },
             /**
              * Return the active workbook.
              * @returns {XWorkbook}
@@ -35,8 +37,11 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet"], f
                 return new XWorkbook(SpreadsheetApp.getActiveSpreadsheet(), this);
             },
             getWorkbookByName: function (name) {
-                //TODO Figure out how cross workbook references work in GDocs
-                return aux;
+                var book;
+                if(!(book=this._workbooks[name])){
+                    book = this._workbooks[name] = new XWorkbook(SpreadsheetApp.getActiveSpreadsheet(), this);
+                }
+                return book;
             }
 
         };

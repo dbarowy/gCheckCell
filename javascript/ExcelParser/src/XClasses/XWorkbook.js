@@ -7,6 +7,7 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
      */
     function XWorkbook(/*Workbook*/ wb, /*XApplication*/app) {
         this._wb = wb;  //Domain specific workbook object
+        this._sheets = {};
         this.Application = app;
     }
 
@@ -25,7 +26,11 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
         };
 
         XWorkbook.prototype.getWorksheetByName = function (/*string*/name) {
-            return new XWorksheet(this._wb.getSheetByName(name), this);
+            var sheet;
+            if (!(sheet = this._sheets[name])) {
+                this._sheets[name]=sheet = new XWorksheet(this._wb.getSheetByName(name), this);
+            }
+            return sheet;
         };
     } else {
         throw new Error("Office implementation undefined.");

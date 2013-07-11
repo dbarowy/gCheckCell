@@ -1,4 +1,9 @@
-define("XClasses/XLogger", function(){
+define("XClasses/XLogger", function () {
     "use strict";
-    return {};
+    if (SpreadsheetApp) {
+        return Logger;
+    }
+    else {
+        throw new Error("Undefined methods");
+    }
 });
