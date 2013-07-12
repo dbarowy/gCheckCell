@@ -1,4 +1,4 @@
-define("Parser/AST/Range", function () {
+define("Parser/AST/Range", ["Utilities/Profiler"],function (Profiler) {
     "use strict";
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
         this._tl = topleft;

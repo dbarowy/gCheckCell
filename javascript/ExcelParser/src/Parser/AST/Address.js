@@ -1,6 +1,6 @@
 //TODO methods in this block use Range objects but those are not needed at initialization
 //Reference the range?
-define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
+define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (FSharp, Profiler) {
     "use strict";
     function Address(/*int*/ R, /*int*/C, /*string*/wsname, /*string*/ wbname) {
         this.WorksheetName = wsname;
@@ -153,7 +153,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
     };
 
     Address.prototype.GetCOMObject = function (/*XApplication*/app) {
-        return app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
+        return  app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
     };
 
     Address.prototype.toString = function () {
