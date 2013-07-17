@@ -1,4 +1,4 @@
-define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser", "Utilities/Profiler"], function (StartValue, ParserUtility, HashMap, TreeNode, Parser, Profiler) {
+define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser"], function (StartValue, ParserUtility, HashMap, TreeNode, Parser) {
     "use strict";
     var ConstructTree = {};
     /**
@@ -17,14 +17,14 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
         //Get a range representing the formula cells for each worksheet in each workbook
         // XRange[][]
 
-        Profiler.start("getFormulaRanges");
+         
         var formulaRanges = ConstructTree.getFormulaRanges(app);
-        Profiler.end("getFormulaRanges");
+         
 
         //Create nodes for every cell containing a formula
-        Profiler.start("createFormulaNodes");
+         
         analysisData.formula_nodes = ConstructTree.createFormulaNodes(formulaRanges, app);
-        Profiler.end("createFormulaNodes");
+         
 
         //Now we parse the formulas in nodes to extract any range and cell references
         nodes = analysisData.formula_nodes.getEntrySet();
@@ -34,15 +34,15 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
 
             //For each of the ranges found in the formula by the parser
             //1.Make a TreeNode for the range
-            Profiler.start("getRangeReferencesFromFormula");
+             
             ranges = ParserUtility.getReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
-            Profiler.end("getRangeReferencesFromFormula");
+             
 
             for (j = 0; j < ranges.length; j++) {
 
-                Profiler.start("makeRangeTreeNode");
+                 
                 range_node = ConstructTree.makeRangeTreeNode(analysisData.input_ranges, ranges[j], formula_node);
-                Profiler.end("makeRangeTreeNode");
+                 
 
                 //     ConstructTree.createCellNodesFromRange(range_node, formula_node, analysisData.formula_nodes, analysisData.cell_nodes);
                 range_node.addChild(formula_node);
@@ -57,11 +57,11 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
             //link to output TreeNode if the input cell is a formula. This allows
             //us to consider functions with single-cell inputs as outputs
 
-            Profiler.start("getSCReferencesFromFormula");
+             
             addresses = ParserUtility.getSingleCellReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
-            Profiler.end("getSCReferencesFromFormula");
+             
 
-            Profiler.start("analyzeSCReferences");
+             
             for (j = 0; j < addresses.length; j++) {
                 if (typeof(tn = analysisData.formula_nodes.get(addresses[j])) !== "undefined") {
                     if (tn.is_formula) {
@@ -71,7 +71,7 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
                 }
 
             }
-            Profiler.end("analyzeSCReferences");
+             
         }
         //ConstructTree.storeOutputs(analysisData);
     };
@@ -217,13 +217,13 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
                 cell = formulaRanges[i][j];
                 if (cell.getValue()) {
 
-                    Profiler.start("createFormulaNodes/getAddress");
+                     
                     addr = Parser.getAddress(cell.getR1C1Address(), wb, ws);
-                    Profiler.end("createFormulaNodes/getAddress");
+                     
 
-                    Profiler.start("createFormulaNodes/treenode");
+                     
                     n = new TreeNode(cell, ws, wb);
-                    Profiler.end("createFormulaNodes/treenode");
+                     
                     if ((formula = cell.getFormula())) {
                         n.is_formula = true;
                         n.dont_perturb = true;

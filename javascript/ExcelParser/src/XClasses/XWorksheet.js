@@ -21,6 +21,7 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
             this._lastRow = this._range.getLastRow();
             this._values = this._range.getValues();
             this._formulas = this._range.getFormulas();
+            this.Name = this._ws.getName();
         }else{
             this._lastColumn = this._ws._lastColumn;
             this._lastRow = this._ws._lastRow;
@@ -88,13 +89,6 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
                 return this.getRange(res.getYTop(), res.getXLeft(), res.getYBottom(), res.getXRight());
             }
         };
-        /**
-         * Get the name of the sheet.
-         */
-        Object.defineProperty(XWorksheet.prototype, "Name", {get: function () {
-            return this._ws.getName();
-
-        }});
     }
     else {
       //  throw new Error("Office methods not implemented.");

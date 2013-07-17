@@ -9,12 +9,12 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
         this._wb = wb;  //Domain specific workbook object
         this._sheets = {};
         this.Application = app;
+        if(typeof SpreadsheetApp !== "undefined"){
+            this.Name = this._wb.getName();
+        }
     }
 
     if (typeof SpreadsheetApp !== "undefined") {
-        Object.defineProperty(XWorkbook.prototype, "Name", {get: function () {
-            return this._wb.getName();
-        }});
         XWorkbook.prototype.getWorksheets = function () {
             var res = [], sheets, i, len;
             sheets = this._wb.getSheets();

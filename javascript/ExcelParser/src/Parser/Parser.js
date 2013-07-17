@@ -2,12 +2,12 @@
  * Author: Alexandru Toader
  */
 
-define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"], function (AST, FSharp, PEGParser) {
+define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", "Utilities/Profiler"], function (AST, FSharp, PEGParser, Profiler) {
     "use strict";
     var Parser = {};
     //Take another look at the following 2 methods
     Parser.refAddrResolve = function (/*Reference*/ref, /*XWorkbook*/wb, /*XWorksheet*/ws) {
-        ref.Resolve(wb, ws);
+        return ref.Resolve(wb, ws);
     };
 
     /**
@@ -19,16 +19,8 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
     Parser.exprAddrResolve = function (/*Expression*/expr, /*Workbook*/wb, /*Worksheet*/ws) {
         if (expr instanceof AST.ReferenceExpr) {
             this.refAddrResolve(expr.Ref, wb, ws);
-        }
-        if (expr instanceof  AST.BinOpExpr) {
-            this.exprAddrResolve(expr.Expr1, wb, ws);
-            this.exprAddrResolve(expr.Expr2, wb, ws);
-        }
-        if (expr instanceof AST.UnaryOpExpr) {
-            this.exprAddrResolve(expr.Expr, wb, ws);
-        }
-        if (expr instanceof AST.ParensExpr) {
-            this.exprAddrResolve(expr.Expr,wb,ws);
+        }else{
+            expr.Resolve(wb,ws);
         }
     };
     /**
@@ -50,7 +42,9 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
     Parser.getAddress = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var address;
         try {
+            Profiler.start("ParsergetAddress");
             address = PEGParser.parse(this.no_ws(str), "AddrR1C1");
+            Profiler.end("ParsergetAddress");
             address.WorkbookName = wb.Name;
             address.WorksheetName = ws.Name;
             return address;
@@ -101,8 +95,13 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
     Parser.parseFormula = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var formula;
         try {
+            Profiler.start("ParsingFormula");
             formula = PEGParser.parse(this.no_ws(str), "Formula");
+            Profiler.end("ParsingFormula");
+
+            Profiler.start("ResolvingFormula");
             this.exprAddrResolve(formula, wb, ws);
+            Profiler.end("ResolvingFormula");
             return formula;
         } catch (e) {
             return new FSharp.None();

@@ -19,10 +19,10 @@ define("Parser/AST/Reference", ["FSharp/FSharp"], function (FSharp) {
         // we assume that missing workbook and worksheet
         // names mean that the address is local to the current
         // workbook and worksheet
-        if (this.WorkbookName === null || typeof(this.WorkbookName) === "undefined" || (this.WorksheetName instanceof  FSharp.None)) {
+        if ((this.WorksheetName instanceof  FSharp.None) || this.WorkbookName === null || typeof(this.WorkbookName) === "undefined") {
             this.WorkbookName = wb.Name;
         }
-        if (this.WorksheetName === null || typeof(this.WorksheetName) === "undefined" && (this.WorksheetName instanceof  FSharp.None)) {
+        if ((this.WorksheetName instanceof  FSharp.None) || this.WorksheetName === null || typeof(this.WorksheetName) === "undefined") {
             this.WorksheetName = ws.Name;
         }
     };
