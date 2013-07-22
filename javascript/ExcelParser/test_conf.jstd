@@ -1,12 +1,14 @@
 load:
-  - src/AST.js
-  - src/FSharp.js
-  - src/PEG.js
-  - src/Parser.js
-  - src/PEGParser.js
-  - src/ParserUtility.js
+  - lib/require.js
 test:
-  - test/testAST.js
-  - test/testPEG.js
-  - test/testParser.js
-  - test/testParserUtility.js
+  - test/testAst.js
+serve:
+  - src/XClasses/*.js
+  - src/Parser/*.js
+  - src/Parser/AST/*.js
+  - src/FSharp/*.js
+  - src/Utilities/*.js
+
+
+timeout: 90
+

@@ -1,4 +1,5 @@
-define("Utilities/Profiler", ["XClasses/XLogger"], function (XLogger) {
+//TODO add XLogger path
+define("Utilities/Profiler", function (XLogger) {
     "use strict";
     return  {
         start: function (name) {

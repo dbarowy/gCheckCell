@@ -1,3 +1,3 @@
 require.config({
-  baseUrl: '../src/'
+  baseUrl: '/test/src/'
 });
