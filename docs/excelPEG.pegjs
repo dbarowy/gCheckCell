@@ -140,14 +140,7 @@ R1C1_relative_number = "-" ? digit_sequence ;
 R1C1_absolute_number = digit_sequence ; 
 
 function_call = function_name "(" argument_list ? ")" ; 
-function_name  = prefixed_function_name 
-				/ user_defined_function_name ;
-
-/*All the functions in the table 18.17.7 but I don't think we need this distinction. 
-The originial grammar made a distinction between predefined function names and user defined function names*/ 
-
-prefixed_function_name = "ISO." user_defined_function_name 
-						/ "ECMA." user_defined_function_name ;
+function_name  = ("ISO."/"ECMA.")? user_defined_function_name;
 user_defined_function_name = letter user_defined_name_characters ? ;
 user_defined_name_characters = user_defined_name_character + ;
 user_defined_name_character = letter 
