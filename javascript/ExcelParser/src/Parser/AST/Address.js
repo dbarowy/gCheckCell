@@ -24,6 +24,7 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
     Address.CharColToInt = function (/*string */ col) {
         var idx, num = 0, reg, ltr = 0;
         idx = col.length - 1;
+        col = col.toUpperCase();
         reg = new RegExp("\\b[A-Z]+\\b");
         if (!reg.test(col)) {
             throw new Error("The column string doesn't respect the specification");

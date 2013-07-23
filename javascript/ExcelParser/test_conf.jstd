@@ -1,14 +1,12 @@
 load:
   - lib/require.js
-test:
-  - test/testAst.js
 serve:
   - src/XClasses/*.js
   - src/Parser/*.js
   - src/Parser/AST/*.js
   - src/FSharp/*.js
   - src/Utilities/*.js
+test:
+  - test/testPEG.js
 
-
-timeout: 90
 

@@ -1,3 +1,4 @@
 require.config({
-  baseUrl: '/test/src/'
+    urlArgs: "bust=" + (new Date()).getTime(),
+    baseUrl : "/test/src/"
 });
