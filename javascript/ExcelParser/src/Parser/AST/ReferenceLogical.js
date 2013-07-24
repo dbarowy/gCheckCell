@@ -1,3 +1,7 @@
+/**
+ * This file contains the ReferenceLogical class.
+ * This class is used to represent logical constants in the formulas: TRUE/FALSE
+ */
 define("Parser/AST/ReferenceLogical", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

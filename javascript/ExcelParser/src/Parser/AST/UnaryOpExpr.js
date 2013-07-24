@@ -1,3 +1,8 @@
+/**
+ * This file contains the UnaryOpExpr class.
+ * This class is used to represent expressions with prefix operators.
+ * Example: -A2, +a5, -3
+ */
 define("Parser/AST/UnaryOpExpr", function () {
     "use strict";
     function UnaryOpExpr(/*char*/op, /*Expression*/expr) {

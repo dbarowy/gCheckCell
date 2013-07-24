@@ -1,28 +1,11 @@
 /**
- * Author: Alexandru Toader
+ * This file contains a simple interface for the PEGParser.
+ *
  */
 
-define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", "Utilities/Profiler"], function (AST, FSharp, PEGParser, Profiler) {
+define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"], function (AST, FSharp, PEGParser) {
     "use strict";
     var Parser = {};
-    //Take another look at the following 2 methods
-    Parser.refAddrResolve = function (/*Reference*/ref, /*XWorkbook*/wb, /*XWorksheet*/ws) {
-        return ref.Resolve(wb, ws);
-    };
-
-    /**
-     * Resolve all undefined references to the current worksheet and workbook
-     * @param expr The expression to resolve
-     * @param wb The current workbook
-     * @param ws The current worksheet
-     */
-    Parser.exprAddrResolve = function (/*Expression*/expr, /*Workbook*/wb, /*Worksheet*/ws) {
-        if (expr instanceof AST.ReferenceExpr) {
-            this.refAddrResolve(expr.Ref, wb, ws);
-        }else{
-            expr.Resolve(wb,ws);
-        }
-    };
     /**
      * Strips spaces before parsing. It makes parsing easier but changes the formula semantics
      * @param str
@@ -42,9 +25,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
     Parser.getAddress = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var address;
         try {
-            Profiler.start("ParsergetAddress");
             address = PEGParser.parse(this.no_ws(str), "AddrR1C1");
-            Profiler.end("ParsergetAddress");
             address.WorkbookName = wb.Name;
             address.WorksheetName = ws.Name;
             return address;
@@ -77,7 +58,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         var reference;
         try {
             reference = PEGParser.parse(this.no_ws(str), "Reference");
-            this.refAddrResolve(reference, wb, ws);
+            reference.Resolve(wb,ws);
             return reference;
         } catch (e) {
             return new FSharp.None();
@@ -95,13 +76,8 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
     Parser.parseFormula = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var formula;
         try {
-            Profiler.start("ParsingFormula");
             formula = PEGParser.parse(this.no_ws(str), "Formula");
-            Profiler.end("ParsingFormula");
-
-            Profiler.start("ResolvingFormula");
-            this.exprAddrResolve(formula, wb, ws);
-            Profiler.end("ResolvingFormula");
+            formula.Resolve(wb,ws);
             return formula;
         } catch (e) {
             return new FSharp.None();

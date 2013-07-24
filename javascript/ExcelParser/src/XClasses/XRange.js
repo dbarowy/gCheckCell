@@ -103,51 +103,29 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         //throw new Error("Office methods not implemented.");
 
         XRange.prototype.getValue = function () {
-            if (typeof(this._range) === "undefined") {
-                return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
-
-            } else {
-                return this._range.getValue();
-            }
+            return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
         };
         /**
          * Check if all the cells in the range contain a formula.
          * @returns {boolean}
          */
         XRange.prototype.hasFormula = function () {
-            var formulas, i, j;
-            if (typeof(this._range) === "undefined") {
-                for (i = this.startRow - 1; i < this.endRow; i++) {
-                    for (j = this.startCol - 1; j < this.endCol; j++) {
-                        if (this.Worksheet._formulas[i][j] === "" || this.Worksheet._formulas[i][j] === null) {
-                            return false;
-                        }
+            var i, j;
+            for (i = this.startRow - 1; i < this.endRow; i++) {
+                for (j = this.startCol - 1; j < this.endCol; j++) {
+                    if (this.Worksheet._formulas[i][j] === "" || this.Worksheet._formulas[i][j] === null) {
+                        return false;
                     }
                 }
-                return true;
-            } else {
-                formulas = this._range.getFormulas();
-                for (i = 0; i < formulas.length; i++) {
-                    for (j = 0; j < formulas[i].length; j++) {
-                        if (formulas[i][j] === "" || formulas[i][j] === null) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
             }
-
+            return true;
         };
         /**
          * Get the formula in the top-left cell of the range.
          * @returns {*}
          */
         XRange.prototype.getFormula = function () {
-            if (typeof(this._range) === "undefined") {
-                return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
-            } else {
-                return this._range.getFormula();
-            }
+            return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
         };
 
         /**
@@ -156,26 +134,15 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
          */
         XRange.prototype.getCellMatrix = function () {
             var i, j, row = [], range = [];
-            if (typeof(this._range) !== "undefined") {
-                for (i = this.startRow; i <= this.endRow; i++) {
-                    row = [];
-                    for (j = this.startCol; j <= this.endCol; j++) {
-                        row.push(this.Worksheet.getRange(i, j, i, j));
-                    }
-                    range.push(row);
+            for (i = this.startRow; i <= this.endRow; i++) {
+                row = [];
+                for (j = this.startCol; j <= this.endCol; j++) {
+                    row.push(this.Worksheet.getRange(i, j, i, j));
                 }
-                return range;
-            } else {
-                for (i = this.startRow; i <= this.endRow; i++) {
-                    row = [];
-                    for (j = this.startCol; j <= this.endCol; j++) {
-                        row.push(new XRange(this.Workbook, this.Worksheet, i, j, i, j));
-                    }
-                    range.push(row);
-                }
-                return range;
-
+                range.push(row);
             }
+            return range;
+
         };
     }
 

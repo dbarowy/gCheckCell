@@ -1,3 +1,7 @@
+/**
+ * This file contains the ReferenceFunction class.
+ * This class is used to represent function calls in the formulas.
+ */
 define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

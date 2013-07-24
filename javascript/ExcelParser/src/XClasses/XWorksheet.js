@@ -23,10 +23,11 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
             this._formulas = this._range.getFormulas();
             this.Name = this._ws.getName();
         }else{
-            this._lastColumn = this._ws._lastColumn;
-            this._lastRow = this._ws._lastRow;
-            this._values = this._ws._values;
-            this._formulas = this._ws._formulas;
+            this.Name = ws.name;
+            this._values = ws.values;
+            this._formulas = ws.formulas;
+            this._lastRow = ws.values.length;
+            this._lastColumn = ws.values[0].length;
         }
     }
 
@@ -97,12 +98,11 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
          * @returns {Array}
          */
         XWorksheet.prototype.getUsedRange = function () {
-            var i, j, len1, len2, range = [], row, aux;
+            var i, j, len1, len2, range = [], row;
             for (i = 0, len1 = this._values.length; i < len1; i++) {
                 row = [];
                 for (j = 0, len2 = this._values[i].length; j < len2; j++) {
-                    aux = new XRange(this.Workbook, this, i + 1, j + 1, i + 1, j + 1);
-                    row.push(aux);
+                    row.push(new XRange(this.Workbook, this, i + 1, j + 1, i + 1, j + 1));
                 }
                 range.push(row);
             }
@@ -150,13 +150,6 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
                 return this.getRange(res.getYTop(), res.getXLeft(), res.getYBottom(), res.getXRight());
             }
         };
-        /**
-         * Get the name of the sheet.
-         */
-        Object.defineProperty(XWorksheet.prototype, "Name", {get: function () {
-            return this._ws.Name;
-
-        }});
     }
 
     return XWorksheet;

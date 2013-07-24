@@ -1,3 +1,7 @@
+/**
+ * This file contains the Range class which is used to represent ranges in the sheet.
+ * Example: A2:A3
+ */
 define("Parser/AST/Range", ["Utilities/Profiler"],function (Profiler) {
     "use strict";
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
@@ -21,10 +25,9 @@ define("Parser/AST/Range", ["Utilities/Profiler"],function (Profiler) {
         return this._br.Y;
     };
     /**
-     *
+     * Check if this object is inside the range provided as a parameter
      * @param rng
-     * @returns {boolean}
-     * @constructor
+     * @returns {boolean} true if this object is inside the range, false otherwise
      */
     Range.prototype.InsideRange = function (/*Range*/ rng) {
         return !(this.getXLeft() < rng.getXLeft() || this.getYTop() < rng.getYTop() || this.getXRight() > rng.getXRight() || this.getYBottom() > rng.getYBottom());
@@ -47,6 +50,11 @@ define("Parser/AST/Range", ["Utilities/Profiler"],function (Profiler) {
         this._tl.WorkbookName = wbname;
         this._br.WorkbookName = wbname;
     };
+    /**
+     * Get the XRange object associated with the cell.
+     * @param app XApplication object that represents an entry point to the Spreadsheet methods and values
+     * @returns {XRange|*}
+     */
     Range.prototype.GetCOMObject = function (/*XApplication*/app) {
         // tl and br must share workbook and worksheet
         return app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);

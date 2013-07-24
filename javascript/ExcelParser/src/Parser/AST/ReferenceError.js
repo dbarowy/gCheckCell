@@ -1,3 +1,8 @@
+/**
+ * This class contains the ReferenceError class.
+ * This is used to represents error values in the formulas.
+ * For the full list of possible errors, check the Excel documentation
+ */
 define("Parser/AST/ReferenceError", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

@@ -1,3 +1,7 @@
+/**
+ * This file contains the Reference class.
+ * This is used as a base class for the other reference object types.
+ */
 define("Parser/AST/Reference", ["FSharp/FSharp"], function (FSharp) {
     "use strict";
     function Reference(/*string*/ wsname) {

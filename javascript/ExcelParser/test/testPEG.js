@@ -288,21 +288,21 @@ TestCase("TestPEG",
         },
         "test StringReference": function () {
             "use strict";
-            var a = PEGParser.parse('"test"', "StringReference");
-            assertInstanceOf(AST.ReferenceString, PEGParser.parse("\"asd\"", "StringReference"));
+            var a = PEGParser.parse('"test"', "StringConstant");
+            assertInstanceOf(AST.ReferenceString, PEGParser.parse("\"asd\"", "StringConstant"));
             assertEquals("String(test)", a.toString());
             assertException(function () {
-                PEGParser.parse('"', "StringReference");
+                PEGParser.parse('"', "StringConstant");
             });
-            assertEquals("String(bla\")", PEGParser.parse("\"bla\"\"\"", "StringReference").toString());
+            assertEquals("String(bla\")", PEGParser.parse("\"bla\"\"\"", "StringConstant").toString());
         },
         "test ConstantReference": function () {
             "use strict";
             var wb = {Name: "book"};
             var ws = {Name: "sheet"};
-            var a = PEGParser.parse("23", "ConstantReference");
+            var a = PEGParser.parse("23", "NumericalConstant");
             assertEquals("Constant(23)", a.toString());
-            assertEquals("Constant(130)", PEGParser.parse("1.3e2", "ConstantReference"));
+            assertEquals("Constant(130)", PEGParser.parse("1.3e2", "NumericalConstant"));
             a.Resolve(wb, ws);
             assertEquals(a.WorkbookName, "book");
             assertEquals(a.WorksheetName, "sheet");
@@ -337,22 +337,10 @@ TestCase("TestPEG",
         "test Reference": function () {
             "use strict";
             //String reference
-            assertInstanceOf(AST.ReferenceString, PEGParser.parse("\"asd\"", "Reference"));
-            var a = PEGParser.parse("\"test\"", "Reference");
-            assertInstanceOf(FSharp.None, a.WorkbookName);
-            assertInstanceOf(AST.ReferenceString, PEGParser.parse("[Workbook]\"asd\"", "Reference"));
-            a = PEGParser.parse("[Workbook]\"asd\"", "Reference");
-            assertEquals("Workbook", a.WorkbookName);
             assertInstanceOf(AST.ReferenceRange, PEGParser.parse("'Worksheet'!$A$2:$A3", "Reference"));
             assertInstanceOf(AST.ReferenceRange, PEGParser.parse("[Workbook]'Worksheet'!$A$2:$A3", "Reference"));
             assertInstanceOf(AST.ReferenceAddress, PEGParser.parse("'Worksheet'!$A$2", "Reference"));
             assertInstanceOf(AST.ReferenceAddress, PEGParser.parse("[Workbook]'Worksheet'!$A$2", "Reference"));
-            assertInstanceOf(AST.ReferenceConstant, PEGParser.parse("2434", "Reference"));
-            assertInstanceOf(AST.ReferenceConstant, PEGParser.parse("[Workbook]2434", "Reference"));
-            a = PEGParser.parse("[Workbook]2434", "Reference");
-            assertEquals("Workbook", a.WorkbookName);
-/*            assertInstanceOf(AST.ReferenceNamed, PEGParser.parse("_dsadsa", "Reference"));
-            assertInstanceOf(AST.ReferenceNamed, PEGParser.parse("Workbook!asd_da34", "Reference"));*/
             assertException(function () {
                 PEGParser.parse("$232", "Reference");
             });
@@ -392,31 +380,7 @@ TestCase("TestPEG",
                 PEGParser.parse("()", "ParensExpr");
             });
         },
-        "test UnaryOpExpr": function () {
-            "use strict";
-            var a = PEGParser.parse("+$A3", "UnaryOpExpr");
-            assertInstanceOf(AST.UnaryOpExpr, a);
-            assertEquals("UnaryOpExpr('+',ReferenceExpr.ReferenceAddress(None, (3,1)))", a.toString());
-            assertException(function () {
-                PEGParser.parse("", "UnaryOpExpr");
-            });
-            assertException(function () {
-                PEGParser.parse("+");
-            });
-        },
-        "test BinOpExpr": function () {
-            "use strict";
-            var a = PEGParser.parse("$A3+$A2", "BinOpExpr");
-            assertInstanceOf(AST.BinOpExpr, a);
-            assertEquals("BinOpExpr(\"+\",ReferenceExpr.ReferenceAddress(None, (3,1)),ReferenceExpr.ReferenceAddress(None, (2,1)))", a.toString());
-            a = PEGParser.parse("$A3<=$A2", "BinOpExpr");
-            assertEquals("BinOpExpr(\"<=\",ReferenceExpr.ReferenceAddress(None, (3,1)),ReferenceExpr.ReferenceAddress(None, (2,1)))", a.toString());
-        },
-        "test PostFixOp":function(){
-          "use strict";
-            var a = PEGParser.parse("A3%", "PostFixExpr");
-            //assertEquals("PostfixOpExpr("%",ReferenceExpr.ReferenceAddress(None, (3,1)))", a.toString());
-        },
+
         "test Function": function () {
             "use strict";
             var a = PEGParser.parse("ABS()", "Function");

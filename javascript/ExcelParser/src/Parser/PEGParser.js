@@ -53,6 +53,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    "operator": parse_operator,
                    "infix_operator": parse_infix_operator,
                    "postfix_operator": parse_postfix_operator,
+                   "prefix_operator": parse_prefix_operator,
                    "AddrR": parse_AddrR,
                    "AddrC": parse_AddrC,
                    "AddrR1C1": parse_AddrR1C1,
@@ -91,31 +92,31 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    "NamedReferenceFirstChar": parse_NamedReferenceFirstChar,
                    "NamedReferenceLastChars": parse_NamedReferenceLastChars,
                    "NamedReferenceCharacters": parse_NamedReferenceCharacters,
-                   "StringReference": parse_StringReference,
+                   "ArrayConstant": parse_ArrayConstant,
+                   "constant_list_rows": parse_constant_list_rows,
+                   "constant_list_row": parse_constant_list_row,
+                   "StringConstant": parse_StringConstant,
                    "StringChars": parse_StringChars,
                    "StringChar": parse_StringChar,
-                   "ConstantReference": parse_ConstantReference,
+                   "NumericalConstant": parse_NumericalConstant,
                    "numerical_constant": parse_numerical_constant,
                    "exponent_part": parse_exponent_part,
                    "sign": parse_sign,
                    "digit_sequence": parse_digit_sequence,
                    "LogicalConstant": parse_LogicalConstant,
                    "ErrorConstant": parse_ErrorConstant,
+                   "Constant": parse_Constant,
                    "ReferenceKinds": parse_ReferenceKinds,
                    "Reference": parse_Reference,
-                   "BinOp": parse_BinOp,
-                   "UnaryOpChar": parse_UnaryOpChar,
                    "ParensExpr": parse_ParensExpr,
-                   "ExpressionAtom": parse_ExpressionAtom,
-                   "ExpressionSimple": parse_ExpressionSimple,
-                   "UnaryOpExpr": parse_UnaryOpExpr,
-                   "PostFixExpr": parse_PostFixExpr,
-                   "BinOpExpr": parse_BinOpExpr,
-                   "ExpressionDecl": parse_ExpressionDecl,
                    "FunctionName": parse_FunctionName,
                    "Function": parse_Function,
                    "ArgumentList": parse_ArgumentList,
-                   "Formula": parse_Formula
+                   "Formula": parse_Formula,
+                   "ExpressionAtom": parse_ExpressionAtom,
+                   "ExpressionSimple": parse_ExpressionSimple,
+                   "Expression": parse_Expression,
+                   "aux": parse_aux
                };
 
                if (startRule !== undefined) {
@@ -931,6 +932,32 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        result0 = null;
                        if (reportFailures === 0) {
                            matchFailed("\"%\"");
+                       }
+                   }
+                   return result0;
+               }
+
+               function parse_prefix_operator() {
+                   var result0;
+
+                   if (input.charCodeAt(pos) === 45) {
+                       result0 = "-";
+                       pos++;
+                   } else {
+                       result0 = null;
+                       if (reportFailures === 0) {
+                           matchFailed("\"-\"");
+                       }
+                   }
+                   if (result0 === null) {
+                       if (input.charCodeAt(pos) === 43) {
+                           result0 = "+";
+                           pos++;
+                       } else {
+                           result0 = null;
+                           if (reportFailures === 0) {
+                               matchFailed("\"+\"");
+                           }
                        }
                    }
                    return result0;
@@ -2248,7 +2275,223 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    return result0;
                }
 
-               function parse_StringReference() {
+               function parse_ArrayConstant() {
+                   var result0, result1, result2;
+                   var pos0, pos1;
+
+                   pos0 = pos;
+                   pos1 = pos;
+                   if (input.charCodeAt(pos) === 123) {
+                       result0 = "{";
+                       pos++;
+                   } else {
+                       result0 = null;
+                       if (reportFailures === 0) {
+                           matchFailed("\"{\"");
+                       }
+                   }
+                   if (result0 !== null) {
+                       result1 = parse_constant_list_rows();
+                       if (result1 !== null) {
+                           if (input.charCodeAt(pos) === 125) {
+                               result2 = "}";
+                               pos++;
+                           } else {
+                               result2 = null;
+                               if (reportFailures === 0) {
+                                   matchFailed("\"}\"");
+                               }
+                           }
+                           if (result2 !== null) {
+                               result0 = [result0, result1, result2];
+                           } else {
+                               result0 = null;
+                               pos = pos1;
+                           }
+                       } else {
+                           result0 = null;
+                           pos = pos1;
+                       }
+                   } else {
+                       result0 = null;
+                       pos = pos1;
+                   }
+                   if (result0 !== null) {
+                       result0 = (function(offset, c) {return new AST.ReferenceArray(null, c);})(pos0, result0[1]);
+                   }
+                   if (result0 === null) {
+                       pos = pos0;
+                   }
+                   return result0;
+               }
+
+               function parse_constant_list_rows() {
+                   var result0, result1, result2, result3;
+                   var pos0, pos1, pos2, pos3;
+
+                   pos0 = pos;
+                   pos1 = pos;
+                   pos2 = pos;
+                   result0 = parse_constant_list_row();
+                   if (result0 !== null) {
+                       result1 = [];
+                       pos3 = pos;
+                       if (input.charCodeAt(pos) === 59) {
+                           result2 = ";";
+                           pos++;
+                       } else {
+                           result2 = null;
+                           if (reportFailures === 0) {
+                               matchFailed("\";\"");
+                           }
+                       }
+                       if (result2 !== null) {
+                           result3 = parse_constant_list_row();
+                           if (result3 !== null) {
+                               result2 = [result2, result3];
+                           } else {
+                               result2 = null;
+                               pos = pos3;
+                           }
+                       } else {
+                           result2 = null;
+                           pos = pos3;
+                       }
+                       while (result2 !== null) {
+                           result1.push(result2);
+                           pos3 = pos;
+                           if (input.charCodeAt(pos) === 59) {
+                               result2 = ";";
+                               pos++;
+                           } else {
+                               result2 = null;
+                               if (reportFailures === 0) {
+                                   matchFailed("\";\"");
+                               }
+                           }
+                           if (result2 !== null) {
+                               result3 = parse_constant_list_row();
+                               if (result3 !== null) {
+                                   result2 = [result2, result3];
+                               } else {
+                                   result2 = null;
+                                   pos = pos3;
+                               }
+                           } else {
+                               result2 = null;
+                               pos = pos3;
+                           }
+                       }
+                       if (result1 !== null) {
+                           result0 = [result0, result1];
+                       } else {
+                           result0 = null;
+                           pos = pos2;
+                       }
+                   } else {
+                       result0 = null;
+                       pos = pos2;
+                   }
+                   if (result0 !== null) {
+                       result0 = (function(offset, hd, tl) {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; })(pos1, result0[0], result0[1]);
+                   }
+                   if (result0 === null) {
+                       pos = pos1;
+                   }
+                   result0 = result0 !== null ? result0 : "";
+                   if (result0 !== null) {
+                       result0 = (function(offset, res) {return res==""?[]:res;})(pos0, result0);
+                   }
+                   if (result0 === null) {
+                       pos = pos0;
+                   }
+                   return result0;
+               }
+
+               function parse_constant_list_row() {
+                   var result0, result1, result2, result3;
+                   var pos0, pos1, pos2, pos3;
+
+                   pos0 = pos;
+                   pos1 = pos;
+                   pos2 = pos;
+                   result0 = parse_Constant();
+                   if (result0 !== null) {
+                       result1 = [];
+                       pos3 = pos;
+                       if (input.charCodeAt(pos) === 44) {
+                           result2 = ",";
+                           pos++;
+                       } else {
+                           result2 = null;
+                           if (reportFailures === 0) {
+                               matchFailed("\",\"");
+                           }
+                       }
+                       if (result2 !== null) {
+                           result3 = parse_Constant();
+                           if (result3 !== null) {
+                               result2 = [result2, result3];
+                           } else {
+                               result2 = null;
+                               pos = pos3;
+                           }
+                       } else {
+                           result2 = null;
+                           pos = pos3;
+                       }
+                       while (result2 !== null) {
+                           result1.push(result2);
+                           pos3 = pos;
+                           if (input.charCodeAt(pos) === 44) {
+                               result2 = ",";
+                               pos++;
+                           } else {
+                               result2 = null;
+                               if (reportFailures === 0) {
+                                   matchFailed("\",\"");
+                               }
+                           }
+                           if (result2 !== null) {
+                               result3 = parse_Constant();
+                               if (result3 !== null) {
+                                   result2 = [result2, result3];
+                               } else {
+                                   result2 = null;
+                                   pos = pos3;
+                               }
+                           } else {
+                               result2 = null;
+                               pos = pos3;
+                           }
+                       }
+                       if (result1 !== null) {
+                           result0 = [result0, result1];
+                       } else {
+                           result0 = null;
+                           pos = pos2;
+                       }
+                   } else {
+                       result0 = null;
+                       pos = pos2;
+                   }
+                   if (result0 !== null) {
+                       result0 = (function(offset, hd, tl) {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; })(pos1, result0[0], result0[1]);
+                   }
+                   if (result0 === null) {
+                       pos = pos1;
+                   }
+                   result0 = result0 !== null ? result0 : "";
+                   if (result0 !== null) {
+                       result0 = (function(offset, res) {return res==""?[]:res;})(pos0, result0);
+                   }
+                   if (result0 === null) {
+                       pos = pos0;
+                   }
+                   return result0;
+               }
+
+               function parse_StringConstant() {
                    var result0, result1, result2;
                    var pos0, pos1;
 
@@ -2362,7 +2605,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    return result0;
                }
 
-               function parse_ConstantReference() {
+               function parse_NumericalConstant() {
                    var result0;
                    var pos0;
 
@@ -2717,24 +2960,31 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    return result0;
                }
 
-               function parse_ReferenceKinds() {
+               function parse_Constant() {
                    var result0;
 
                    result0 = parse_ErrorConstant();
                    if (result0 === null) {
                        result0 = parse_LogicalConstant();
                        if (result0 === null) {
-                           result0 = parse_ConstantReference();
+                           result0 = parse_NumericalConstant();
                            if (result0 === null) {
-                               result0 = parse_RangeReference();
+                               result0 = parse_StringConstant();
                                if (result0 === null) {
-                                   result0 = parse_AddressReference();
-                                   if (result0 === null) {
-                                       result0 = parse_StringReference();
-                                   }
+                                   result0 = parse_ArrayConstant();
                                }
                            }
                        }
+                   }
+                   return result0;
+               }
+
+               function parse_ReferenceKinds() {
+                   var result0;
+
+                   result0 = parse_RangeReference();
+                   if (result0 === null) {
+                       result0 = parse_AddressReference();
                    }
                    return result0;
                }
@@ -2767,60 +3017,6 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    return result0;
                }
 
-               function parse_BinOp() {
-                   var result0, result1;
-                   var pos0, pos1;
-
-                   pos0 = pos;
-                   pos1 = pos;
-                   result0 = parse_infix_operator();
-                   if (result0 !== null) {
-                       result1 = parse_ExpressionDecl();
-                       if (result1 !== null) {
-                           result0 = [result0, result1];
-                       } else {
-                           result0 = null;
-                           pos = pos1;
-                       }
-                   } else {
-                       result0 = null;
-                       pos = pos1;
-                   }
-                   if (result0 !== null) {
-                       result0 = (function(offset, op, exp) {return {operator:op, expression:exp};})(pos0, result0[0], result0[1]);
-                   }
-                   if (result0 === null) {
-                       pos = pos0;
-                   }
-                   return result0;
-               }
-
-               function parse_UnaryOpChar() {
-                   var result0;
-
-                   if (input.charCodeAt(pos) === 45) {
-                       result0 = "-";
-                       pos++;
-                   } else {
-                       result0 = null;
-                       if (reportFailures === 0) {
-                           matchFailed("\"-\"");
-                       }
-                   }
-                   if (result0 === null) {
-                       if (input.charCodeAt(pos) === 43) {
-                           result0 = "+";
-                           pos++;
-                       } else {
-                           result0 = null;
-                           if (reportFailures === 0) {
-                               matchFailed("\"+\"");
-                           }
-                       }
-                   }
-                   return result0;
-               }
-
                function parse_ParensExpr() {
                    var result0, result1, result2;
                    var pos0, pos1;
@@ -2837,7 +3033,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        }
                    }
                    if (result0 !== null) {
-                       result1 = parse_ExpressionDecl();
+                       result1 = parse_Expression();
                        if (result1 !== null) {
                            if (input.charCodeAt(pos) === 41) {
                                result2 = ")";
@@ -2867,141 +3063,6 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    }
                    if (result0 === null) {
                        pos = pos0;
-                   }
-                   return result0;
-               }
-
-               function parse_ExpressionAtom() {
-                   var result0;
-                   var pos0;
-
-                   pos0 = pos;
-                   result0 = parse_Function();
-                   if (result0 !== null) {
-                       result0 = (function(offset, fn) {return new AST.ReferenceExpr(fn);})(pos0, result0);
-                   }
-                   if (result0 === null) {
-                       pos = pos0;
-                   }
-                   if (result0 === null) {
-                       pos0 = pos;
-                       result0 = parse_Reference();
-                       if (result0 !== null) {
-                           result0 = (function(offset, ref) {return new AST.ReferenceExpr(ref);})(pos0, result0);
-                       }
-                       if (result0 === null) {
-                           pos = pos0;
-                       }
-                   }
-                   return result0;
-               }
-
-               function parse_ExpressionSimple() {
-                   var result0;
-
-                   result0 = parse_ExpressionAtom();
-                   if (result0 === null) {
-                       result0 = parse_ParensExpr();
-                   }
-                   return result0;
-               }
-
-               function parse_UnaryOpExpr() {
-                   var result0, result1;
-                   var pos0, pos1;
-
-                   pos0 = pos;
-                   pos1 = pos;
-                   result0 = parse_UnaryOpChar();
-                   if (result0 !== null) {
-                       result1 = parse_ExpressionDecl();
-                       if (result1 !== null) {
-                           result0 = [result0, result1];
-                       } else {
-                           result0 = null;
-                           pos = pos1;
-                       }
-                   } else {
-                       result0 = null;
-                       pos = pos1;
-                   }
-                   if (result0 !== null) {
-                       result0 = (function(offset, op, exp) {return new AST.UnaryOpExpr(op,exp);})(pos0, result0[0], result0[1]);
-                   }
-                   if (result0 === null) {
-                       pos = pos0;
-                   }
-                   return result0;
-               }
-
-               function parse_PostFixExpr() {
-                   var result0, result1;
-                   var pos0, pos1;
-
-                   pos0 = pos;
-                   pos1 = pos;
-                   result0 = parse_ExpressionSimple();
-                   if (result0 !== null) {
-                       result1 = parse_postfix_operator();
-                       if (result1 !== null) {
-                           result0 = [result0, result1];
-                       } else {
-                           result0 = null;
-                           pos = pos1;
-                       }
-                   } else {
-                       result0 = null;
-                       pos = pos1;
-                   }
-                   if (result0 !== null) {
-                       result0 = (function(offset, exp, op) {return new AST.PostfixOpExpr(op,exp);})(pos0, result0[0], result0[1]);
-                   }
-                   if (result0 === null) {
-                       pos = pos0;
-                   }
-                   return result0;
-               }
-
-               function parse_BinOpExpr() {
-                   var result0, result1;
-                   var pos0, pos1;
-
-                   pos0 = pos;
-                   pos1 = pos;
-                   result0 = parse_ExpressionSimple();
-                   if (result0 !== null) {
-                       result1 = parse_BinOp();
-                       if (result1 !== null) {
-                           result0 = [result0, result1];
-                       } else {
-                           result0 = null;
-                           pos = pos1;
-                       }
-                   } else {
-                       result0 = null;
-                       pos = pos1;
-                   }
-                   if (result0 !== null) {
-                       result0 = (function(offset, exp, lhs) {return new AST.BinOpExpr(lhs.operator, exp, lhs.expression);})(pos0, result0[0], result0[1]);
-                   }
-                   if (result0 === null) {
-                       pos = pos0;
-                   }
-                   return result0;
-               }
-
-               function parse_ExpressionDecl() {
-                   var result0;
-
-                   result0 = parse_ExpressionSimple();
-                   if (result0 === null) {
-                       result0 = parse_UnaryOpExpr();
-                       if (result0 === null) {
-                           result0 = parse_PostFixExpr();
-                           if (result0 === null) {
-                               result0 = parse_BinOpExpr();
-                           }
-                       }
                    }
                    return result0;
                }
@@ -3115,7 +3176,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    pos0 = pos;
                    pos1 = pos;
                    pos2 = pos;
-                   result0 = parse_ExpressionDecl();
+                   result0 = parse_Expression();
                    if (result0 !== null) {
                        result1 = [];
                        pos3 = pos;
@@ -3128,8 +3189,19 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                                matchFailed("\",\"");
                            }
                        }
+                       if (result2 === null) {
+                           if (input.charCodeAt(pos) === 59) {
+                               result2 = ";";
+                               pos++;
+                           } else {
+                               result2 = null;
+                               if (reportFailures === 0) {
+                                   matchFailed("\";\"");
+                               }
+                           }
+                       }
                        if (result2 !== null) {
-                           result3 = parse_ExpressionDecl();
+                           result3 = parse_Expression();
                            if (result3 !== null) {
                                result2 = [result2, result3];
                            } else {
@@ -3152,8 +3224,19 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                                    matchFailed("\",\"");
                                }
                            }
+                           if (result2 === null) {
+                               if (input.charCodeAt(pos) === 59) {
+                                   result2 = ";";
+                                   pos++;
+                               } else {
+                                   result2 = null;
+                                   if (reportFailures === 0) {
+                                       matchFailed("\";\"");
+                                   }
+                               }
+                           }
                            if (result2 !== null) {
-                               result3 = parse_ExpressionDecl();
+                               result3 = parse_Expression();
                                if (result3 !== null) {
                                    result2 = [result2, result3];
                                } else {
@@ -3207,7 +3290,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        }
                    }
                    if (result0 !== null) {
-                       result1 = parse_ExpressionDecl();
+                       result1 = parse_Expression();
                        if (result1 !== null) {
                            result0 = [result0, result1];
                        } else {
@@ -3219,10 +3302,300 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        pos = pos1;
                    }
                    if (result0 !== null) {
-                       result0 = (function(offset, res) {return res;})(pos0, result0[1]);
+                       result0 = (function(offset, exp) {return exp.toString();})(pos0, result0[1]);
                    }
                    if (result0 === null) {
                        pos = pos0;
+                   }
+                   return result0;
+               }
+
+               function parse_ExpressionAtom() {
+                   var result0;
+                   var pos0;
+
+                   pos0 = pos;
+                   result0 = parse_Function();
+                   if (result0 !== null) {
+                       result0 = (function(offset, fn) {return new AST.ReferenceExpr(fn);})(pos0, result0);
+                   }
+                   if (result0 === null) {
+                       pos = pos0;
+                   }
+                   if (result0 === null) {
+                       pos0 = pos;
+                       result0 = parse_Reference();
+                       if (result0 !== null) {
+                           result0 = (function(offset, ref) {return new AST.ReferenceExpr(ref);})(pos0, result0);
+                       }
+                       if (result0 === null) {
+                           pos = pos0;
+                       }
+                       if (result0 === null) {
+                           pos0 = pos;
+                           result0 = parse_Constant();
+                           if (result0 !== null) {
+                               result0 = (function(offset, c) {return new AST.ReferenceExpr(c);})(pos0, result0);
+                           }
+                           if (result0 === null) {
+                               pos = pos0;
+                           }
+                       }
+                   }
+                   return result0;
+               }
+
+               function parse_ExpressionSimple() {
+                   var result0;
+
+                   result0 = parse_ExpressionAtom();
+                   if (result0 === null) {
+                       result0 = parse_ParensExpr();
+                   }
+                   return result0;
+               }
+
+               function parse_Expression() {
+                   var result0, result1, result2;
+                   var pos0, pos1;
+
+                   pos0 = pos;
+                   pos1 = pos;
+                   result0 = parse_ExpressionSimple();
+                   if (result0 !== null) {
+                       result1 = parse_aux();
+                       if (result1 !== null) {
+                           result0 = [result0, result1];
+                       } else {
+                           result0 = null;
+                           pos = pos1;
+                       }
+                   } else {
+                       result0 = null;
+                       pos = pos1;
+                   }
+                   if (result0 !== null) {
+                       result0 = (function(offset, exp, a) {
+                           var z=null, i, len=a.postfix.length;
+                           if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
+                               for(i=len-1; i>=0; i--){
+                                   z=new AST.PostfixOpExpr(a.postfix[i], z);
+                               }}else{
+                               z = exp;
+                           }
+                           if(typeof(a.infix)!=="undefined")
+                               z = new AST.BinOpExpr(a.infix, z, a.expression);
+                           return z;
+                       })(pos0, result0[0], result0[1]);
+                   }
+                   if (result0 === null) {
+                       pos = pos0;
+                   }
+                   if (result0 === null) {
+                       pos0 = pos;
+                       result0 = parse_ExpressionSimple();
+                       if (result0 !== null) {
+                           result0 = (function(offset, exp) {return exp;})(pos0, result0);
+                       }
+                       if (result0 === null) {
+                           pos = pos0;
+                       }
+                       if (result0 === null) {
+                           pos0 = pos;
+                           pos1 = pos;
+                           result0 = parse_prefix_operator();
+                           if (result0 !== null) {
+                               result1 = parse_Expression();
+                               if (result1 !== null) {
+                                   result2 = parse_aux();
+                                   if (result2 !== null) {
+                                       result0 = [result0, result1, result2];
+                                   } else {
+                                       result0 = null;
+                                       pos = pos1;
+                                   }
+                               } else {
+                                   result0 = null;
+                                   pos = pos1;
+                               }
+                           } else {
+                               result0 = null;
+                               pos = pos1;
+                           }
+                           if (result0 !== null) {
+                               result0 = (function(offset, op, exp, a) {
+                                   var z=null, i, len=a.postfix.length;
+                                   if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
+                                       for(i=len-1; i>=0; i--){
+                                           z=new AST.PostfixOpExpr(a.postfix[i], z);
+                                       }}else{
+                                       z = exp;
+                                   }
+                                   z = new AST.UnaryOpExpr(op, z);
+                                   if(typeof(a.infix)!=="undefined")
+                                       z = new AST.BinOpExpr(a.infix, z, a.expression);
+                                   return z;
+                               })(pos0, result0[0], result0[1], result0[2]);
+                           }
+                           if (result0 === null) {
+                               pos = pos0;
+                           }
+                           if (result0 === null) {
+                               pos0 = pos;
+                               pos1 = pos;
+                               result0 = parse_prefix_operator();
+                               if (result0 !== null) {
+                                   result1 = parse_Expression();
+                                   if (result1 !== null) {
+                                       result0 = [result0, result1];
+                                   } else {
+                                       result0 = null;
+                                       pos = pos1;
+                                   }
+                               } else {
+                                   result0 = null;
+                                   pos = pos1;
+                               }
+                               if (result0 !== null) {
+                                   result0 = (function(offset, op, exp) { return new AST.UnaryOpExpr(op, exp);})(pos0, result0[0], result0[1]);
+                               }
+                               if (result0 === null) {
+                                   pos = pos0;
+                               }
+                           }
+                       }
+                   }
+                   return result0;
+               }
+
+               function parse_aux() {
+                   var result0, result1, result2;
+                   var pos0, pos1;
+
+                   pos0 = pos;
+                   pos1 = pos;
+                   result0 = parse_postfix_operator();
+                   if (result0 !== null) {
+                       result1 = parse_aux();
+                       if (result1 !== null) {
+                           result0 = [result0, result1];
+                       } else {
+                           result0 = null;
+                           pos = pos1;
+                       }
+                   } else {
+                       result0 = null;
+                       pos = pos1;
+                   }
+                   if (result0 !== null) {
+                       result0 = (function(offset, o, a) {
+                           if(a.opt===2){
+                               a.postfix.push(o);
+                           }else if(a.opt===4){
+                               a.postfix[0]=o;
+                           }else if(a.opt===3){
+                               a.postfix.push(o);
+                           }else if(a.opt===1){
+                               a.postfix.push(o);
+                           }
+                           a.opt=1;
+                           return a;
+                       })(pos0, result0[0], result0[1]);
+                   }
+                   if (result0 === null) {
+                       pos = pos0;
+                   }
+                   if (result0 === null) {
+                       pos0 = pos;
+                       result0 = parse_postfix_operator();
+                       if (result0 !== null) {
+                           result0 = (function(offset, o) {return {opt:2,postfix:[o]}})(pos0, result0);
+                       }
+                       if (result0 === null) {
+                           pos = pos0;
+                       }
+                       if (result0 === null) {
+                           pos0 = pos;
+                           pos1 = pos;
+                           result0 = parse_infix_operator();
+                           if (result0 !== null) {
+                               result1 = parse_Expression();
+                               if (result1 !== null) {
+                                   result2 = parse_aux();
+                                   if (result2 !== null) {
+                                       result0 = [result0, result1, result2];
+                                   } else {
+                                       result0 = null;
+                                       pos = pos1;
+                                   }
+                               } else {
+                                   result0 = null;
+                                   pos = pos1;
+                               }
+                           } else {
+                               result0 = null;
+                               pos = pos1;
+                           }
+                           if (result0 !== null) {
+                               result0 = (function(offset, o, exp, a) {
+                                   if(a.opt===2){
+                                       a.expression = new AST.PostfixOpExpr(a.postfix[0], exp);
+                                       a.infix=o;
+                                       a.postfix=[];
+                                   }else if(a.opt==4){
+                                       a.expression = new AST.BinOpExpr(a.infix, exp, a.expression);
+                                       a.infix=o;
+                                       a.postfix=[];
+                                   }else if(a.opt==3){
+                                       a.expression = new AST.BinOpExpr(a.infix, exp, a.expression);
+                                       a.infix=o;
+                                       a.postfix=[];
+                                   }else if(a.opt==1){
+                                       var z=null, i, len=a.postfix.length;
+                                       if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
+                                           for(i=len-1; i>=0; i--){
+                                               z=new AST.PostfixOpExpr(a.postfix[i], z);
+                                           }
+                                       }else{
+                                           z = exp;
+                                       }
+                                       if(typeof(a.infix)!=="undefined")
+                                           z = new AST.BinOpExpr(a.infix, z, a.expression);
+                                       a.expression = z;
+                                       a.infix= o;
+                                       a.postfix = [];
+                                   }
+                                   a.opt=3;
+                                   return a;
+                               })(pos0, result0[0], result0[1], result0[2]);
+                           }
+                           if (result0 === null) {
+                               pos = pos0;
+                           }
+                           if (result0 === null) {
+                               pos0 = pos;
+                               pos1 = pos;
+                               result0 = parse_infix_operator();
+                               if (result0 !== null) {
+                                   result1 = parse_Expression();
+                                   if (result1 !== null) {
+                                       result0 = [result0, result1];
+                                   } else {
+                                       result0 = null;
+                                       pos = pos1;
+                                   }
+                               } else {
+                                   result0 = null;
+                                   pos = pos1;
+                               }
+                               if (result0 !== null) {
+                                   result0 = (function(offset, o, exp) {return {opt:4, infix:o,postfix:[], expression:exp}})(pos0, result0[0], result0[1]);
+                               }
+                               if (result0 === null) {
+                                   pos = pos0;
+                               }
+                           }
+                       }
                    }
                    return result0;
                }

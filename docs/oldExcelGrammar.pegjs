@@ -81,6 +81,12 @@ NamedReferenceBook = wb:workbook_name "!" {return wb;};
 NamedReferenceFirstChar = letter / underscore / backslash;
 NamedReferenceLastChars = r:(NamedReferenceCharacters *) {return r.join("");};
 NamedReferenceCharacters = letter / digit / underscore / full_stop ; 
+/*
+The Array Constant matrix should be rectangular. I don't know if I should check here or throw an exception during the computation
+*/
+ArrayConstant = "{" c:constant_list_rows "}"{return new AST.ReferenceArray(null, c);};
+constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+constant_list_row = res:((hd:Constant tl:("," Constant) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
 StringConstant = double_quote str:StringChars ? double_quote {return new AST.ReferenceString(null, str);};
 StringChars = res:(StringChar +){return res.join("");};
@@ -106,7 +112,7 @@ ErrorConstant = err:("#DIV/0!"
 		/ "#REF!"
 		/ "#VALUE!"
 		/ "#GETTING_DATA") {return new AST.ReferenceError(null, err);};
-Constant = ErrorConstant / LogicalConstant / NumericalConstant / StringConstant;
+Constant = ErrorConstant / LogicalConstant / NumericalConstant / StringConstant / ArrayConstant;
 
 /*
 There is a conflict between named references and AddressReferences. 
@@ -118,13 +124,13 @@ ParensExpr = "(" exp:Expression ")" {return new AST.ParensExpr(exp);};
 
 FunctionName = r:((letter / ".") +) {return r.join("");};
 Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFunction(null, f, args);} ;
-ArgumentList = res:((hd:Expression tl:("," Expression) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+/*The separator between arguments is different in excel and google sheets*/
+ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
 Formula = "=" exp:Expression {return exp.toString();};
 ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);} / c:Constant {return new AST.ReferenceExpr(c);};
 ExpressionSimple = ExpressionAtom / ParensExpr;
-Expression = exp:ExpressionSimple a:aux {console.log("exp1_"+count); 
-				count++;
+Expression = exp:ExpressionSimple a:aux {
 				 var z=null, i, len=a.postfix.length;
 				if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
 					for(i=len-1; i>=0; i--){
@@ -136,9 +142,10 @@ Expression = exp:ExpressionSimple a:aux {console.log("exp1_"+count);
 		  	  z = new AST.BinOpExpr(a.infix, z, a.expression);
 		  	return z;
 				}
-			/ exp:ExpressionSimple  {console.log("exp2_"+count);count++; console.log(exp.toString());return exp;}
+			/ exp:ExpressionSimple  {return exp;}
 			
-			/ op:prefix_operator exp:Expression a:aux {console.log("exp3_"+count);count++; 
+
+			/ op:prefix_operator exp:Expression a:aux {
 		        var z=null, i, len=a.postfix.length;
 				if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
 					for(i=len-1; i>=0; i--){
@@ -151,9 +158,10 @@ Expression = exp:ExpressionSimple a:aux {console.log("exp1_"+count);
 		  	  z = new AST.BinOpExpr(a.infix, z, a.expression);
 		  	return z;
 		  }
-			/ op:prefix_operator exp:Expression {console.log("exp4_"+count);count++; return new AST.UnaryOpExpr(op, exp);};
 
-aux = o:postfix_operator a:aux {console.log("postfix1_"+count);count++; 
+			/ op:prefix_operator exp:Expression { return new AST.UnaryOpExpr(op, exp);};
+
+aux = o:postfix_operator a:aux {
 		if(a.opt===2){
 			a.postfix.push(o);
 		}else if(a.opt===4){
@@ -163,10 +171,15 @@ aux = o:postfix_operator a:aux {console.log("postfix1_"+count);count++;
 		}else if(a.opt===1){
 			a.postfix.push(o);
 		} 
-		 a.opt=1; return a;
-			}
-	 /o:postfix_operator { console.log("postfix2_"+count);count++; return {opt:2,postfix:[o]}}
-	/ o:infix_operator exp:Expression a:aux { console.log("postfix3_"+count);count++;
+		a.opt=1; 
+		return a;
+		}
+
+
+	 /o:postfix_operator {return {opt:2,postfix:[o]}}
+
+
+	/ o:infix_operator exp:Expression a:aux {
 		if(a.opt===2){
 			a.expression = new AST.PostfixOpExpr(a.postfix[0], exp);
 			a.infix=o;
@@ -197,4 +210,6 @@ aux = o:postfix_operator a:aux {console.log("postfix1_"+count);count++;
 		a.opt=3;
 		return a;
 	}
-	/ o:infix_operator exp:Expression {console.log("infix4_"+count); count++; return {opt:4, infix:o,postfix:[], expression:exp}};
+
+
+	/ o:infix_operator exp:Expression {return {opt:4, infix:o,postfix:[], expression:exp}};

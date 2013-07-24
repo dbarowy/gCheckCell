@@ -1,3 +1,7 @@
+/**
+ * This file contains the class PostfixOpExpr used to represent expressions that involve a postfix operator
+ * Example: A3%
+ */
 define("Parser/AST/PostfixOpExpr", function () {
     "use strict";
     function PostfixOpExpr(/*string*/op, /*Expression*/expr) {

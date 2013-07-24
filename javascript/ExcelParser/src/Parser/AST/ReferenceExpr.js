@@ -1,3 +1,7 @@
+/**
+ * Thic class contains the ReferenceExpr class.
+ * This is used to wrap every Expression type.
+ */
 define("Parser/AST/ReferenceExpr", function () {
     "use strict";
     function ReferenceExpr(/*Reference*/ ref) {

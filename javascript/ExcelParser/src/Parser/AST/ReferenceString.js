@@ -1,3 +1,7 @@
+/**
+ * This file contains the ReferenceString class.
+ * This class is used to represent string constants in the formulas
+ */
 define("Parser/AST/ReferenceString", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

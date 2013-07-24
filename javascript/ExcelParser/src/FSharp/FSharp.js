@@ -3,7 +3,7 @@
  * @Description This file contains implementation of FSharp specific objets or functionalities that were needed
  * to circumvent problems in PEG or other environment restrictions
  */
-define("FSharp/FSharp",function () {
+define("FSharp/FSharp", function () {
     "use strict";
     function FSharp() {
     }

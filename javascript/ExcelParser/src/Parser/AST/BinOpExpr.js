@@ -1,3 +1,7 @@
+/**
+ * This file contains the BinOpExpr class.
+ * This class is used to represent expressions that involve an infix operator.
+ */
 define("Parser/AST/BinOpExpr", function () {
     "use strict";
     function BinOpExpr(/*string*/op, /*Expression*/expr1, /*Expression*/expr2) {

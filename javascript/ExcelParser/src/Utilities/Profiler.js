@@ -1,5 +1,4 @@
-//TODO add XLogger path
-define("Utilities/Profiler", function (XLogger) {
+define("Utilities/Profiler",["XClasses/XLogger"], function (XLogger) {
     "use strict";
     return  {
         start: function (name) {
@@ -23,7 +22,7 @@ define("Utilities/Profiler", function (XLogger) {
         },
         report: function () {
             for (var prop in this) {
-                if (this[prop].duration){
+                if (this.hasOwnProperty (prop) && this[prop].duration){
                     XLogger.log("Run \"" + prop + "\" took " + this[prop].duration);
                 }
 

@@ -9,21 +9,6 @@ TestCase("ParserTest", {
         delete this.wb;
         delete this.ws;
     },
-    "test RefAddrResolve": function () {
-        "use strict";
-        var ref = new AST.ReferenceString(null, "the_string");
-        Parser.refAddrResolve(ref, this.wb, this.ws);
-        assertEquals("Worksheet", ref.WorksheetName);
-        assertEquals(this.wb.Name, ref.WorkbookName);
-    },
-    "test ExprAddrResolve": function () {
-        "use strict";
-        //Simple test
-        var expr = new AST.ReferenceExpr(new AST.ReferenceAddress(null, new AST.Address(2, 3, null, null)));
-        Parser.exprAddrResolve(expr, this.wb, this.ws);
-        assertEquals("Worksheet", expr.Ref.WorksheetName);
-        assertEquals(this.wb.Name, expr.Ref.WorkbookName);
-    },
     "test GetAddress": function () {
         "use strict";
         var address = Parser.getAddress("R2C4", this.wb, this.ws);

@@ -1,7 +1,18 @@
-//TODO methods in this block use Range objects but those are not needed at initialization
+//TODO methods in this block use Range objects but those are not needed at initialization. Should I
 //Reference the range?
+/**
+ * This file contains the Address module. This class is used to represent addresses(individual cells) in the worksheet.
+ */
 define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (FSharp, Profiler) {
     "use strict";
+    /**
+     *
+     * @param R the row of the cell
+     * @param C the column of the cell. Column number of column string
+     * @param wsname worksheet name
+     * @param wbname workbook name
+     * @constructor
+     */
     function Address(/*int*/ R, /*int*/C, /*string*/wsname, /*string*/ wbname) {
         this.WorksheetName = wsname;
         this.WorkbookName = wbname;
@@ -16,9 +27,9 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
     }
 
     /**
-     * Converts the string representing a column to an equivalent integer.
-     * The counting starts from 1
-     * @param col String representing the column. It must be of the form [A-Z]+
+     * Converts the string representing a column into an equivalent integer.
+     * The counting starts from 1 i.e A=1, B=2, C=3..AA=27
+     * @param col String representing the column. It must be of the form [A-Z a-z]+
      * @returns {number} Column number
      */
     Address.CharColToInt = function (/*string */ col) {
@@ -65,7 +76,7 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
     };
 
     /**
-     * Returns the string representation in A1 for the current address
+     * Returns the string representation in A1 for the address
      * @returns {string}
      * @constructor
      */
@@ -75,7 +86,9 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
 
     /**
      * Get the Worksheet name.
-     * @returns {*} Worksheet name associated with this address. If the Worksheet name is not set, it throws an error.
+     * @returns {*} Worksheet name associated with this address.
+     * If the Worksheet name is not set, it throws an error.
+     * To avoid this error, all Addresses should be resolved before use.
      */
     Address.prototype.A1Worksheet = function () {
         if (typeof(this.WorksheetName) !== "undefined" && this.WorksheetName !== null && !(this.WorksheetName instanceof  FSharp.None)) {
@@ -87,7 +100,9 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
     };
     /**
      * Get the Workbook name
-     * @returns {*} Workbook name associated with this address. If the Workbook name is not set, it throws an error.
+     * @returns {*} Workbook name associated with this address.
+     * If the Workbook name is not set, it throws an error.
+     * To avoid this error, all Addresses should be resolved before use.
      */
     Address.prototype.A1Workbook = function () {
         if (typeof(this.WorkbookName) !== "undefined" && this.WorkbookName !== null && !(this.WorkbookName instanceof  FSharp.None)) {
@@ -127,32 +142,36 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
         return wbstr + wsstr + "R" + this.Y + "C" + this.X;
     };
     /**
-     *   I use a javascript object to implement a HashMap.
-     *   Two objects will be equal only if they have the same workbook, worksheet and coordinates
-     * @returns {string}
+     * I use a javascript object to implement a HashMap.
+     * Two objects will be equal only if they have the same workbook, worksheet and coordinates
+     * @returns {string} Hashcode of the object
      */
     Address.prototype.getHashCode = function () {
         return ("" + this.WorkbookName + "_" + this.WorksheetName + "_" + this.X + "_" + this.Y);
     };
+
     /**
-     *
+     *  Check if the object is inside the range.
      * @param rng
-     * @returns {boolean}
+     * @returns {boolean} True if the address is inside the range, false otherwise
      * @constructor
      */
     Address.prototype.InsideRange = function (/*Range*/ rng) {
         return !(this.X < rng.getXLeft() || this.Y < rng.getYTop() || this.X > rng.getXRight() || this.Y > rng.getYBottom());
     };
     /**
-     *
+     *  Check if the current address is inside the address provided as a parameter
      * @param addr
      * @returns {boolean}
-     * @constructor
      */
     Address.prototype.InsideAddr = function (/*Address*/addr) {
         return this.X === addr.X && this.Y === addr.Y;
     };
-
+    /**
+     * Get the XRange object associated with the cell.
+     * @param app XApplication object that represents an entry point to the Spreadsheet methods and values
+     * @returns {XRange|*}
+     */
     Address.prototype.GetCOMObject = function (/*XApplication*/app) {
         return  app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
     };

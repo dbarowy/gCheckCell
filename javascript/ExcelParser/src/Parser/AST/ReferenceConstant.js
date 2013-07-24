@@ -1,3 +1,8 @@
+/**
+ * This file contains the ReferenceConstant class.
+ * This represents numerical constants in the formulas.
+ * The value is a double number.
+ */
 define("Parser/AST/ReferenceConstant", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

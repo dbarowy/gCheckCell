@@ -1,0 +1,37 @@
+According to this https://developers.google.com/apps-script/guides/html-service-communication#parameters_and_return_values
+we can only pass primitives between GAS and the client side.
+To solve this, I define the following JSON object to communicate workbook data between GAS and the client side.
+
+/*
+Everything we need to know about a sheet it is its name, the values and the formulas it contains
+*/
+Sheet:{
+	-String name
+	-String[][] values
+	-String[][] formulas
+}
+
+/* 
+Named Ranges are unique to the workbook. I think this is all the information we need to identify a named range.
+*/
+Named_Range:{
+	- String name
+	- String sheet
+	- int startRow
+	- int startCol
+	- int endRow
+	- int endCol
+	- String[][] values
+	- String[][] formulas
+}
+
+Workbook:{
+  	- String name
+	- Sheet[] sheets
+	- Named_Range[] named_ranges
+}
+
+Data : {
+	- Workbook active_book;
+	- Workbook[] external_books;
+}
