@@ -24,6 +24,7 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
             this.X = C;
         }
         this.Y = R;
+        this._com=null;
     }
 
     /**
@@ -47,6 +48,7 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
         } while (idx >= 0);
         return num;
     };
+
 
     /**
      * Returns the string equivalent for the given column. Column 1 = A, column 2=B etc.
@@ -173,11 +175,22 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
      * @returns {XRange|*}
      */
     Address.prototype.GetCOMObject = function (/*XApplication*/app) {
-        return  app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
+        if(this._com===null){
+            this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
+        }
+        return this._com;
     };
 
     Address.prototype.toString = function () {
         return "(" + this.Y + "," + this.X + ")";
+    };
+    /**
+     * Get the value associated with this address.
+     * @param source The address of the cell for which we are computing the formula.
+     * @returns {*}
+     */
+    Address.prototype.getValue = function(/*Address*/source){
+         return this._com.getValue();
     };
     return Address;
 });

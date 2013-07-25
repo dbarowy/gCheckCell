@@ -12,7 +12,7 @@ define("Parser/AST/ReferenceLogical", ["Parser/AST/Reference"], function (Refere
 
     function ReferenceLogical(/*string*/ wsname, /*string*/value) {
         Reference.call(this, wsname);
-        this._value = value;
+        this._value = (value === "TRUE");
     }
 
     inheritPrototype(ReferenceLogical, Reference);
@@ -20,5 +20,10 @@ define("Parser/AST/ReferenceLogical", ["Parser/AST/Reference"], function (Refere
     ReferenceLogical.prototype.toString = function () {
         return "Logical(" + this._value + ")";
     };
+
+    ReferenceLogical.prototype.getValue = function (source) {
+        return this._value;
+    };
+
     return ReferenceLogical;
 });

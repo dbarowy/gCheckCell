@@ -83,6 +83,7 @@ NamedReferenceLastChars = r:(NamedReferenceCharacters *) {return r.join("");};
 NamedReferenceCharacters = letter / digit / underscore / full_stop ; 
 /*
 The Array Constant matrix should be rectangular. I don't know if I should check here or throw an exception during the computation
+TODO: return null if the columns or rows don't have the same length
 */
 ArrayConstant = "{" c:constant_list_rows "}"{return new AST.ReferenceArray(null, c);};
 constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}

@@ -14,10 +14,25 @@ define("Parser/AST/UnaryOpExpr", function () {
         return "UnaryOpExpr('" + this.Operator + "'," + this.Expr + ")";
     };
 
-
     UnaryOpExpr.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
         this.Expr.Resolve(wb, ws);
     };
+
+    UnaryOpExpr.prototype.fixAssoc = function () {
+        this.Expr.fixAssoc();
+    };
+
+    UnaryOpExpr.prototype.getValue = function (source) {
+        switch (this.Operator) {
+            case "+":
+                return this.Expr.getValue(source);
+            case "-":
+                return -(this.Expr.getValue(source));
+            default:
+                throw new Error("Unknown operator");
+        }
+    };
+
     return UnaryOpExpr;
 
 });

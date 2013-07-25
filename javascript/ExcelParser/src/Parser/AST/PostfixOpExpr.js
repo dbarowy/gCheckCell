@@ -16,5 +16,13 @@ define("Parser/AST/PostfixOpExpr", function () {
     PostfixOpExpr.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
         this.Expr.Resolve(wb, ws);
     };
+    PostfixOpExpr.prototype.fixAssoc = function(){
+        this.Expr.fixAssoc();
+    };
+
+    PostfixOpExpr.prototype.getValue = function(source){
+        return this.Expr.getValue(source)/100;
+    };
+
     return PostfixOpExpr;
 });

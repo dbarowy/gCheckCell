@@ -105,6 +105,16 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         XRange.prototype.getValue = function () {
             return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
         };
+
+        XRange.prototype.setValue = function (value) {
+            var i, j;
+            for (i = this.startRow - 1; i < this.endRow; i++) {
+                for (j = this.startCol - 1; j < this.endCol; j++) {
+                    this.Worksheet._values[i][j] = value;
+                }
+            }
+        };
+
         /**
          * Check if all the cells in the range contain a formula.
          * @returns {boolean}

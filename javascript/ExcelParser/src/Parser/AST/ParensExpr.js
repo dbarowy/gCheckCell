@@ -14,6 +14,12 @@ define("Parser/AST/ParensExpr", function () {
     ParensExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
         this.Expr.Resolve(wb, ws);
     };
+    ParensExpr.prototype.fixAssoc = function(){
+        this.Expr.fixAssoc();
+    };
+    ParensExpr.prototype.getValue = function(source){
+        return this.Expr.getValue(source);
+    };
 
     return ParensExpr;
 });

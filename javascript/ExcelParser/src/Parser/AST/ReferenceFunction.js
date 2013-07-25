@@ -27,6 +27,12 @@ define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Refere
             this.ArgumentList[i].Resolve(wb, ws);
         }
     };
+    ReferenceFunction.prototype.fixAssoc = function () {
+        var i, len;
+        for (i = 0, len = this.ArgumentList.length; i < len; i++) {
+            this.ArgumentList[i].fixAssoc();
+        }
+    };
     return ReferenceFunction;
 
 });

@@ -21,5 +21,8 @@ define("Parser/AST/ReferenceConstant", ["Parser/AST/Reference"], function (Refer
     ReferenceConstant.prototype.toString = function () {
         return "Constant(" + this._value + ")";
     };
+    ReferenceConstant.prototype.getValue = function(source){
+        return this._value;
+    };
     return ReferenceConstant;
 });

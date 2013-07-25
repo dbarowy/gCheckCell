@@ -47,7 +47,7 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
         if (expr instanceof  AST.ReferenceExpr) {
             return this.getRanges(expr.Ref);
         } else if (expr instanceof AST.BinOpExpr) {
-            return (this.getExprRanges(expr.Expr1)).concat(this.getExprRanges(expr.Expr2));
+            return (this.getExprRanges(expr.Left)).concat(this.getExprRanges(expr.Right));
         } else if (expr instanceof AST.UnaryOpExpr) {
             return this.getExprRanges(expr.Expr);
         } else if (expr instanceof AST.ParensExpr) {
@@ -100,7 +100,7 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
         if (expr instanceof AST.ReferenceExpr) {
             return this.getSCRanges(expr.Ref);
         } else if (expr instanceof AST.BinOpExpr) {
-            return (this.getSCExprRanges(expr.Expr1)).concat(this.getSCExprRanges(expr.Expr2));
+            return (this.getSCExprRanges(expr.Left)).concat(this.getSCExprRanges(expr.Right));
         } else if (expr instanceof AST.UnaryOpExpr) {
             return this.getSCExprRanges(expr.Expr);
         } else if (expr instanceof AST.ParensExpr) {

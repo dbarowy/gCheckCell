@@ -59,6 +59,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
         try {
             reference = PEGParser.parse(this.no_ws(str), "Reference");
             reference.Resolve(wb,ws);
+            reference.fixAssoc();
             return reference;
         } catch (e) {
             return new FSharp.None();
@@ -78,6 +79,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
         try {
             formula = PEGParser.parse(this.no_ws(str), "Formula");
             formula.Resolve(wb,ws);
+            formula.fixAssoc();
             return formula;
         } catch (e) {
             return new FSharp.None();

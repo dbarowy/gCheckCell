@@ -21,5 +21,14 @@ define("Parser/AST/ReferenceError", ["Parser/AST/Reference"], function (Referenc
     ReferenceError.prototype.toString = function () {
         return "Error(" + this._value + ")";
     };
+
+    /**
+     * Any computation that involves an error will return an error.
+     * The best way I can think to solve this is to throw the error and catch it at the top of the computation chain.
+     */
+    ReferenceError.prototype.getValue = function (source) {
+        throw new Error(this._value);
+    };
+
     return ReferenceError;
 });
