@@ -3,7 +3,7 @@
  * This represents numerical constants in the formulas.
  * The value is a double number.
  */
-define("Parser/AST/ReferenceConstant", ["Parser/AST/Reference"], function (Reference) {
+define("Parser/AST/ConstantNumber", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -11,18 +11,18 @@ define("Parser/AST/ReferenceConstant", ["Parser/AST/Reference"], function (Refer
         subType.prototype = prototype;
     };
 
-    function ReferenceConstant(/*string */wsname, /*int*/ value) {
+    function ConstantNumber(/*string */wsname, /*int*/ value) {
         Reference.call(this, wsname);
         this._value = value;
     }
 
-    inheritPrototype(ReferenceConstant, Reference);
+    inheritPrototype(ConstantNumber, Reference);
 
-    ReferenceConstant.prototype.toString = function () {
+    ConstantNumber.prototype.toString = function () {
         return "Constant(" + this._value + ")";
     };
-    ReferenceConstant.prototype.getValue = function(source){
+    ConstantNumber.prototype.compute = function(/*XApplication*/app, /*Address*/source){
         return this._value;
     };
-    return ReferenceConstant;
+    return ConstantNumber;
 });

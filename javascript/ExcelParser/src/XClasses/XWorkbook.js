@@ -18,7 +18,7 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
         } else {
             this.Name = wb.name;
             for (var i = 0, len = wb.sheets.length; i < len; i++) {
-                this._sheets[wb.sheets[i].name] = new XWorksheet(wb.sheets[i], this);
+                this._sheets.push(new XWorksheet(wb.sheets[i], this));
             }
         }
     };

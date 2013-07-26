@@ -60,7 +60,7 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
     };
 
     ParserUtility.getRanges = function (/*AST.Reference*/ ref) {
-        if ((ref instanceof AST.ReferenceError) || (ref instanceof AST.ReferenceLogical) || (ref instanceof AST.ReferenceAddress) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ReferenceConstant) || (ref instanceof AST.ReferenceString)) {
+        if ((ref instanceof AST.ConstantError) || (ref instanceof AST.ConstantLogical) || (ref instanceof AST.ReferenceAddress) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ConstantNumber) || (ref instanceof AST.ConstantString)) {
             return [];
         }
         else if (ref instanceof AST.ReferenceRange) {
@@ -113,7 +113,7 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
     };
 
     ParserUtility.getSCRanges = function (/*AST.Reference*/ref) {
-        if ((ref instanceof AST.ReferenceError) || (ref instanceof AST.ReferenceLogical) || (ref instanceof AST.ReferenceRange) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ReferenceConstant) || (ref instanceof AST.ReferenceString)) {
+        if ((ref instanceof AST.ConstantError) || (ref instanceof AST.ConstantLogical) || (ref instanceof AST.ReferenceRange) || (ref instanceof AST.ReferenceNamed) || (ref instanceof AST.ConstantNumber) || (ref instanceof AST.ConstantString)) {
             return [];
         } else if (ref instanceof AST.ReferenceAddress) {
             return this.getSCAddressReferenceRanges(ref);

@@ -2,7 +2,7 @@
  * This file contains the BinOpExpr class.
  * This class is used to represent expressions that involve an infix operator.
  */
-define("Parser/AST/BinOpExpr",["Parser/AST/ReferenceAddress", "Parser/AST/ReferenceRange"], function (ReferenceAddress, ReferenceRange) {
+define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/ReferenceRange"], function (ReferenceAddress, ReferenceRange) {
     "use strict";
     function BinOpExpr(/*string*/op, /*Expression*/left, /*Expression*/right) {
         this.Operator = op;
@@ -42,7 +42,9 @@ define("Parser/AST/BinOpExpr",["Parser/AST/ReferenceAddress", "Parser/AST/Refere
      * so this method will solve it at runtime.
      */
     BinOpExpr.prototype.fixAssoc = function () {
+
         this.Left.fixAssoc();
+        this.Right.fixAssoc();
         if (this.Right instanceof BinOpExpr) {
             if (this._precedence[this.Operator] >= this._precedence[this.Right.Operator]) {
                 this.Left = new BinOpExpr(this.Operator, this.Left, this.Right.Left);
@@ -51,14 +53,15 @@ define("Parser/AST/BinOpExpr",["Parser/AST/ReferenceAddress", "Parser/AST/Refere
 
             }
         }
+        this.Left.fixAssoc();
         this.Right.fixAssoc();
     };
 
-    BinOpExpr.prototype.getValue = function (source) {
+    BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
         var l, r, isnan;
-        var Xs=[], Ys=[];
-        l = this.Left.getValue(source);
-        r = this.Right.getValue(source);
+        var leftX, topY, rightX, bottomY;
+        l = this.Left.compute(app, source);
+        r = this.Right.compute(app, source);
         isnan = isNaN(l) || isNaN(r);
         if (isnan) {
             l = ("" + l).toLocaleUpperCase();
@@ -166,24 +169,49 @@ define("Parser/AST/BinOpExpr",["Parser/AST/ReferenceAddress", "Parser/AST/Refere
                 }
             }
                 break;
-            case ":":{
+            /* case ":":{
+             //TODO Should I consider addresses on different sheets?
+             if(this.Left instanceof ReferenceAddress && this.Right instanceof ReferenceAddress){
+             if(this.Left.Address.X <= this.Right.Address.X){
+             leftX=this.Left.Address.X;
+             rightX=this.Right.Address.X;
+             }else{
+             leftX = this.Right.Address.X;
+             rightX = this.Left.Address.X;
+             }
+             if(this.Left.Address.Y <= this.Right.Address.Y){
+             topY=this.Left.Address.Y;
+             bottomY=this.Right.Address.Y;
+             }else{
+             bottomY=this.Left.Address.Y;
+             topY=this.Right.Address.Y;
+             }
+             }else if(this.Left instanceof ReferenceAddress && this.Right instanceof ReferenceRange){
+             *//*  if(this.Left.Address.X <= this.Right.Range.getXLeft()){
+         leftX = this.Left.Address.X;
+         rightX = this.Right.Range.getXRight();
+         }else{
+         leftX = this.Right.Range.getXLeft();
+         if(this.Left.Address.X >= this.Right.Range.getXRight()){
+         rightX = this.Left.Address.X;
+         }else{
+         rightX = this.Right.Range.getXRight();
+         }
+         }*//*
+         }else if(this.Left instanceof ReferenceRange && this.Right instanceof ReferenceRange){
+         leftX = (this.Left.Range.getXLeft() <= this.Right.Range.getXLeft())?this.Left.Range.getXLeft():this.Right.Range.getXLeft();
+         rightX = (this.Left.Range.getXRight() >= this.Right.Range.getXRight())? this.Left.Range.getXRight(): this.Right.Range.getXRight();
+         topY = (this.Left.Range.getYTop() <= this.Right.Range.getYTop())? this.Left.Range.getYTop():this.Right.Range.getYTop();
+         bottomY = (this.Left.Range.getYBottom() >= this.Right.Range.getYBottom())? this.Left.Range.getYBottom(): this.Right.Range.getYBottom();
+         }
 
-                if(this.Left instanceof ReferenceAddress){
-                   Xs.push(this.Left.Address.X);
-                    Ys.push(this.Left.Adddress.Y);
-                }else if(this.Left instanceof ReferenceRange){
-                    Xs.push(this.Left.Range.getXLeft());
-                    Xs.push(this.Left.Range.getXRight());
-                }
-                if( (this.Left instanceof ReferenceAddress || this.Left instanceof ReferenceRange)  && (this.Right instanceof ReferenceAddress || this.Right instanceof ReferenceRange)){
 
 
-
-                }else{
-                    throw new Error("Illegal operator \":\"");
-                }
-            }
-                break;
+         else{
+         throw new Error("Illegal operator \":\"");
+         }
+         }
+         break;*/
             default:
                 throw new Error("Unknown operator");
         }

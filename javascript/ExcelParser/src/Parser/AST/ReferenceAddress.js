@@ -54,8 +54,8 @@ define("Parser/AST/ReferenceAddress",["FSharp/FSharp", "Parser/AST/Reference", "
         }
     };
 
-    ReferenceAddress.prototype.getValue = function(source){
-      return this.Address.getValue(source);
+    ReferenceAddress.prototype.compute = function(/*XApplication*/app, /*Address*/source){
+      return this.Address.compute(app, source);
     };
 
     return ReferenceAddress;

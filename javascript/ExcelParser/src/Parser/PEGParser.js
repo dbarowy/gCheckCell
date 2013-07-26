@@ -2317,7 +2317,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        pos = pos1;
                    }
                    if (result0 !== null) {
-                       result0 = (function(offset, c) {return new AST.ReferenceArray(null, c);})(pos0, result0[1]);
+                       result0 = (function(offset, c) {return new AST.ConstantArray(null, c);})(pos0, result0[1]);
                    }
                    if (result0 === null) {
                        pos = pos0;
@@ -2518,7 +2518,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        pos = pos1;
                    }
                    if (result0 !== null) {
-                       result0 = (function(offset, str) {return new AST.ReferenceString(null, str);})(pos0, result0[1]);
+                       result0 = (function(offset, str) {return new AST.ConstantString(null, str);})(pos0, result0[1]);
                    }
                    if (result0 === null) {
                        pos = pos0;
@@ -2612,7 +2612,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                    pos0 = pos;
                    result0 = parse_numerical_constant();
                    if (result0 !== null) {
-                       result0 = (function(offset, num) {return new AST.ReferenceConstant(null, num);})(pos0, result0);
+                       result0 = (function(offset, num) {return new AST.ConstantNumber(null, num);})(pos0, result0);
                    }
                    if (result0 === null) {
                        pos = pos0;
@@ -2852,7 +2852,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        }
                    }
                    if (result0 !== null) {
-                       result0 = (function(offset, bool) {return new AST.ReferenceLogical(null, bool);})(pos0, result0);
+                       result0 = (function(offset, bool) {return new AST.ConstantLogical(null, bool);})(pos0, result0);
                    }
                    if (result0 === null) {
                        pos = pos0;
@@ -2952,7 +2952,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        }
                    }
                    if (result0 !== null) {
-                       result0 = (function(offset, err) {return new AST.ReferenceError(null, err);})(pos0, result0);
+                       result0 = (function(offset, err) {return new AST.ConstantError(null, err);})(pos0, result0);
                    }
                    if (result0 === null) {
                        pos = pos0;
@@ -3302,7 +3302,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                        pos = pos1;
                    }
                    if (result0 !== null) {
-                       result0 = (function(offset, exp) {return exp.toString();})(pos0, result0[1]);
+                       result0 = (function(offset, exp) {return exp;})(pos0, result0[1]);
                    }
                    if (result0 === null) {
                        pos = pos0;

@@ -1,9 +1,7 @@
-//TODO methods in this block use Range objects but those are not needed at initialization. Should I
-//Reference the range?
 /**
  * This file contains the Address module. This class is used to represent addresses(individual cells) in the worksheet.
  */
-define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (FSharp, Profiler) {
+define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
     "use strict";
     /**
      *
@@ -24,7 +22,8 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
             this.X = C;
         }
         this.Y = R;
-        this._com=null;
+        this._com = null;
+        this._hash = null;
     }
 
     /**
@@ -149,7 +148,10 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
      * @returns {string} Hashcode of the object
      */
     Address.prototype.getHashCode = function () {
-        return ("" + this.WorkbookName + "_" + this.WorksheetName + "_" + this.X + "_" + this.Y);
+        if (this._hash === null) {
+            this._hash = ("" + this.WorkbookName + "_" + this.WorksheetName + "_" + this.X + "_" + this.Y);
+        }
+        return this._hash;
     };
 
     /**
@@ -175,7 +177,7 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
      * @returns {XRange|*}
      */
     Address.prototype.GetCOMObject = function (/*XApplication*/app) {
-        if(this._com===null){
+        if (this._com === null) {
             this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
         }
         return this._com;
@@ -189,8 +191,14 @@ define("Parser/AST/Address", ["FSharp/FSharp", "Utilities/Profiler"], function (
      * @param source The address of the cell for which we are computing the formula.
      * @returns {*}
      */
-    Address.prototype.getValue = function(/*Address*/source){
-         return this._com.getValue();
+    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+        if (this._com === null) {
+            this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
+        }
+        if (this._com.hasFormula()) {
+            return app.compute(this);
+        }
+        return this._com.getValue();
     };
     return Address;
 });

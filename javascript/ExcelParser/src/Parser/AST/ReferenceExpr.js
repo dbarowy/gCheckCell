@@ -24,8 +24,8 @@ define("Parser/AST/ReferenceExpr", ["Parser/AST/ReferenceFunction"], function (R
             this.Ref.fixAssoc();
         }
     };
-    ReferenceExpr.prototype.getValue = function (source) {
-        return this.Ref.getValue(source);
+    ReferenceExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+        return this.Ref.compute(app, source);
     };
     return ReferenceExpr;
 });

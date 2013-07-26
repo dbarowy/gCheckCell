@@ -2,11 +2,12 @@
  * This file contains the Range class which is used to represent ranges in the sheet.
  * Example: A2:A3
  */
-define("Parser/AST/Range", ["Utilities/Profiler"],function (Profiler) {
+define("Parser/AST/Range", function () {
     "use strict";
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
         this._tl = topleft;
         this._br = bottomright;
+        this._com = null;
     }
 
     Range.prototype.toString = function () {
@@ -57,7 +58,31 @@ define("Parser/AST/Range", ["Utilities/Profiler"],function (Profiler) {
      */
     Range.prototype.GetCOMObject = function (/*XApplication*/app) {
         // tl and br must share workbook and worksheet
-        return app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
+        if (this._com === null) {
+            this._com = app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
+        }
+        return this._com;
     };
+
+    Range.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+        if (this._com === null) {
+            this.GetCOMObject(app);
+        }
+        //N*1 range
+        if (this._com.getColumnCount() === 1) {
+            if (this._com.startRow <= source.Y && source.Y <= this._com.endRow) {
+                return this._com.Worksheet.getRange(source.Y, this._com.startCol);
+            }
+            //1*N range
+        } else if (this._com.getRowCount() === 1) {
+            if (this._com.startCol <= source.X && source.X <= this._com.endCol) {
+                return this._com.Worksheet.getRange(this._com.startRow, source.X);
+            }
+        }
+            throw new Error("#VALUE!");
+
+
+    };
+
     return Range;
 });

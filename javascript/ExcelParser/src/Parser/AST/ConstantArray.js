@@ -1,4 +1,4 @@
-define("Parser/AST/ReferenceArray", ["Parser/AST/Reference"], function (Reference) {
+define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -6,14 +6,14 @@ define("Parser/AST/ReferenceArray", ["Parser/AST/Reference"], function (Referenc
         subType.prototype = prototype;
     };
 
-    function ReferenceArray(/*string */wsname, /*Constant*/ values) {
+    function ConstantArray(/*string */wsname, /*Constant*/ values) {
         Reference.call(this, wsname);
         this._values = values;
     }
 
-    inheritPrototype(ReferenceArray, Reference);
+    inheritPrototype(ConstantArray, Reference);
 
-    ReferenceArray.prototype.toString = function () {
+    ConstantArray.prototype.toString = function () {
         var i, rows, cols, j;
         var aux, res = "[";
         for (i = 0, rows = this._values.length; i < rows; i++) {
@@ -26,5 +26,5 @@ define("Parser/AST/ReferenceArray", ["Parser/AST/Reference"], function (Referenc
         res = res.substring(0, res.length - 1) + "]";
         return "Array(" + res + ")";
     };
-    return ReferenceArray;
+    return ConstantArray;
 });

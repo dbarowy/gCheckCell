@@ -20,8 +20,8 @@ define("Parser/AST/PostfixOpExpr", function () {
         this.Expr.fixAssoc();
     };
 
-    PostfixOpExpr.prototype.getValue = function(source){
-        return this.Expr.getValue(source)/100;
+    PostfixOpExpr.prototype.compute = function(/*XApplication*/app, /*Address*/source){
+        return this.Expr.compute(app,source)/100;
     };
 
     return PostfixOpExpr;

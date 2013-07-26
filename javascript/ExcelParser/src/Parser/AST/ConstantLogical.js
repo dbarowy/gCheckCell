@@ -2,7 +2,7 @@
  * This file contains the ReferenceLogical class.
  * This class is used to represent logical constants in the formulas: TRUE/FALSE
  */
-define("Parser/AST/ReferenceLogical", ["Parser/AST/Reference"], function (Reference) {
+define("Parser/AST/ConstantLogical", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -10,20 +10,20 @@ define("Parser/AST/ReferenceLogical", ["Parser/AST/Reference"], function (Refere
         subType.prototype = prototype;
     };
 
-    function ReferenceLogical(/*string*/ wsname, /*string*/value) {
+    function ConstantLogical(/*string*/ wsname, /*string*/value) {
         Reference.call(this, wsname);
         this._value = (value === "TRUE");
     }
 
-    inheritPrototype(ReferenceLogical, Reference);
+    inheritPrototype(ConstantLogical, Reference);
 
-    ReferenceLogical.prototype.toString = function () {
+    ConstantLogical.prototype.toString = function () {
         return "Logical(" + this._value + ")";
     };
 
-    ReferenceLogical.prototype.getValue = function (source) {
+    ConstantLogical.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
         return this._value;
     };
 
-    return ReferenceLogical;
+    return ConstantLogical;
 });

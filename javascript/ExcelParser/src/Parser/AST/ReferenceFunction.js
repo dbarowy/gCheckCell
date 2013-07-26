@@ -33,6 +33,11 @@ define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Refere
             this.ArgumentList[i].fixAssoc();
         }
     };
+
+    //TODO Implement this
+    ReferenceFunction.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+      throw new Error("Unimplemented");
+    };
     return ReferenceFunction;
 
 });

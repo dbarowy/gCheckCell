@@ -22,12 +22,12 @@ define("Parser/AST/UnaryOpExpr", function () {
         this.Expr.fixAssoc();
     };
 
-    UnaryOpExpr.prototype.getValue = function (source) {
+    UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
         switch (this.Operator) {
             case "+":
-                return this.Expr.getValue(source);
+                return this.Expr.compute(app, source);
             case "-":
-                return -(this.Expr.getValue(source));
+                return -(this.Expr.compute(app, source));
             default:
                 throw new Error("Unknown operator");
         }

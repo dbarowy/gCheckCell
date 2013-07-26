@@ -116,19 +116,19 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         };
 
         /**
-         * Check if all the cells in the range contain a formula.
+         * Check if a cell in the range contains a formula
          * @returns {boolean}
          */
         XRange.prototype.hasFormula = function () {
             var i, j;
             for (i = this.startRow - 1; i < this.endRow; i++) {
                 for (j = this.startCol - 1; j < this.endCol; j++) {
-                    if (this.Worksheet._formulas[i][j] === "" || this.Worksheet._formulas[i][j] === null) {
-                        return false;
+                    if (this.Worksheet._formulas[i][j] !== "") {
+                        return true;
                     }
                 }
             }
-            return true;
+            return false;
         };
         /**
          * Get the formula in the top-left cell of the range.
@@ -153,6 +153,17 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
             }
             return range;
 
+        };
+        XRange.prototype.isComputed = function(){
+            var i, j;
+            for (i = this.startRow - 1; i < this.endRow; i++) {
+                for (j = this.startCol - 1; j < this.endCol; j++) {
+                    if (this.Worksheet._computed[i][j] === 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         };
     }
 
@@ -187,10 +198,6 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         } else {
             return AST.Address.IntToColChars(this.startCol) + this.startRow + ":" + AST.Address.IntToColChars(this.endCol) + this.endRow;
         }
-    };
-
-    XRange.prototype.getSheet = function () {
-        return this.Worksheet;
     };
 
     return XRange;

@@ -289,7 +289,7 @@ TestCase("TestPEG",
         "test StringReference": function () {
             "use strict";
             var a = PEGParser.parse('"test"', "StringConstant");
-            assertInstanceOf(AST.ReferenceString, PEGParser.parse("\"asd\"", "StringConstant"));
+            assertInstanceOf(AST.ConstantString, PEGParser.parse("\"asd\"", "StringConstant"));
             assertEquals("String(test)", a.toString());
             assertException(function () {
                 PEGParser.parse('"', "StringConstant");
@@ -313,7 +313,7 @@ TestCase("TestPEG",
             var wb = {Name: "book"};
             var ws = {Name: "sheet"};
             var a = PEGParser.parse("TRUE", "LogicalConstant");
-            assertEquals("Logical(TRUE)", a.toString());
+            assertEquals("Logical(true)", a.toString());
             a.Resolve(wb,ws);
             assertEquals(a.WorkbookName, "book");
             assertEquals(a.WorksheetName, "sheet");
@@ -398,7 +398,7 @@ TestCase("TestPEG",
             "use strict";
             //TODO the bulk of the test cases should go here
             assertEquals("ReferenceExpr.ABS()", PEGParser.parse("=ABS()", "Formula").toString());
-            console.log(PEGParser.parse("=SUM(A1*B1%)", "Formula"));
+            console.log(PEGParser.parse("=1-3*2-3*4", "Formula"));
 /*            assertEquals("ReferenceExpr.ReferenceAddress(None, (23,1))", PEGParser.parse("=A23", "Formula").toString());
             assertEquals("ReferenceExpr.ReferenceRange(None, (23,1),(45,1))", PEGParser.parse("=A23:A45", "Formula").toString());
             assertEquals("ReferenceExpr.ReferenceRange(Sheet2,(4,1),(20,1))", PEGParser.parse("=Sheet2!A4:A20", "Formula").toString());

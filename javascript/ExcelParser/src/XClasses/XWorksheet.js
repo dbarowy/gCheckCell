@@ -28,6 +28,14 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
             this._formulas = ws.formulas;
             this._lastRow = ws.values.length;
             this._lastColumn = ws.values[0].length;
+            this._computed = [];
+            for(var i=0; i<this._lastColumn; i++){
+                var row = [];
+                for(var j=0; j<this._lastColumn; j++){
+                   row.push(0);
+                }
+                this._computed.push(row);
+            }
         }
     }
 
@@ -122,13 +130,13 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
                 if (startRow <= this._lastRow && startCol <= this._lastColumn) {
                     return new XRange(this.Workbook, this, startRow, startCol, startRow, startCol);
                 } else {
-                    return new XRange(this.Workbook, this, startRow, startCol, startRow, startCol, this._ws.getRange(startRow, startCol));
+                    throw new Error("Requested range is outside the used data range.");
                 }
             } else {
                 if (endCol <= this._lastColumn && endRow <= this._lastRow) {
                     return new XRange(this.Workbook, this, startRow, startCol, endRow, endCol);
                 } else {
-                    return new XRange(this.Workbook, this, startRow, startCol, endRow, endCol, this._ws.getRange(startRow, startCol, endRow - startRow + 1, endCol - startCol + 1));
+                    throw new Error("Requested range is outside the used data range.");
                 }
             }
         };

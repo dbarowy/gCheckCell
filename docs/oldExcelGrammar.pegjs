@@ -85,17 +85,17 @@ NamedReferenceCharacters = letter / digit / underscore / full_stop ;
 The Array Constant matrix should be rectangular. I don't know if I should check here or throw an exception during the computation
 TODO: return null if the columns or rows don't have the same length
 */
-ArrayConstant = "{" c:constant_list_rows "}"{return new AST.ReferenceArray(null, c);};
+ArrayConstant = "{" c:constant_list_rows "}"{return new AST.ConstantArray(null, c);};
 constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 constant_list_row = res:((hd:Constant tl:("," Constant) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
-StringConstant = double_quote str:StringChars ? double_quote {return new AST.ReferenceString(null, str);};
+StringConstant = double_quote str:StringChars ? double_quote {return new AST.ConstantString(null, str);};
 StringChars = res:(StringChar +){return res.join("");};
 StringChar=! double_quote c:character{return c;} / '""' {return '"';}; 
 /*
 TODO Maybe I can optimize this when I have time
 */
-NumericalConstant = num:numerical_constant {return new AST.ReferenceConstant(null, num);};
+NumericalConstant = num:numerical_constant {return new AST.ConstantNumber(null, num);};
 numerical_constant = whole:digit_sequence st:full_stop frac:digit_sequence exp:(exponent_part ?) {return parseFloat(whole+st+frac+exp);}
 					/ whole:digit_sequence st:(full_stop ?) exp:(exponent_part ?) {return parseFloat(whole+st+exp);}
 					/ st:full_stop frac:digit_sequence exp:(exponent_part ?) {return parseFloat(st+frac+exp);};
@@ -103,7 +103,7 @@ exponent_part = exp:("e"/"E") s:sign ? dig:digit_sequence {return exp+s+dig;};
 sign = "+"/ "-";
 digit_sequence = digs:(digit + ){return digs.join("");};
 
-LogicalConstant = bool:("FALSE" / "TRUE") {return new AST.ReferenceLogical(null, bool);};
+LogicalConstant = bool:("FALSE" / "TRUE") {return new AST.ConstantLogical(null, bool);};
 
 ErrorConstant = err:("#DIV/0!" 
 		/ "#N/A"
@@ -112,7 +112,7 @@ ErrorConstant = err:("#DIV/0!"
 		/ "#NUM!"
 		/ "#REF!"
 		/ "#VALUE!"
-		/ "#GETTING_DATA") {return new AST.ReferenceError(null, err);};
+		/ "#GETTING_DATA") {return new AST.ConstantError(null, err);};
 Constant = ErrorConstant / LogicalConstant / NumericalConstant / StringConstant / ArrayConstant;
 
 /*
@@ -128,7 +128,7 @@ Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFu
 /*The separator between arguments is different in excel and google sheets*/
 ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
-Formula = "=" exp:Expression {return exp.toString();};
+Formula = "=" exp:Expression {return exp;};
 ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);} / c:Constant {return new AST.ReferenceExpr(c);};
 ExpressionSimple = ExpressionAtom / ParensExpr;
 Expression = exp:ExpressionSimple a:aux {
