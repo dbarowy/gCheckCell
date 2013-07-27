@@ -8,25 +8,26 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
         this.Operator = op;
         this.Left = left;
         this.Right = right;
-        /*Operator precedence used to solve the issue of associativity*/
-        this._precedence = {
-            ":": 6,  //TODO implement these 3 operators
-            " ": 6,  //This operator is not supported by the grammar
-            ",": 6, //This operator is not supported by the grammar
-            "^": 5,
-            "*": 4,
-            "/": 4,
-            "+": 3,
-            "-": 3,
-            "&": 2,
-            "=": 1,
-            "<>": 1,
-            "<=": 1,
-            ">=": 1,
-            "<": 1,
-            ">": 1
-        };
+
     }
+    /*Operator precedence used to solve the issue of associativity*/
+    BinOpExpr.prototype._precedence = {
+        ":": 6,  //TODO implement these 3 operators
+        " ": 6,  //This operator is not supported by the grammar
+        ",": 6, //This operator is not supported by the grammar
+        "^": 5,
+        "*": 4,
+        "/": 4,
+        "+": 3,
+        "-": 3,
+        "&": 2,
+        "=": 1,
+        "<>": 1,
+        "<=": 1,
+        ">=": 1,
+        "<": 1,
+        ">": 1
+    };
 
     BinOpExpr.prototype.toString = function () {
         return "BinOpExpr(\"" + this.Operator + "\",\n\t" + this.Left.toString() + ",\n\t" + this.Right.toString() + ")";

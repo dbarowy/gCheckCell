@@ -6,7 +6,7 @@ define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference
         subType.prototype = prototype;
     };
 
-    function ConstantArray(/*string */wsname, /*Constant*/ values) {
+    function ConstantArray(/*string */wsname, /*Constant Array*/ values) {
         Reference.call(this, wsname);
         this._values = values;
     }

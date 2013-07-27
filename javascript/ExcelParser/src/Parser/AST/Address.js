@@ -56,7 +56,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      */
     Address.IntToColChars = function (/*int*/dividend) {
         var quot, rem, ltr = "";
-        if (Math.floor(dividend) !== dividend) {
+        if (Math.floor(dividend) !== dividend || dividend <= 0) {
             throw new Error("This works only for integers");
         }
         do {
@@ -149,7 +149,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      */
     Address.prototype.getHashCode = function () {
         if (this._hash === null) {
-            this._hash = ("" + this.WorkbookName + "_" + this.WorksheetName + "_" + this.X + "_" + this.Y);
+            this._hash = ("" + this.A1Workbook() + "_" + this.A1Worksheet() + "_" + this.X + "_" + this.Y);
         }
         return this._hash;
     };
