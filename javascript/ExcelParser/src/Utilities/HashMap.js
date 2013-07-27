@@ -1,4 +1,4 @@
-define("Utilities/HashMap", function () {
+define("Utilities/HashMap",function () {
     "use strict";
     function HashMap() {
         this._map = {};
@@ -11,7 +11,7 @@ define("Utilities/HashMap", function () {
         delete this._map[key.getHashCode()];
     };
     HashMap.prototype.get = function (key) {
-        var aux =this._map[key.getHashCode()];
+        var aux = this._map[key.getHashCode()];
         return aux && aux.value;
     };
     HashMap.prototype.containsKey = function (key) {

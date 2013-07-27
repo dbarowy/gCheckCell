@@ -66,7 +66,7 @@ define("Parser/AST/Range", function () {
 
     Range.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
         if (this._com === null) {
-            this.GetCOMObject(app);
+            this._com = app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
         }
         //N*1 range
         if (this._com.getColumnCount() === 1) {

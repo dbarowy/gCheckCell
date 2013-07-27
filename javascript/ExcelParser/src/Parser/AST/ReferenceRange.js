@@ -60,7 +60,7 @@ define("Parser/AST/ReferenceRange", ["require", "Parser/AST/Reference", "Parser/
     };
 
     ReferenceRange.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
-        this.Range.compute(app, source);
+        return this.Range.compute(app, source);
     };
     return ReferenceRange;
 
