@@ -1,6 +1,5 @@
-Int32 = s:[+-]?number: ( oct:("0"[oO][0-7]+) { var res=[]; for(var i=0; i<oct.length; i++) if(oct[i] instanceof Array) res.push(oct[i].join("")); else res.push(oct[i]); var a = res.join(""); return parseInt(a.slice(0,1)+a.slice(2), 8);} / b:("0"[bB][01]+) 
-{ var res=[]; for(var i=0; i<b.length; i++) if(b[i] instanceof Array) res.push(b[i].join("")); else res.push(b[i]); var a = res.join(""); return parseInt(a.slice(0,1)+a.slice(2), 2);} / h:("0"[xX][0-9a-fA-F]+) { var res=[]; for(var i=0; i<h.length; i++)
-if(h[i] instanceof Array) res.push(h[i].join("")); else res.push(h[i]); var a = res.join(""); return parseInt(a, 16);} / d:[0-9]+ {return d.join("");}  ) {return parseInt(s+number);};
+Int32 = s:[+-]?number:digit_sequence {return parseInt(s+number);} ;
+digit_sequence = digs:(digit + ){return digs.join("")};
 
 AsciiUpper = [A-Z];
 character = [^\ufffe-\uffff] ;
@@ -85,7 +84,7 @@ NamedReferenceCharacters = letter / digit / underscore / full_stop ;
 The Array Constant matrix should be rectangular. I don't know if I should check here or throw an exception during the computation
 TODO: return null if the columns or rows don't have the same length
 */
-ArrayConstant = "{" c:constant_list_rows "}"{return new AST.ConstantArray(null, c);};
+ArrayConstant = "{" c:constant_list_rows "}"{ if(c.length==0){ return null;}else{norm=c[0].length; for(i=1; i<c.length; i++){if(c[i].length!==norm)return null;} } return new AST.ConstantArray(null, c);};
 constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 constant_list_row = res:((hd:Constant tl:("," Constant) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 

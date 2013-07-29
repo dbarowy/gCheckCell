@@ -23,14 +23,20 @@ define("Parser/AST/UnaryOpExpr", function () {
     };
 
     UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
-        switch (this.Operator) {
-            case "+":
-                return this.Expr.compute(app, source);
-            case "-":
-                return -(this.Expr.compute(app, source));
-            default:
-                throw new Error("Unknown operator");
+        var val = this.Expr.compute(app, source);
+        if (!isNaN(val)) {
+            switch (this.Operator) {
+                case "+":
+                    return val;
+                case "-":
+                    return -val;
+                default:
+                    throw new Error("Unknown operator");
+            }
+        } else {
+            throw new Error("#VALUE!");
         }
+
     };
 
     return UnaryOpExpr;

@@ -264,24 +264,26 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
         });
     });
 
-    describe("ReferenceAddress", function () {
+    describe("UnaryOpExpr", function () {
+        var expr = new AST.UnaryOpExpr("+", new AST.ConstantNumber(null, 2));
+        it("Constructor", function () {
+            var a = new AST.UnaryOpExpr("+", new AST.ConstantNumber(null, 2));
+            expect(a.Expr).toEqual(new AST.ConstantNumber(null, 2));
+            expect(a.Operator).toEqual("+");
+        });
         it("toString", function () {
-            var refAddr = new AST.ReferenceAddress("sheetName", new AST.Address(1, 1, "sheet", "book"));
-            var a = new AST.ReferenceAddress("sheetName", new AST.Address(2, 3, "sheet", "book"));
-            a.WorksheetName = new FSharp.None();
-            expect(refAddr.toString(), "ReferenceAddress(" + refAddr.WorksheetName + ", " + refAddr.Address + ")");
-            expect(a.toString(), "ReferenceAddress(None" + ", " + a.Address + ")");
+            expect(expr.toString()).toEqual("UnaryOpExpr('+',Constant(2))");
         });
-        //TODO
-        xit("InsideRef", function () {
+        it("compute", function () {
+            var b = new AST.UnaryOpExpr("-", new AST.ConstantNumber(null, 2));
+            expect(expr.compute({}, {})).toEqual(2);
+            expect(b.compute({}, {})).toEqual(-2);
+        });
+    });
 
-        });
-        xit("Resolve", function () {
+    //TODO
+    describe("BinOpExpr", function(){
 
-        });
-        xit("compute", function () {
-
-        });
     });
 
 

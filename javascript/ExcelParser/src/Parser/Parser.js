@@ -59,7 +59,6 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
         try {
             reference = PEGParser.parse(this.no_ws(str), "Reference");
             reference.Resolve(wb,ws);
-            reference.fixAssoc();
             return reference;
         } catch (e) {
             return new FSharp.None();

@@ -14,7 +14,10 @@ files = [
   REQUIRE_ADAPTER,
   'test/require_config.js',
   {pattern: 'src/**/*.js', included: false},
-    {pattern: 'test/ASTTest.js', included: false}
+    {pattern: 'test/ASTTest.js', included: false},
+    {pattern: 'test/PEGParserTest.js', included: false},
+    {pattern: 'test/ParserTest.js', included: false},
+    {pattern: 'test/ParserUtilityTest.js', included: false}
 ];
 
 
