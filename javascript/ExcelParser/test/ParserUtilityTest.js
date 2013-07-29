@@ -19,25 +19,70 @@ define(["Parser/ParserUtility", "Parser/AST/AST", "Parser/PEGParser"], function 
             expect(ParserUtility.getFunctionRanges(refFunc)).toEqual([]);
             refFunc = PEGParser.parse("ABS($A2)", "Function");
             expect(ParserUtility.getFunctionRanges(refFunc)).toEqual([]);
-            var resf = ParserUtility.getFunctionRanges(PEGParser.parse("ABS($A2:B3,$A5:C3)", "Function"));
-            expect(resf[0].getXLeft() === 1 && resf[0].getXRight() === 2 && resf[0].getYTop() === 2 && resf[0].getYBottom() === 3).toEqual(true);
-            expect(resf[1].getXLeft() === 1 && resf[1].getXRight() === 3 && resf[1].getYTop() === 5 && resf[1].getYBottom() === 3).toEqual(true);
-
+            expect(ParserUtility.getFunctionRanges(PEGParser.parse("ABS($A2:B3,$A5:C3)", "Function"))).toEqual([new AST.Range(new AST.Address(2, 1, null, null), new AST.Address(3, 2, null, null)), new AST.Range(new AST.Address(5, 1, null, null), new AST.Address(3, 3, null, null))]);
         });
         it("GetExprRanges", function () {
-            var res = ParserUtility.getExprRanges(PEGParser.parse("=ABS($A2:$A3)", "Formula"));
-            expect(res[0].getXLeft() === 1 && res[0].getXRight() === 1 && res[0].getYTop() === 2 && res[0].getYBottom() === 3).toBeTruthy();
-            res = ParserUtility.getExprRanges(PEGParser.parse("$A1:$A2<=$A5:B5", "BinOpExpr"));
-            expect(res[0].getXLeft() === 1 && res[0].getXRight() === 1 && res[0].getYTop() === 1 && res[0].getYBottom() === 2).toBeTruthy();
-            expect(res[1].getXLeft() === 1 && res[1].getXRight() === 2 && res[1].getYTop() === 5 && res[1].getYBottom() === 5).toBeTruthy();
-            res = ParserUtility.getExprRanges(PEGParser.parse("+$A1:A2", "UnaryOpExpr"));
-            expect(res[0].getXLeft() === 1 && res[0].getXRight() === 1 && res[0].getYTop() === 1 && res[0].getYBottom() === 2).toBeTruthy();
-            res = ParserUtility.getExprRanges(PEGParser.parse("(B1:B2)", "ParensExpr"));
-            expect(res[0].getXLeft() === 2 && res[0].getXRight() === 2 && res[0].getYTop() === 1 && res[0].getYBottom() === 2).toBeTruthy()
+            expect(ParserUtility.getExprRanges(PEGParser.parse("=ABS($A2:$A3)", "Formula"))).toEqual([new AST.Range(new AST.Address(2, 1, null, null), new AST.Address(3, 1, null, null))]);
+            expect(ParserUtility.getExprRanges(PEGParser.parse("=$A1:$A2<=$A5:B5", "Formula"))).toEqual([new AST.Range(new AST.Address(1, 1, null, null), new AST.Address(2, 1, null, null)), new AST.Range(new AST.Address(5, 1, null, null), new AST.Address(5, 2, null, null))]);
+            expect(ParserUtility.getExprRanges(PEGParser.parse("=+$A1:A2", "Formula"))).toEqual([new AST.Range(new AST.Address(1, 1, null, null), new AST.Address(2, 1, null, null))]);
+            expect(ParserUtility.getExprRanges(PEGParser.parse("=(B1:B2)", "Formula"))).toEqual([new AST.Range(new AST.Address(1, 2, null, null), new AST.Address(2, 2, null, null))]);
+            expect(ParserUtility.getExprRanges(PEGParser.parse("=(B1:B2)%", "Formula"))).toEqual([new AST.Range(new AST.Address(1, 2, null, null), new AST.Address(2, 2, null, null))]);
             expect(function () {
                 ParserUtility.getExprRanges({});
             }).toThrow();
         });
+        it("GetRanges", function () {
+            expect(ParserUtility.getRanges(PEGParser.parse("$A$2:$A3", "Reference"))).toEqual([new AST.Range(new AST.Address(2, 1, null, null), new AST.Address(3, 1, null, null))]);
+            expect(ParserUtility.getRanges(PEGParser.parse("ABS($A2)", "Function"))).toEqual([]);
+            expect(function () {
+                ParserUtility.getRanges({});
+            }).toThrow();
+            expect(ParserUtility.getRanges(PEGParser.parse("$A2", "Reference"))).toEqual([]);
+            //Named reference
+            //xexpect(ParserUtility.getRanges(PEGParser.parse("_dsadsa", "Reference"))).toEqual([]);
+            expect(ParserUtility.getRanges(PEGParser.parse("ABS($A2)", "Function"))).toEqual([]);
+            expect(ParserUtility.getRanges(PEGParser.parse("232", "Constant"))).toEqual([]);
+            expect(ParserUtility.getRanges(PEGParser.parse("\"asdsa\"", "Constant"))).toEqual([]);
+        });
+
+        it("GetSCAddressReferenceRange", function () {
+            var addr = new AST.Address(3, 2, "sheet", "book");
+            expect(ParserUtility.getSCAddressReferenceRanges(new AST.ReferenceAddress("sheet", addr))).toEqual([addr]);
+        });
+
+        it("GetSCFunctionRanges", function () {
+            expect(ParserUtility.getSCFunctionRanges(PEGParser.parse("INDEX($A2)", "Function"))).toEqual([]);
+            expect(ParserUtility.getSCFunctionRanges(PEGParser.parse("ABS($A2)", "Function"))).toEqual([new AST.Address(2, 1, null, null)]);
+        });
+
+        it("GetSCExprRanges", function () {
+            expect(ParserUtility.getSCExprRanges(PEGParser.parse("=ABS($A2)", "Formula"))).toEqual([new AST.Address(2, 1, null, null)]);
+            expect(ParserUtility.getSCExprRanges(PEGParser.parse("=$A2+$A3", "Formula"))).toEqual([new AST.Address(2, 1, null, null), new AST.Address(3, 1, null, null)]);
+            expect(ParserUtility.getSCExprRanges(PEGParser.parse("=+$A3", "Formula"))).toEqual([new AST.Address(3, 1, null, null)]);
+            expect(ParserUtility.getSCExprRanges(PEGParser.parse("=(+$B3)", "Formula"))).toEqual([new AST.Address(3, 2, null, null)]);
+
+        });
+
+        it("GetSCRanges", function () {
+            expect(ParserUtility.getSCRanges(PEGParser.parse("$A$2:$A3", "Reference"))).toEqual([]);
+            //TODO When  you implement support for named ranges do this
+            //  xexpect(ParserUtility.getSCRanges(PEGParser.parse("_dsadsa", "Reference"))).toEqual([]);
+            expect(ParserUtility.getSCRanges(PEGParser.parse("232", "Constant"))).toEqual([]);
+            expect(ParserUtility.getSCRanges(PEGParser.parse("\"asdsa\"", "Constant"))).toEqual([]);
+            expect(ParserUtility.getSCRanges(PEGParser.parse("$A2", "Reference"))).toEqual([new AST.Address(2, 1, null, null)]);
+            expect(function () {
+                ParserUtility.getSCRanges({});
+            }).toThrow();
+        });
+        //TODO
+        xit("GetSingleCellReferencesFromFormula", function () {
+
+        });
+
+        xit("GetReferencesFromFormula", function () {
+
+        });
+
 
     });
 });
