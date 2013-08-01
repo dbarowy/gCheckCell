@@ -20,8 +20,14 @@ define("Parser/AST/ConstantString", ["Parser/AST/Reference"], function (Referenc
     ConstantString.prototype.toString = function () {
         return "String(" + this._value + ")";
     };
-
-    ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
         return this._value;
     };
     return ConstantString;

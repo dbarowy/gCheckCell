@@ -22,8 +22,15 @@ define("Parser/AST/UnaryOpExpr", function () {
         this.Expr.fixAssoc();
     };
 
-    UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
-        var val = this.Expr.compute(app, source);
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+        var val = this.Expr.compute(app, source, array);
         if (!isNaN(val)) {
             switch (this.Operator) {
                 case "+":

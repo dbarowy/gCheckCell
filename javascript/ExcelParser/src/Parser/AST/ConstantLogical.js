@@ -20,8 +20,14 @@ define("Parser/AST/ConstantLogical", ["Parser/AST/Reference"], function (Referen
     ConstantLogical.prototype.toString = function () {
         return "Logical(" + this._value + ")";
     };
-
-    ConstantLogical.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    ConstantLogical.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
         return this._value;
     };
 

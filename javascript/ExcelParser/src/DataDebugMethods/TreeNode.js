@@ -1,10 +1,9 @@
-define("DataDebugMethods/TreeNode", function () {
+define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (NodeTypes) {
     "use strict";
     /**
      * Data structure for representing nodes of the dependence graph (DAG) internally.
      * There are three type of nodes: cell, range, and formula nodes.
      * @param com Range object that represents the node in the document
-     * @param name Name given to the node. It is used for identification
      * @param ws Worksheet object associated with the node
      * @param wb Workbook object associated with the node
      * @constructor
@@ -13,22 +12,19 @@ define("DataDebugMethods/TreeNode", function () {
     function TreeNode(/*XRange*/com, /*XWorksheet*/ws, /*XWorkbook*/wb) {
         this.parents = []; //these are the TreeNodes that feed into the current cell
         this.children = []; //these are the TreeNodes that the current cell feeds into
+        if (ws === null || wb === null) {
+            throw new Error("Workbook and worksheet objects must be set.");
+        }
         this.name = com.Workbook.Name + "_" + com.Worksheet.Name + "_" + com.getA1Address(); //For normal cells, the name is just the address of the cell.
         // For ranges, the name is of the format <EndCell>:<EndCell>, such as "A1:A5"
         //For chart nodes, the name begins with the string "Chart", followed by the name of the chart object from Excel, with the white spaces stripped
         this.com = com;
-        this.is_chart = false;
-        this.weight = 0; // The weight of the node as computed by propagating values down the tree
         this.worksheet = ws; //Reference to the XWorksheet object where this range is located
         this.workbook = wb; //Reference to the XWorkbook object where this range is located
-        if (this.worksheet === null) {
-            this.worksheet_name = "none";
-        } else {
-            this.worksheet_name = ws.Name;
-        }
         this.rows = this.com.getRowCount();
         this.columns = this.com.getColumnCount();
         if (this.rows === 1 && this.columns === 1) {
+            this.type = NodeTypes.Cell;
             if (this.com.hasFormula()) {
                 this.is_formula = true;
                 this.formula = this.com.getFormula();
@@ -37,6 +33,7 @@ define("DataDebugMethods/TreeNode", function () {
             }
         }
         else {
+            this.type = NodeTypes.Range;
             this.is_formula = false;
         }
         this.dont_perturb = true;
@@ -59,7 +56,7 @@ define("DataDebugMethods/TreeNode", function () {
         for (i = 0, len = this.parents.length; i < len; i++) {
             parents_string += "\n" + this.parents[i].name.replace(" ", "").replace(":", "") + "->" + this.name.replace(" ", "").replace(":", "");
         }
-        return "\n" + this.name.replace(" ", "").replace(":", "") + "[shape=ellipse]" + parents_string.replace("$", "");
+        return ("\n" + this.name.replace(" ", "").replace(":", "") + "[shape=ellipse]" + parents_string).replace("$", "");
     };
 
     TreeNode.prototype.addParent = function (/*TreeNode*/node) {
@@ -120,7 +117,15 @@ define("DataDebugMethods/TreeNode", function () {
 
 
     TreeNode.prototype.isRange = function () {
-        return (this.name.indexOf(":") !== -1);
+        return this.type === NodeTypes.Range;
     };
+    TreeNode.prototype.isChart = function () {
+        return this.type === NodeTypes.Chart;
+    };
+    TreeNode.prototype.isCell = function () {
+        return this.type === NodeTypes.Cell;
+    };
+
+
     return TreeNode;
 });

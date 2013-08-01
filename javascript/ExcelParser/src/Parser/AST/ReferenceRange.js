@@ -58,9 +58,15 @@ define("Parser/AST/ReferenceRange", ["require", "Parser/AST/Reference", "Parser/
             this.WorksheetName = ws.Name;
         }
     };
-
-    ReferenceRange.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
-        return this.Range.compute(app, source);
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    ReferenceRange.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+        return this.Range.compute(app, source, array);
     };
     return ReferenceRange;
 

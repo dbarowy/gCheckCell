@@ -21,7 +21,14 @@ define("Parser/AST/ConstantNumber", ["Parser/AST/Reference"], function (Referenc
     ConstantNumber.prototype.toString = function () {
         return "Constant(" + this._value + ")";
     };
-    ConstantNumber.prototype.compute = function(/*XApplication*/app, /*Address*/source){
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    ConstantNumber.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
         return this._value;
     };
     return ConstantNumber;

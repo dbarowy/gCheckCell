@@ -24,8 +24,15 @@ define("Parser/AST/ReferenceExpr", ["Parser/AST/ReferenceFunction"], function (R
             this.Ref.fixAssoc();
         }
     };
-    ReferenceExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
-        return this.Ref.compute(app, source);
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    ReferenceExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+        return this.Ref.compute(app, source, array);
     };
     return ReferenceExpr;
 });

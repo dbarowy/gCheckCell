@@ -9,69 +9,39 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
      * @param app
      */
     ConstructTree.constructTree = function (/*AnalysisData*/analysisData, /*XApplication*/app) {
-
         var nodes, i, formula_node, ranges, range_node, j, addresses, tn;
-        analysisData.input_cells_in_computation_count = 0;
-        analysisData.raw_input_cells_in_computation_count = 0;
-        var processed_ranges = {};
         //Get a range representing the formula cells for each worksheet in each workbook
         // XRange[][]
-
-         
         var formulaRanges = ConstructTree.getFormulaRanges(app);
-         
-
         //Create nodes for every cell containing a formula
-         
         analysisData.formula_nodes = ConstructTree.createFormulaNodes(formulaRanges, app);
-         
-
         //Now we parse the formulas in nodes to extract any range and cell references
         nodes = analysisData.formula_nodes.getEntrySet();
-
         for (i = 0; i < nodes.length; i++) {
             formula_node = nodes[i].value;
-
             //For each of the ranges found in the formula by the parser
             //1.Make a TreeNode for the range
-             
             ranges = ParserUtility.getReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
-             
-
             for (j = 0; j < ranges.length; j++) {
-
-                 
                 range_node = ConstructTree.makeRangeTreeNode(analysisData.input_ranges, ranges[j], formula_node);
-                 
-
                 //     ConstructTree.createCellNodesFromRange(range_node, formula_node, analysisData.formula_nodes, analysisData.cell_nodes);
-                range_node.addChild(formula_node);
-                formula_node.addParent(range_node);
-
+                range_node.addParent(formula_node);
+                formula_node.addChild(range_node);
                 //I don't create nodes from the ranges. We don't need the children of the range
                 //If the range contains formulas, we will come through the nodes in the next loop
-
-
             }
             //FOr each single-cell input found in the formula by the parser
             //link to output TreeNode if the input cell is a formula. This allows
             //us to consider functions with single-cell inputs as outputs
-
-             
             addresses = ParserUtility.getSingleCellReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
-             
-
-             
             for (j = 0; j < addresses.length; j++) {
-                if (typeof(tn = analysisData.formula_nodes.get(addresses[j])) !== "undefined") {
+                if (tn = analysisData.formula_nodes.get(addresses[j])) {
                     if (tn.is_formula) {
-                        tn.addChild(formula_node);
-                        formula_node.addParent(tn);
+                        formula_node.addChild(tn);
+                        tn.addParent(formula_node);
                     }
                 }
-
             }
-             
         }
         //ConstructTree.storeOutputs(analysisData);
     };
@@ -173,11 +143,11 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
      * @returns {Array}
      */
     ConstructTree.getFormulaRanges = function (/*AppContext*/app) {
-
         var i, len, len1, len2, j, k, usedRange;
         var sheets = app.getWorksheets();
         var analysisRanges = [];//Bidimensional array of cells with formulas
         var sheetRanges;
+
         for (i = 0, len = sheets.length; i < len; i++) {
             usedRange = sheets[i].getUsedRange();
             sheetRanges = [];
@@ -215,21 +185,15 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
             }
             for (j = 0; j < formulaRanges[i].length; j++) {
                 cell = formulaRanges[i][j];
+                //The cell has to have content in order for it to influence the output
                 if (cell.getValue()) {
-
-                     
                     addr = Parser.getAddress(cell.getR1C1Address(), wb, ws);
-                     
-
-                     
                     n = new TreeNode(cell, ws, wb);
-                     
                     if ((formula = cell.getFormula())) {
                         n.is_formula = true;
                         n.dont_perturb = true;
                         n.formula = formula;
                         treeDict.put(addr, n);
-
                     }
 
                 }
@@ -252,7 +216,6 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
             range_nodes.push(range_node);
         }
         return range_node;
-
     };
     return ConstructTree;
 });

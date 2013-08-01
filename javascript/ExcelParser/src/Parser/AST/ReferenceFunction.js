@@ -34,7 +34,14 @@ define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Refere
         }
     };
 
-    //TODO Implement this
+    /**
+     * TODO
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
     ReferenceFunction.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
       throw new Error("Unimplemented");
     };

@@ -53,9 +53,15 @@ define("Parser/AST/ReferenceAddress",["FSharp/FSharp", "Parser/AST/Reference", "
             this.Address.WorksheetName = ws.Name;
         }
     };
-
-    ReferenceAddress.prototype.compute = function(/*XApplication*/app, /*Address*/source){
-      return this.Address.compute(app, source);
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    ReferenceAddress.prototype.compute = function(/*XApplication*/app, /*Address*/source,/*Boolean*/array){
+      return this.Address.compute(app, source, array);
     };
 
     return ReferenceAddress;

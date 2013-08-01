@@ -186,19 +186,25 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
     Address.prototype.toString = function () {
         return "(" + this.Y + "," + this.X + ")";
     };
+
     /**
      * Get the value associated with this address.
-     * @param source The address of the cell for which we are computing the formula.
+     * @param app Entry point to the Application data
+     * @param source
+     * @param array
      * @returns {*}
      */
-    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
         if (this._com === null) {
             this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
         }
+        //If the cell contains a formula, we have to compute the result before returning it
         if (this._com.hasFormula()) {
-            return app.compute(this);
+            return app.compute(this, array);
+            //otherwise, return the value
+        } else {
+            return this._com.getValue();
         }
-        return this._com.getValue();
     };
     return Address;
 });

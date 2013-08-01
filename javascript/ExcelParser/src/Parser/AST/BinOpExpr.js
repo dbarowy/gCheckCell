@@ -10,6 +10,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
         this.Right = right;
 
     }
+
     /*Operator precedence used to solve the issue of associativity*/
     BinOpExpr.prototype._precedence = {
         ":": 6,  //TODO implement these 3 operators
@@ -57,12 +58,18 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
         this.Left.fixAssoc();
         this.Right.fixAssoc();
     };
-
-    BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
+    /**
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @returns {*}
+     */
+    BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
         var l, r, isnan;
         var leftX, topY, rightX, bottomY;
-        l = this.Left.compute(app, source);
-        r = this.Right.compute(app, source);
+        l = this.Left.compute(app, source, array);
+        r = this.Right.compute(app, source, array);
         isnan = isNaN(l) || isNaN(r);
         if (isnan) {
             l = ("" + l).toLocaleUpperCase();
