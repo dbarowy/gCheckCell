@@ -1,6 +1,4 @@
 Int32 = s:[+-]?number:digit_sequence {return parseInt(s+number);} ;
-digit_sequence = digs:(digit + ){return digs.join("")};
-
 AsciiUpper = [A-Z];
 character = [^\ufffe-\uffff] ;
 letter = [a-z] / [A-Z];
@@ -84,9 +82,9 @@ NamedReferenceCharacters = letter / digit / underscore / full_stop ;
 The Array Constant matrix should be rectangular. I don't know if I should check here or throw an exception during the computation
 TODO: return null if the columns or rows don't have the same length
 */
-ArrayConstant = "{" c:constant_list_rows "}"{ if(c.length==0){ return null;}else{norm=c[0].length; for(i=1; i<c.length; i++){if(c[i].length!==norm)return null;} } return new AST.ConstantArray(null, c);};
-constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
-constant_list_row = res:((hd:Constant tl:("," Constant) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+ArrayConstant = "{" c:constant_list_rows "}"{ if(c.length==0){ return null;}else{var norm=c[0].length; for(i=1; i<c.length; i++){if(c[i].length!==norm)return null;} } return new AST.ConstantArray(null, c);};
+constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+constant_list_row = res:((hd:Constant tl:("," Constant) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
 StringConstant = double_quote str:StringChars ? double_quote {return new AST.ConstantString(null, str);};
 StringChars = res:(StringChar +){return res.join("");};
@@ -125,7 +123,7 @@ ParensExpr = "(" exp:Expression ")" {return new AST.ParensExpr(exp);};
 FunctionName = r:((letter / ".") +) {return r.join("");};
 Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFunction(null, f, args);} ;
 /*The separator between arguments is different in excel and google sheets*/
-ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
 Formula = "=" exp:Expression {return exp;};
 ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);} / c:Constant {return new AST.ReferenceExpr(c);};

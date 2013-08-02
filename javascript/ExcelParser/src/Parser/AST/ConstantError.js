@@ -23,14 +23,14 @@ define("Parser/AST/ConstantError", ["Parser/AST/Reference"], function (Reference
     };
 
     /**
-     * Any computation that involves an error will return an error.
-     * The best way I can think to solve this is to throw the error and catch it at the top of the computation chain.
+     * Compute the value of this expression.
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    ConstantError.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+    ConstantError.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
         throw new Error(this._value);
     };
 

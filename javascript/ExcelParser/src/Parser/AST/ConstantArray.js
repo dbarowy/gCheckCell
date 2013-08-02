@@ -32,24 +32,23 @@ define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    ConstantArray.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+        //TODO The current setup doesn't allow this ={#VALUE!,1;4,6}*47
+    ConstantArray.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
         var i, j, len, len2, res = [], row;
-        if (array) {
+        if (array || range) {
             for (i = 0, len = this._values.length; i < len; i++) {
                 row = [];
                 for (j = 0, len2 = this._values[i].length; j < len2; j++) {
-                    row.push(this._values[i][j].compute(app, source, array));
+                    row.push(this._values[i][j].compute(app, source, false, false));
                 }
                 res.push(row);
             }
             return res;
         } else {
-            //TODO is this alright?
-            return [
-                [this._values[0][0].compute(app, source, array)]
-            ];
+            return this._values[0][0].compute(app, source, array, false);
         }
     };
     return ConstantArray;

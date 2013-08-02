@@ -63,13 +63,14 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+    BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
         var l, r, isnan;
         var leftX, topY, rightX, bottomY;
-        l = this.Left.compute(app, source, array);
-        r = this.Right.compute(app, source, array);
+        l = this.Left.compute(app, source, array, false);
+        r = this.Right.compute(app, source, array, false);
         isnan = isNaN(l) || isNaN(r);
         if (isnan) {
             l = ("" + l).toLocaleUpperCase();

@@ -188,22 +188,31 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
     };
 
     /**
-     * Get the value associated with this address.
-     * @param app Entry point to the Application data
-     * @param source
-     * @param array
+     * Compute the value of this expression.
+     * @param app Entry point to the application data
+     * @param source The cell for which we are computing the formula
+     * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
+    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
         if (this._com === null) {
             this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
         }
+
         //If the cell contains a formula, we have to compute the result before returning it
         if (this._com.hasFormula()) {
             return app.compute(this, array);
             //otherwise, return the value
         } else {
-            return this._com.getValue();
+            if (array) {
+                return [
+                    [this._com.getValue()]
+                ];
+            } else {
+                return this._com.getValue();
+            }
+
         }
     };
     return Address;

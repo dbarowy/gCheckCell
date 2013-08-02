@@ -19,15 +19,26 @@ define("Parser/AST/PostfixOpExpr", function () {
     PostfixOpExpr.prototype.fixAssoc = function () {
         this.Expr.fixAssoc();
     };
+
     /**
      * Compute the value of this expression.
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
-        return this.Expr.compute(app, source, array) / 100;
+    PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        var val = this.Expr.compute(app, source, array, false), i, j;
+        if (array) {
+            for (i = 0; i < val.length; i++) {
+                for (j = 0; j < val[i].length; j++) {
+                    val[i][j] = val[i][j] / 100;
+                }
+            }
+        } else {
+            return val / 100;
+        }
     };
 
     return PostfixOpExpr;

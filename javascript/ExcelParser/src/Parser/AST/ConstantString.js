@@ -25,10 +25,17 @@ define("Parser/AST/ConstantString", ["Parser/AST/Reference"], function (Referenc
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
-        return this._value;
+    ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        if (array) {
+            return [
+                [this._value]
+            ];
+        } else {
+            return this._value;
+        }
     };
     return ConstantString;
 });

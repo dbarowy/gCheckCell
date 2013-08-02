@@ -27,21 +27,41 @@ define("Parser/AST/UnaryOpExpr", function () {
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
-        var val = this.Expr.compute(app, source, array);
-        if (!isNaN(val)) {
+    UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        var val = this.Expr.compute(app, source, array, false), i, j;
+        if (array) {
             switch (this.Operator) {
                 case "+":
                     return val;
                 case "-":
-                    return -val;
+                {
+                    for (i = 0; i < val.length; i++) {
+                        for (j = 0; j < val[i].length; j++) {
+                            val[i][j] = -val[i][j];
+                        }
+                    }
+                    return val;
+                }
                 default:
                     throw new Error("Unknown operator");
             }
         } else {
-            throw new Error("#VALUE!");
+            if (!isNaN(val)) {
+                switch (this.Operator) {
+                    case "+":
+                        return val;
+                    case "-":
+                        return -val;
+                    default:
+                        throw new Error("Unknown operator");
+                }
+            } else {
+                throw new Error("#VALUE!");
+            }
+
         }
 
     };

@@ -2,7 +2,7 @@
  * This file contains the ReferenceFunction class.
  * This class is used to represent function calls in the formulas.
  */
-define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Reference) {
+define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "formula"], function (Reference, Formula) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -34,16 +34,38 @@ define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"], function (Refere
         }
     };
 
+    ReferenceFunction.prototype._flattenMatrix = function (matrix) {
+        var res = [], i;
+        for (i = 0; i < matrix.length; i++) {
+            res = res.concat(matrix[i]);
+        }
+        return res;
+    };
+
     /**
-     * TODO
-     * Compute the value of this expression.
+     * TODO Compute the value of this expression.
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    ReferenceFunction.prototype.compute = function (/*XApplication*/app, /*Address*/source) {
-      throw new Error("Unimplemented");
+    ReferenceFunction.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        var aux = [], i;
+        switch (this.FunctionName) {
+            case "SUM":
+            {
+                for (i = 0; i < this.ArgumentList.length; i++) {
+                    aux = aux.concat(this.ArgumentList[i].compute(app, source, array, true));
+                }
+                return Formula.SUM.apply(null, aux);
+            }
+            default:
+            {
+                throw new Error("Unimplemented");
+            }
+        }
+
     };
     return ReferenceFunction;
 

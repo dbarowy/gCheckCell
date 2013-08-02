@@ -63,10 +63,11 @@ define("Parser/AST/ReferenceRange", ["require", "Parser/AST/Reference", "Parser/
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    ReferenceRange.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
-        return this.Range.compute(app, source, array);
+    ReferenceRange.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        return this.Range.compute(app, source, array, range);
     };
     return ReferenceRange;
 

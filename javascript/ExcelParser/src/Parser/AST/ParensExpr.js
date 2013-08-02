@@ -16,15 +16,17 @@ define("Parser/AST/ParensExpr", function () {
     ParensExpr.prototype.fixAssoc = function () {
         this.Expr.fixAssoc();
     };
+
     /**
      * Compute the value of this expression.
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
+     * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-    ParensExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array) {
-        return this.Expr.compute(app, source, array);
+    ParensExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        return this.Expr.compute(app, source, array, range);
     };
 
     return ParensExpr;

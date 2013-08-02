@@ -64,6 +64,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
              */
             _extractFormulas: function (/*XWorkbook*/ xBook) {
                 var i, j, k, address;
+
                 var xSheets = xBook.getWorksheets();
                 for (k = 0; k < xSheets.length; k++) {
                     for (i = 0; i < xSheets[k]._formulas.length; i++) {
@@ -88,17 +89,20 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                     }
                 }
                 else {
-                    throw new Error("This cell doesn't contain a formula.");
+                    return source.GetCOMObject(this).getValue();
                 }
             },
             recompute: function (/*Address*/source) {
+
                 var val;
                 try {
                     val = this.compute(source);
+
                 } catch (err) {
                     //TODO a better idea when you have thought of this.
                     val = err.toString();
                 }
+                console.log(val);
                 source.GetCOMObject(this).setValue(val);
                 for (var a in this._computed) {
                     if (this._computed.hasOwnProperty(a)) {
@@ -118,9 +122,11 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                 for (i = 0, len = data.external_books.length; i < len; i++) {
                     this._workbooks.push(new XWorkbook(data.external_books[i], this));
                 }
+
                 for (i = 0, len = this._workbooks; i < len; i++) {
                     this._extractFormulas(this._workbooks[i]);
                 }
+
             },
 
             /**
