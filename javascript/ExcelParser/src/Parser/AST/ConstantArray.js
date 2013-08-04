@@ -35,7 +35,6 @@ define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference
      * @param range True if this is a range parameter to a function.
      * @returns {*}
      */
-        //TODO The current setup doesn't allow this ={#VALUE!,1;4,6}*47
     ConstantArray.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
         var i, j, len, len2, res = [], row;
         if (array || range) {

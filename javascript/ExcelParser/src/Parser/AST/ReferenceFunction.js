@@ -2,7 +2,7 @@
  * This file contains the ReferenceFunction class.
  * This class is used to represent function calls in the formulas.
  */
-define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference"], function (Reference, Formula) {
+define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "Utilities/Function"], function (Reference, Function) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -34,16 +34,22 @@ define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference"], function (Refer
         }
     };
 
-    ReferenceFunction.prototype._flattenMatrix = function (matrix) {
-        var res = [], i;
+
+    ReferenceFunction.prototype._containsError = function (matrix) {
+        var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        var i, j;
         for (i = 0; i < matrix.length; i++) {
-            res = res.concat(matrix[i]);
+            for (j = 0; j < matrix[0].length; j++) {
+                if (err.test(matrix[i][j])) {
+                    return matrix[i][j];
+                }
+            }
         }
-        return res;
+        return false;
     };
 
     /**
-     * TODO Compute the value of this expression.
+     * Compute the value of this expression.
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
@@ -51,30 +57,11 @@ define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference"], function (Refer
      * @returns {*}
      */
     ReferenceFunction.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
-        var aux = [], i;
-        switch (this.FunctionName) {
-            case "SUM":
-            {
-                for (i = 0; i < this.ArgumentList.length; i++) {
-                    aux = aux.concat(this.ArgumentList[i].compute(app, source, array, true));
-                }
-                return Formula.SUM.apply(null, aux);
-            }
-
-            case "ARRAYFORMULA":
-            {
-                if (this.ArgumentList.length !== 1) {
-                    return "#N/A"
-                } else {
-
-                    return this.ArgumentList[0].compute(app, source, true, true);
-                }
-            }
-                break;
-            default:
-            {
-                throw new Error("Unimplemented");
-            }
+        var func = Function[this.FunctionName];
+        if (typeof func === "undefined") {
+            throw new Error("Unimplemented function " + this.FunctionName);
+        } else {
+            return func(app, source, array, range, this.ArgumentList);
         }
 
     };

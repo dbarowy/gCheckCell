@@ -3516,7 +3516,7 @@ var lodashFunctions = [
         for (var i = 0; i < numbers.length; i++) {
             if (numbers[i] instanceof Array) {
                 for (var j = 0; j < numbers[i].length; j++) {
-                    result += (Formula.ISNfhttp://www.imdb.com/title/tt2054790/UMBER(numbers[i][j])) ? numbers[i][j] : 0;
+                    result += (Formula.ISNUMBER(numbers[i][j])) ? numbers[i][j] : 0;
                 }
             } else {
                 result += (Formula.ISNUMBER(numbers[i])) ? numbers[i] : 0;
