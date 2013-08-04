@@ -25,7 +25,7 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
         this.columns = this.com.getColumnCount();
         if (this.rows === 1 && this.columns === 1) {
             this.type = NodeTypes.Cell;
-            if (this.com.hasFormula()) {
+            if (this.com.containsFormula()) {
                 this.is_formula = true;
                 this.formula = this.com.getFormula();
             } else {

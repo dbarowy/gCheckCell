@@ -78,7 +78,9 @@ define("Parser/AST/Range", function () {
         if (this._com === null) {
             this._com = app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
         }
-        if (range) {
+
+        if (range || array) {
+            //If we need the entire range
             sheetName = this._com.Worksheet.Name;
             wbName = this._com.Workbook.Name;
             for (i = this._com.startRow; i <= this._com.endRow; i++) {
@@ -90,31 +92,18 @@ define("Parser/AST/Range", function () {
             }
             return res;
         } else {
-            if (!array) {
-                //N*1 range
-                if (this._com.getColumnCount() === 1) {
-                    if (this._com.startRow <= source.Y && source.Y <= this._com.endRow) {
-                        return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array);
-                    }
-                    //1*N range
-                } else if (this._com.getRowCount() === 1) {
-                    if (this._com.startCol <= source.X && source.X <= this._com.endCol) {
-                        return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array);
-                    }
+            //N*1 range
+            if (this._com.getColumnCount() === 1) {
+                if (this._com.startRow <= source.Y && source.Y <= this._com.endRow) {
+                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array);
                 }
-                throw new Error("#VALUE!");
-            } else {
-                sheetName = this._com.Worksheet.Name;
-                wbName = this._com.Workbook.Name;
-                for (i = this._com.startRow; i <= this._com.endRow; i++) {
-                    row = [];
-                    for (j = this._com.startCol; j <= this._com.endCol; j++) {
-                        row.push(app.compute(new Address(i, j, sheetName, wbName), array));
-                    }
-                    res.push(row);
+                //1*N range
+            } else if (this._com.getRowCount() === 1) {
+                if (this._com.startCol <= source.X && source.X <= this._com.endCol) {
+                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array);
                 }
-                return res;
             }
+            return "#VALUE!";
         }
     };
 

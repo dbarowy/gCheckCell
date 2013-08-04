@@ -2013,7 +2013,7 @@ numeric.ccsbinop = function ccsbinop(body,setup) {
 
 (function() {
     var k,A,B,C;
-    alert(" fix this");
+   // alert(" fix this");
 //    for(k in numeric.ops2) {
 //        if(isFinite(eval('1'+numeric.ops2[k]+'0'))) A = '[Y[0],Y[1],numeric.'+k+'(X,Y[2])]';
 //        else A = 'NaN';

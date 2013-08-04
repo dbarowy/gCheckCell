@@ -28,5 +28,6 @@ define(["Parser/Parser", "FSharp/FSharp", "Parser/AST/AST"], function (Parser, F
         var ws = {Name: "Worksheet"};
         var form = Parser.parseFormula("=ABS($A2:$A3)", wb, ws);
         expect("ReferenceExpr.ABS(ReferenceExpr.ReferenceRange(Worksheet,(2,1),(3,1)))").toEqual(form.toString());
+
     });
 });

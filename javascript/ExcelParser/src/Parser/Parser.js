@@ -58,7 +58,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
         var reference;
         try {
             reference = PEGParser.parse(this.no_ws(str), "Reference");
-            reference.Resolve(wb,ws);
+            reference.Resolve(wb, ws);
             return reference;
         } catch (e) {
             return new FSharp.None();
@@ -77,12 +77,16 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
         var formula;
         try {
             formula = PEGParser.parse(this.no_ws(str), "Formula");
-            formula.Resolve(wb,ws);
+            formula.Resolve(wb, ws);
             formula.fixAssoc();
             return formula;
         } catch (e) {
             return new FSharp.None();
         }
+    };
+
+    Parser.isNumber = function (number) {
+        return (!isNaN(parseFloat(number)) && isFinite(number));
     };
 
     return Parser;

@@ -2,7 +2,21 @@
 <html>
 <head>
     <title></title>
-    <script data-main="src/main" src="lib/require.js"></script>
+    <script src='lib/require.js'></script>
+    <script src='lib/jstat-1.0.0.min.js'></script>
+    <script src='lib/lodash-1.3.1.min.js'></script>
+    <script src='lib/moment.min.js'></script>
+    <script src='lib/numeral.min.js'></script>
+    <script src='lib/numeric-1.2.6.js'></script>
+    <script src='lib/underscore.string.js'></script>
+    <script src='lib/formula.js'></script>
+
+     <script>
+      require(["formula"], function(formula){
+          window.formula=formula;
+      });
+     </script>
+
 </head>
 <body>
 <button onclick="Construct()">Construct Tree</button>

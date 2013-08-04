@@ -78,13 +78,14 @@ NamedReferenceBook = wb:workbook_name "!" {return wb;};
 NamedReferenceFirstChar = letter / underscore / backslash;
 NamedReferenceLastChars = r:(NamedReferenceCharacters *) {return r.join("");};
 NamedReferenceCharacters = letter / digit / underscore / full_stop ; 
-/*
-The Array Constant matrix should be rectangular. I don't know if I should check here or throw an exception during the computation
-TODO: return null if the columns or rows don't have the same length
-*/
+
 ArrayConstant = "{" c:constant_list_rows "}"{ if(c.length==0){ return null;}else{var norm=c[0].length; for(i=1; i<c.length; i++){if(c[i].length!==norm)return null;} } return new AST.ConstantArray(null, c);};
 constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
-constant_list_row = res:((hd:Constant tl:("," Constant) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+constant_list_row = res:((hd:array_constant tl:("," array_constant) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
+array_constant = sign:("+"/"-")? num:NumericalConstant {if(sign) return new AST.UnaryOpExpr(sign, num); else return num; }
+				/ ErrorConstant
+				/ LogicalConstant
+				/StringConstant; 
 
 StringConstant = double_quote str:StringChars ? double_quote {return new AST.ConstantString(null, str);};
 StringChars = res:(StringChar +){return res.join("");};

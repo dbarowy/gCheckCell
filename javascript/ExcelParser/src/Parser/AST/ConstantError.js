@@ -31,7 +31,13 @@ define("Parser/AST/ConstantError", ["Parser/AST/Reference"], function (Reference
      * @returns {*}
      */
     ConstantError.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
-        throw new Error(this._value);
+        if (array) {
+            return [
+                [this._value]
+            ];
+        } else {
+            return this._value;
+        }
     };
 
     return ConstantError;

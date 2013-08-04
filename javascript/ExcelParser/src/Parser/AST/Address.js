@@ -205,10 +205,12 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
             return app.compute(this, array);
             //otherwise, return the value
         } else {
+            //If this is an array formula, return a 1x1 matrix
             if (array) {
                 return [
                     [this._com.getValue()]
                 ];
+                //otherwise just return the value
             } else {
                 return this._com.getValue();
             }

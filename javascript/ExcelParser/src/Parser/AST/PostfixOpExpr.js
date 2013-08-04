@@ -30,10 +30,19 @@ define("Parser/AST/PostfixOpExpr", function () {
      */
     PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
         var val = this.Expr.compute(app, source, array, false), i, j;
+        var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
         if (array) {
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
-                    val[i][j] = val[i][j] / 100;
+                    if (isNaN(val[i][j])) {
+                        if (err.test(val[i][j])) {
+                            break;
+                        } else {
+                            val[i][j] = "#VALUE!";
+                        }
+                    } else {
+                        val[i][j] = val[i][j] / 100;
+                    }
                 }
             }
         } else {

@@ -2,7 +2,7 @@
  * This file contains the ReferenceFunction class.
  * This class is used to represent function calls in the formulas.
  */
-define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "formula"], function (Reference, Formula) {
+define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference"], function (Reference, Formula) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -60,6 +60,17 @@ define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "formula"], func
                 }
                 return Formula.SUM.apply(null, aux);
             }
+
+            case "ARRAYFORMULA":
+            {
+                if (this.ArgumentList.length !== 1) {
+                    return "#N/A"
+                } else {
+
+                    return this.ArgumentList[0].compute(app, source, true, true);
+                }
+            }
+                break;
             default:
             {
                 throw new Error("Unimplemented");

@@ -1,5 +1,5 @@
 // Karma configuration
-// Generated on Sat Jul 27 2013 17:26:22 GMT+0300 (GTB Daylight Time)
+// Generated on Sat Aug 03 2013 00:33:02 GMT+0300 (GTB Daylight Time)
 
 
 // base path, that will be used to resolve files and exclude
@@ -8,22 +8,18 @@ basePath = '';
 
 // list of files / patterns to load in the browser
 files = [
-  JASMINE,
-  JASMINE_ADAPTER,
-  REQUIRE,
-  REQUIRE_ADAPTER,
-  'test/require_config.js',
-  {pattern: 'src/**/*.js', included: false},
-    {pattern: 'test/ASTTest.js', included: false},
-    {pattern: 'test/PEGParserTest.js', included: false},
-    {pattern: 'test/ParserTest.js', included: false},
-    {pattern: 'test/ParserUtilityTest.js', included: false}
+    JASMINE,
+    JASMINE_ADAPTER,
+    REQUIRE,
+    REQUIRE_ADAPTER,
+    'test/require_config.js',
+    {pattern: 'src/**/*.js', included: false},
+    {pattern: 'test/*Test.js', included: false}
 ];
 
 
 // list of files to exclude
 exclude = [
-  
 ];
 
 

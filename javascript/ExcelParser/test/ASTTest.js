@@ -133,11 +133,6 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
         it("toString", function () {
             expect(err.toString()).toEqual("Error(#VALUE!)");
         });
-        it("compute", function () {
-            expect(function () {
-                err.compute({}, {});
-            }).toThrow();
-        });
     });
     describe("ConstantLogical", function () {
         var log;

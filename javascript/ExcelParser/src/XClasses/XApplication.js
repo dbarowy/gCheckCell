@@ -123,7 +123,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                     this._workbooks.push(new XWorkbook(data.external_books[i], this));
                 }
 
-                for (i = 0, len = this._workbooks; i < len; i++) {
+                for (i = 0, len = this._workbooks.length; i < len; i++) {
                     this._extractFormulas(this._workbooks[i]);
                 }
 

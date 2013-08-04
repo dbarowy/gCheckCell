@@ -35,7 +35,7 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
          * Check if all the cells in the range contain a formula.
          * @returns {boolean}
          */
-        XRange.prototype.hasFormula = function () {
+        XRange.prototype.containsFormula = function () {
             var formulas, i, j;
             if (typeof(this._range) === "undefined") {
                 for (i = this.startRow - 1; i < this.endRow; i++) {
@@ -119,7 +119,7 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
          * Check if a cell in the range contains a formula
          * @returns {boolean}
          */
-        XRange.prototype.hasFormula = function () {
+        XRange.prototype.containsFormula = function () {
             var i, j;
             for (i = this.startRow - 1; i < this.endRow; i++) {
                 for (j = this.startCol - 1; j < this.endCol; j++) {
@@ -130,6 +130,11 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
             }
             return false;
         };
+
+        XRange.prototype.hasFormula = function () {
+            return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1] !== "";
+        };
+
         /**
          * Get the formula in the top-left cell of the range.
          * @returns {*}
@@ -153,17 +158,6 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
             }
             return range;
 
-        };
-        XRange.prototype.isComputed = function(){
-            var i, j;
-            for (i = this.startRow - 1; i < this.endRow; i++) {
-                for (j = this.startCol - 1; j < this.endCol; j++) {
-                    if (this.Worksheet._computed[i][j] === 0) {
-                        return false;
-                    }
-                }
-            }
-            return true;
         };
     }
 
