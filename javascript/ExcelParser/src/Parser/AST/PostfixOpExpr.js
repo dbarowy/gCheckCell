@@ -34,14 +34,12 @@ define("Parser/AST/PostfixOpExpr", function () {
         if (array) {
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
-                    if (isNaN(val[i][j])) {
-                        if (err.test(val[i][j])) {
-                            break;
-                        } else {
-                            val[i][j] = "#VALUE!";
-                        }
-                    } else {
+                    if (isFinite(val[i][j])) {
                         val[i][j] = val[i][j] / 100;
+                    } else if (err.test(val[i][j])) {
+                        break;
+                    } else {
+                        val[i][j] = "#VALUE!";
                     }
                 }
             }

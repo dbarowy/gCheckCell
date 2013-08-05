@@ -81,6 +81,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
             formula.fixAssoc();
             return formula;
         } catch (e) {
+            console.log(e);
             return new FSharp.None();
         }
     };

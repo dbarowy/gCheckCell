@@ -3,7 +3,8 @@
  * This class is used to represent expressions with prefix operators.
  * Example: -A2, +a5, -3
  */
-define("Parser/AST/UnaryOpExpr", function () {
+define("Parser/AST/UnaryOpExpr",["Parser/AST/BinOpExpr"], function (BinOpExpr) {
+
     "use strict";
     function UnaryOpExpr(/*char*/op, /*Expression*/expr) {
         this.Expr = expr;
@@ -20,6 +21,10 @@ define("Parser/AST/UnaryOpExpr", function () {
 
     UnaryOpExpr.prototype.fixAssoc = function () {
         this.Expr.fixAssoc();
+        if(this.Expr instanceof BinOpExpr){
+            this.Expr.Left = new UnaryOpExpr(this.Operator, this.Expr.Left);
+        }
+
     };
 
     /**
@@ -41,14 +46,12 @@ define("Parser/AST/UnaryOpExpr", function () {
                 {
                     for (i = 0; i < val.length; i++) {
                         for (j = 0; j < val[i].length; j++) {
-                            if (isNaN(val)) {
-                                if (err.test(val[i][j])) {
-                                    break;
-                                } else {
-                                    val[i][j] = "#VALUE!";
-                                }
-                            } else {
+                            if (isFinite(val[i][j])) {
                                 val[i][j] = -val[i][j];
+                            } else if (err.test(val[i][j])) {
+                                break;
+                            } else {
+                                val[i][j] = "#VALUE!";
                             }
                         }
                     }
@@ -58,7 +61,7 @@ define("Parser/AST/UnaryOpExpr", function () {
                     throw new Error("Unknown operator");
             }
         } else {
-            if (!isNaN(val)) {
+            if (isFinite(val)) {
                 switch (this.Operator) {
                     case "+":
                         return val;
@@ -68,7 +71,7 @@ define("Parser/AST/UnaryOpExpr", function () {
                         throw new Error("Unknown operator");
                 }
             } else {
-                throw new Error("#VALUE!");
+                return "#VALUE!";
             }
 
         }

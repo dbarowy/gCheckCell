@@ -121,102 +121,102 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
             if (array) {
                 maxRows = l.length > r.length ? l.length : r.length;
                 maxCols = l[0].length > r[0].length ? l[0].length : r[0].length;
-                l = this._adjustMatrix(l, maxRows, maxCols);
-                r = this._adjustMatrix(r, maxRows, maxCols);
+                this._adjustMatrix(l, maxRows, maxCols);
+                this._adjustMatrix(r, maxRows, maxCols);
                 switch (this.Operator) {
                     case "+":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (isNaN(l[i][j]) || isNaN(r[i][j])) {
+                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
+                                    l[i][j] += r[i][j];
+                                } else {
                                     if (err.test(l[i][j])) {
+                                        break;
                                     } else if (err.test(r[i][j])) {
                                         l[i][j] = r[i][j];
                                     } else {
                                         l[i][j] = "#VALUE!";
                                     }
-                                } else {
-                                    l[i][j] += r[i][j];
                                 }
                             }
                         }
-
                     }
                         break;
                     case "-":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (isNaN(l[i][j]) || isNaN(r[i][j])) {
+                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
+                                    l[i][j] -= r[i][j];
+                                } else {
                                     if (err.test(l[i][j])) {
+                                        break;
                                     } else if (err.test(r[i][j])) {
                                         l[i][j] = r[i][j];
                                     } else {
                                         l[i][j] = "#VALUE!";
                                     }
-                                } else {
-                                    l[i][j] -= r[i][j];
                                 }
                             }
                         }
-
                     }
                         break;
                     case "*":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (isNaN(l[i][j]) || isNaN(r[i][j])) {
+                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
+                                    l[i][j] *= r[i][j];
+                                } else {
                                     if (err.test(l[i][j])) {
+                                        break;
                                     } else if (err.test(r[i][j])) {
                                         l[i][j] = r[i][j];
                                     } else {
                                         l[i][j] = "#VALUE!";
                                     }
-                                } else {
-                                    l[i][j] *= r[i][j];
                                 }
                             }
                         }
-
                     }
                         break;
                     case "/":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (isNaN(l[i][j]) || isNaN(r[i][j])) {
+                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
+                                    l[i][j] /= r[i][j];
+                                } else {
                                     if (err.test(l[i][j])) {
+                                        break;
                                     } else if (err.test(r[i][j])) {
                                         l[i][j] = r[i][j];
                                     } else {
                                         l[i][j] = "#VALUE!";
                                     }
-                                } else {
-                                    l[i][j] /= r[i][j];
                                 }
                             }
                         }
-
                     }
                         break;
                     case "^":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (isNaN(l[i][j]) || isNaN(r[i][j])) {
+                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
+                                    l[i][j] = Math.pow(l[i][j], r[i][j]);
+                                } else {
                                     if (err.test(l[i][j])) {
+                                        break;
                                     } else if (err.test(r[i][j])) {
                                         l[i][j] = r[i][j];
                                     } else {
                                         l[i][j] = "#VALUE!";
                                     }
-                                } else {
-                                    l[i][j] = Math.pow(l[i][j], r[i][j]);
                                 }
                             }
                         }
-
                     }
                         break;
                     case "&":
@@ -224,6 +224,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
                                 if (err.test(l[i][j])) {
+                                    break;
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
@@ -242,10 +243,10 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
-                                    if (isNaN(l[i][j] || isNaN(r[i][j]))) {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) === 0);
+                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
+                                        l[i][j] = (l[i][j] == r[i][j]);
                                     } else {
-                                        l[i][j] = (l[i][j] === r[i][j]);
+                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) === 0);
                                     }
                                 }
                             }
@@ -261,10 +262,10 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
-                                    if (isNaN(l[i][j] || isNaN(r[i][j]))) {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) !== 0);
+                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
+                                        l[i][j] = (l[i][j] != r[i][j]);
                                     } else {
-                                        l[i][j] = (l[i][j] !== r[i][j]);
+                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) !== 0);
                                     }
                                 }
                             }
@@ -280,10 +281,10 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
-                                    if (isNaN(l[i][j] || isNaN(r[i][j]))) {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) <= 0);
-                                    } else {
+                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
                                         l[i][j] = (l[i][j] <= r[i][j]);
+                                    } else {
+                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) <= 0);
                                     }
                                 }
                             }
@@ -299,10 +300,10 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
-                                    if (isNaN(l[i][j] || isNaN(r[i][j]))) {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) >= 0);
-                                    } else {
+                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
                                         l[i][j] = (l[i][j] >= r[i][j]);
+                                    } else {
+                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) >= 0);
                                     }
                                 }
                             }
@@ -318,10 +319,10 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
-                                    if (isNaN(l[i][j] || isNaN(r[i][j]))) {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) < 0);
-                                    } else {
+                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
                                         l[i][j] = (l[i][j] < r[i][j]);
+                                    } else {
+                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) < 0);
                                     }
                                 }
                             }
@@ -337,10 +338,10 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                                 } else if (err.test(r[i][j])) {
                                     l[i][j] = r[i][j];
                                 } else {
-                                    if (isNaN(l[i][j] || isNaN(r[i][j]))) {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) > 0);
-                                    } else {
+                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
                                         l[i][j] = (l[i][j] > r[i][j]);
+                                    } else {
+                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) > 0);
                                     }
                                 }
                             }
@@ -356,7 +357,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                 }
                 return l;
             } else {
-                isnan = isNaN(l) || isNaN(r);
+                isnan = !(isFinite(l) && isFinite(r));
                 if (isnan) {
                     l = ("" + l).toLocaleUpperCase();
                     r = ("" + r).toLocaleUpperCase();
@@ -472,9 +473,9 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             return r;
                         } else {
                             if (isnan) {
-                                return l.localeCompare(r) === 0;
+                                return l.localeCompare(r) == 0;
                             } else {
-                                return l === r;
+                                return l == r;
                             }
                         }
 
@@ -491,9 +492,9 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             return r;
                         } else {
                             if (isnan) {
-                                return l.localeCompare(r) !== 0;
+                                return l.localeCompare(r) != 0;
                             } else {
-                                return l !== r;
+                                return l != r;
                             }
                         }
 

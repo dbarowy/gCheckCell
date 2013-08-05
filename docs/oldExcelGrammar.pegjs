@@ -1,3 +1,4 @@
+start = f:current {return f.toString();}
 Int32 = s:[+-]?number:digit_sequence {return parseInt(s+number);} ;
 AsciiUpper = [A-Z];
 character = [^\ufffe-\uffff] ;
@@ -128,39 +129,32 @@ ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(
 
 Formula = "=" exp:Expression {return exp;};
 ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);} / c:Constant {return new AST.ReferenceExpr(c);};
-ExpressionSimple = ExpressionAtom / ParensExpr;
+PrefixExpression = op:prefix_operator exp:Expression {return new AST.UnaryOpExpr(op,exp);};
+ExpressionSimple = PrefixExpression / ExpressionAtom / ParensExpr ;
+
 Expression = exp:ExpressionSimple a:aux {
-				 var z=null, i, len=a.postfix.length;
-				if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
-					for(i=len-1; i>=0; i--){
-					z=new AST.PostfixOpExpr(a.postfix[i], z);
-				}}else{
-		  		z = exp;
-		  	   }
-		  	if(typeof(a.infix)!=="undefined")
-		  	  z = new AST.BinOpExpr(a.infix, z, a.expression);
-		  	return z;
-				}
-			/ exp:ExpressionSimple  {return exp;}
+				        				var z=null, i, len=a.postfix.length;
+										if(len>0){
+											z=new AST.PostfixOpExpr(a.postfix[len-1], exp);
+											len--;
+											for(i=len-1; i>=0; i--){
+												z=new AST.PostfixOpExpr(a.postfix[i], z);
+											}
+										}else{
+		  									z = exp;
+		  								}
+		  								if(typeof(a.infix)!=="undefined")
+		  	  								z = new AST.BinOpExpr(a.infix, z, a.expression);
+		  									return z;
+										}
+			/exp:ExpressionSimple  {return exp;} 
+			 ;
+
 			
 
-			/ op:prefix_operator exp:Expression a:aux {
-		        var z=null, i, len=a.postfix.length;
-				if(len>0){z=new AST.PostfixOpExpr(a.postfix[len-1], exp); len--;
-					for(i=len-1; i>=0; i--){
-					z=new AST.PostfixOpExpr(a.postfix[i], z);
-				}}else{
-		  		z = exp;
-		  	}
-		  	z = new AST.UnaryOpExpr(op, z);
-		  	if(typeof(a.infix)!=="undefined")
-		  	  z = new AST.BinOpExpr(a.infix, z, a.expression);
-		  	return z;
-		  }
-
-			/ op:prefix_operator exp:Expression { return new AST.UnaryOpExpr(op, exp);};
-
-aux = o:postfix_operator a:aux {
+aux =	o:postfix_operator {return {opt:2,postfix:[o]}}
+		/o:infix_operator exp:Expression {return {opt:4, infix:o,postfix:[], expression:exp}} 
+		/o:postfix_operator a:aux {
 		if(a.opt===2){
 			a.postfix.push(o);
 		}else if(a.opt===4){
@@ -173,12 +167,7 @@ aux = o:postfix_operator a:aux {
 		a.opt=1; 
 		return a;
 		}
-
-
-	 /o:postfix_operator {return {opt:2,postfix:[o]}}
-
-
-	/ o:infix_operator exp:Expression a:aux {
+		/o:infix_operator exp:Expression a:aux {
 		if(a.opt===2){
 			a.expression = new AST.PostfixOpExpr(a.postfix[0], exp);
 			a.infix=o;
@@ -209,6 +198,6 @@ aux = o:postfix_operator a:aux {
 		a.opt=3;
 		return a;
 	}
+	;
+	current = Expression;
 
-
-	/ o:infix_operator exp:Expression {return {opt:4, infix:o,postfix:[], expression:exp}};

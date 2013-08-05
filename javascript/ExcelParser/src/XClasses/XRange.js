@@ -9,157 +9,75 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
      * @param startCol
      * @param endRow
      * @param endCol
-     * @param rng This parameter is provided when this range object has to be created from a domain specific Range object, not cached data.
      * @constructor
      */
-    function XRange(/*XWorkbook*/wb, /*XWorksheet*/ws, /*int*/startRow, /*int*/startCol, /*int*/endRow, /*int*/endCol, /*optional Range*/rng) {
+    function XRange(/*XWorkbook*/wb, /*XWorksheet*/ws, /*int*/startRow, /*int*/startCol, /*int*/endRow, /*int*/endCol) {
         this.Workbook = wb;
         this.Worksheet = ws;
         this.startRow = startRow;
         this.startCol = startCol;
         this.endRow = endRow;
         this.endCol = endCol;
-        this._range = rng;  //Domain specific range object
     }
 
-    if (typeof SpreadsheetApp !== "undefined") {
-        XRange.prototype.getValue = function () {
-            if (typeof(this._range) === "undefined") {
-                return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
+    XRange.prototype.getValue = function () {
+        return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
+    };
 
-            } else {
-                return this._range.getValue();
+    XRange.prototype.setValue = function (value) {
+        var i, j;
+        for (i = this.startRow - 1; i < this.endRow; i++) {
+            for (j = this.startCol - 1; j < this.endCol; j++) {
+                this.Worksheet._values[i][j] = value;
             }
-        };
-        /**
-         * Check if all the cells in the range contain a formula.
-         * @returns {boolean}
-         */
-        XRange.prototype.containsFormula = function () {
-            var formulas, i, j;
-            if (typeof(this._range) === "undefined") {
-                for (i = this.startRow - 1; i < this.endRow; i++) {
-                    for (j = this.startCol - 1; j < this.endCol; j++) {
-                        if (this.Worksheet._formulas[i][j] === "" || this.Worksheet._formulas[i][j] === null) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            } else {
-                formulas = this._range.getFormulas();
-                for (i = 0; i < formulas.length; i++) {
-                    for (j = 0; j < formulas[i].length; j++) {
-                        if (formulas[i][j] === "" || formulas[i][j] === null) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            }
+        }
+    };
 
-        };
-        /**
-         * Get the formula in the top-left cell of the range.
-         * @returns {*}
-         */
-        XRange.prototype.getFormula = function () {
-            if (typeof(this._range) === "undefined") {
-                return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
-            } else {
-                return this._range.getFormula();
-            }
-        };
-
-        /**
-         * Return a bidimensional array of the cells that compose the range
-         * @returns {Array}
-         */
-        XRange.prototype.getCellMatrix = function () {
-            var i, j, row = [], range = [];
-            if (typeof(this._range) !== "undefined") {
-                for (i = this.startRow; i <= this.endRow; i++) {
-                    row = [];
-                    for (j = this.startCol; j <= this.endCol; j++) {
-                        row.push(this.Worksheet.getRange(i, j, i, j));
-                    }
-                    range.push(row);
-                }
-                return range;
-            } else {
-                for (i = this.startRow; i <= this.endRow; i++) {
-                    row = [];
-                    for (j = this.startCol; j <= this.endCol; j++) {
-                        row.push(new XRange(this.Workbook, this.Worksheet, i, j, i, j));
-                    }
-                    range.push(row);
-                }
-                return range;
-
-            }
-        };
-
-    } else {
-        //throw new Error("Office methods not implemented.");
-
-        XRange.prototype.getValue = function () {
-            return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
-        };
-
-        XRange.prototype.setValue = function (value) {
-            var i, j;
-            for (i = this.startRow - 1; i < this.endRow; i++) {
-                for (j = this.startCol - 1; j < this.endCol; j++) {
-                    this.Worksheet._values[i][j] = value;
+    /**
+     * Check if a cell in the range contains a formula
+     * @returns {boolean}
+     */
+    XRange.prototype.containsFormula = function () {
+        var i, j;
+        for (i = this.startRow - 1; i < this.endRow; i++) {
+            for (j = this.startCol - 1; j < this.endCol; j++) {
+                if (this.Worksheet._formulas[i][j] !== "") {
+                    return true;
                 }
             }
-        };
+        }
+        return false;
+    };
 
-        /**
-         * Check if a cell in the range contains a formula
-         * @returns {boolean}
-         */
-        XRange.prototype.containsFormula = function () {
-            var i, j;
-            for (i = this.startRow - 1; i < this.endRow; i++) {
-                for (j = this.startCol - 1; j < this.endCol; j++) {
-                    if (this.Worksheet._formulas[i][j] !== "") {
-                        return true;
-                    }
-                }
+    XRange.prototype.hasFormula = function () {
+        return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1] !== "";
+    };
+
+    /**
+     * Get the formula in the top-left cell of the range.
+     * @returns {*}
+     */
+    XRange.prototype.getFormula = function () {
+        return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
+    };
+
+    /**
+     * Return a bidimensional array of the cells that compose the range
+     * @returns {Array}
+     */
+    XRange.prototype.getCellMatrix = function () {
+        var i, j, row = [], range = [];
+        for (i = this.startRow; i <= this.endRow; i++) {
+            row = [];
+            for (j = this.startCol; j <= this.endCol; j++) {
+                row.push(this.Worksheet.getRange(i, j, i, j));
             }
-            return false;
-        };
+            range.push(row);
+        }
+        return range;
 
-        XRange.prototype.hasFormula = function () {
-            return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1] !== "";
-        };
+    };
 
-        /**
-         * Get the formula in the top-left cell of the range.
-         * @returns {*}
-         */
-        XRange.prototype.getFormula = function () {
-            return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1];
-        };
-
-        /**
-         * Return a bidimensional array of the cells that compose the range
-         * @returns {Array}
-         */
-        XRange.prototype.getCellMatrix = function () {
-            var i, j, row = [], range = [];
-            for (i = this.startRow; i <= this.endRow; i++) {
-                row = [];
-                for (j = this.startCol; j <= this.endCol; j++) {
-                    row.push(this.Worksheet.getRange(i, j, i, j));
-                }
-                range.push(row);
-            }
-            return range;
-
-        };
-    }
 
     /**
      * Get the number of rows in the range
