@@ -52,7 +52,8 @@ define(
         var numeral = numer;
         var jStat = jst;
         var moment = mom;
-        var _ = lodash = lo;
+        var _ = lo;
+        var lodash = lo;
         _.str = und;
         var financial = null;
 

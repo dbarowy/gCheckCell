@@ -14,6 +14,17 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
         }
 
     };
+    XWorkbook.prototype.exportData = function () {
+        var sheets = [], named = [],i;
+        for (i = 0; i < this._sheets.length; i++) {
+            sheets.push(this._sheets[i].exportData());
+        }
+        return {
+            name: this.Name,
+            sheets: sheets,
+            named_ranges: named
+        };
+    };
 
     XWorkbook.prototype.getWorksheets = function () {
         return this._sheets;

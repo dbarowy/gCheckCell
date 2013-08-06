@@ -38,6 +38,8 @@ define(["Parser/Parser", "FSharp/FSharp", "Parser/AST/AST"], function (Parser, F
         expect(Parser.parseFormula("=(AD4+AE4+AH4-MIN(AD4,AE4,AH4))/2", wb, ws)).not.toEqual(new FSharp.None());
         expect(Parser.parseFormula("=+(6*AI4+1.5*(AL4+AN4))/9+AP4", wb, ws)).not.toEqual(new FSharp.None());
         expect(Parser.parseFormula("=+A4%%%", wb, ws)).not.toEqual(new FSharp.None());
+        expect(Parser.parseFormula("=D6 - D15", wb, ws)).not.toEqual(new FSharp.None());
+
   /*      var start = new Date();
         for (var i = 0; i < 40; i++) {
             Parser.parseFormula("=+AF3+AG3 ", wb, ws);

@@ -35,7 +35,7 @@ define("Parser/AST/PostfixOpExpr", function () {
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
                     if (isFinite(val[i][j])) {
-                        val[i][j] = val[i][j] / 100;
+                        val[i][j] = (+val[i][j]) / 100;
                     } else if (err.test(val[i][j])) {
                         break;
                     } else {

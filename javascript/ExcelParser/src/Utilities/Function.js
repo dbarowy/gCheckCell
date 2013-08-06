@@ -72,6 +72,8 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
         }
     };
     /**
+     * Determines the minimum value among the passsed values.
+     * Logical values and text representation of numbers are ignored.
      * @returns {*}
      * @constructor
      */
@@ -92,7 +94,7 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
                                 return val[i][j];
                             }
                         } else {
-                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && !(val[i][j] instanceof String) && val[i][j] < min) {
+                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string') && val[i][j] < min) {
                                 min = val[i][j];
                             }
                         }
@@ -108,14 +110,14 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
                         return val;
                     }
                 } else {
-                    if (isFinite(val) && val !== true && val !== false && !(val instanceof String) && val < min) {
+                    if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string') && val < min) {
                         min = val;
                     }
                 }
             }
         }
         if (!isFinite(min)) {
-            min = "#VALUE!";
+            min = 0;
         }
         if (array) {
             return [
@@ -123,6 +125,224 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
             ];
         } else {
             return min;
+        }
+    };
+
+
+    /**
+     * Determines the maximum value among the passsed values.
+     * Logical values and text representation of numbers are ignored.
+     * @returns {*}
+     * @constructor
+     */
+    func.MAX = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        var k, val, max = -Infinity, i, j;
+        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        for (k = 0; k < args.length; k++) {
+            val = args[k].compute(app, source, array, true);
+            if (val instanceof Array) {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (err.test(val[i][j])) {
+                            if (array) {
+                                return [
+                                    [val[i][j]]
+                                ];
+                            } else {
+                                return val[i][j];
+                            }
+                        } else {
+                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string') && val[i][j] > max) {
+                                max = val[i][j];
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (err.test(val)) {
+                    if (array) {
+                        return [
+                            [val]
+                        ];
+                    } else {
+                        return val;
+                    }
+                } else {
+                    if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string') && val > max) {
+                        max = val;
+                    }
+                }
+            }
+        }
+        if (!isFinite(max)) {
+            max = 0;
+        }
+        if (array) {
+            return [
+                [max]
+            ];
+        } else {
+            return max;
+        }
+    };
+
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        var k, val, sum = 0, i, j;
+        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        for (k = 0; k < args.length; k++) {
+            val = args[k].compute(app, source, array, true);
+            if (val instanceof Array) {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (err.test(val[i][j])) {
+                            if (array) {
+                                return [
+                                    [val[i][j]]
+                                ];
+                            } else {
+                                return val[i][j];
+                            }
+                        } else {
+                            sum += (isFinite(val[i][j])) ? parseFloat(+val[i][j]) : 0;
+                        }
+                    }
+                }
+            } else {
+                if (err.test(val)) {
+                    if (array) {
+                        return [
+                            [val]
+                        ];
+                    } else {
+                        return val;
+                    }
+                } else {
+                    sum += (isFinite(val)) ? parseFloat(+val) : 0;
+                }
+            }
+        }
+        if (array) {
+            return [
+                [sum]
+            ];
+        } else {
+            return sum;
+        }
+    };
+
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.MEDIAN = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        var k, val, med = [], i, j;
+        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        for (k = 0; k < args.length; k++) {
+            val = args[k].compute(app, source, array, true);
+            if (val instanceof Array) {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (err.test(val[i][j])) {
+                            if (array) {
+                                return [
+                                    [val[i][j]]
+                                ];
+                            } else {
+                                return val[i][j];
+                            }
+                        } else {
+                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string')) {
+                                med.push(val[i][j]);
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (err.test(val)) {
+                    if (array) {
+                        return [
+                            [val]
+                        ];
+                    } else {
+                        return val;
+                    }
+                } else {
+                    if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string')) {
+                        med.push(val);
+                    }
+                }
+            }
+        }
+
+        if (array) {
+            return [
+                [Formula.MEDIAN(med)]
+            ];
+        } else {
+            return Formula.MEDIAN(med);
+        }
+    };
+
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.AVERAGE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        var k, val, sum = 0, i, j, count = 0;
+        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        for (k = 0; k < args.length; k++) {
+            val = args[k].compute(app, source, array, true);
+            if (val instanceof Array) {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (err.test(val[i][j])) {
+                            if (array) {
+                                return [
+                                    [val[i][j]]
+                                ];
+                            } else {
+                                return val[i][j];
+                            }
+                        } else {
+                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string')) {
+                                sum += val[i][j];
+                                count += 1;
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (err.test(val)) {
+                    if (array) {
+                        return [
+                            [val]
+                        ];
+                    } else {
+                        return val;
+                    }
+                } else {
+                    if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string')) {
+                        sum += val;
+                        count += 1;
+                    }
+                }
+            }
+        }
+        if (count === 0) {
+            sum = "#DIV/0";
+        } else {
+            sum = sum / count;
+        }
+        if (array) {
+            return [
+                [sum]
+            ];
+        } else {
+            return sum;
         }
     };
 
@@ -291,53 +511,7 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
             return res;
         }
     };
-    /**
-     * @returns {*}
-     * @constructor
-     */
-    func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
-        var k, val, sum = 0, i, j;
-        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
-        for (k = 0; k < args.length; k++) {
-            val = args[k].compute(app, source, array, true);
-            if (val instanceof Array) {
-                for (i = 0; i < val.length; i++) {
-                    for (j = 0; j < val[i].length; j++) {
-                        if (err.test(val[i][j])) {
-                            if (array) {
-                                return [
-                                    [val[i][j]]
-                                ];
-                            } else {
-                                return val[i][j];
-                            }
-                        } else {
-                            sum += (isFinite(val[i][j])) ? val[i][j] : 0;
-                        }
-                    }
-                }
-            } else {
-                if (err.test(val)) {
-                    if (array) {
-                        return [
-                            [val]
-                        ];
-                    } else {
-                        return val;
-                    }
-                } else {
-                    sum += (isFinite(val)) ? val : 0;
-                }
-            }
-        }
-        if (array) {
-            return [
-                [sum]
-            ];
-        } else {
-            return sum;
-        }
-    };
+
     /**
      * @returns {*}
      * @constructor
@@ -543,62 +717,7 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
             return val;
         }
     };
-    /**
-     * @returns {*}
-     * @constructor
-     */
-    func.AVERAGE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
-        var k, val, sum = 0, i, j, count = 0;
-        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
-        for (k = 0; k < args.length; k++) {
-            val = args[k].compute(app, source, array, true);
-            if (val instanceof Array) {
-                for (i = 0; i < val.length; i++) {
-                    for (j = 0; j < val[i].length; j++) {
-                        if (err.test(val[i][j])) {
-                            if (array) {
-                                return [
-                                    [val[i][j]]
-                                ];
-                            } else {
-                                return val[i][j];
-                            }
-                        } else {
-                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false) {
-                                sum += val[i][j];
-                                count += 1;
-                            }
-                        }
-                    }
-                }
-            } else {
-                if (err.test(val)) {
-                    if (array) {
-                        return [
-                            [val]
-                        ];
-                    } else {
-                        return val;
-                    }
-                } else {
-                    if (isFinite(val) && val !== true && val !== false) {
-                        sum += val;
-                        count += 1;
-                    }
-                }
-            }
-        }
-        if (count === 0) {
-            sum = "#DIV/0";
-        }
-        if (array) {
-            return [
-                [sum]
-            ];
-        } else {
-            return sum;
-        }
-    };
+
     /**
      * @returns {*}
      * @constructor

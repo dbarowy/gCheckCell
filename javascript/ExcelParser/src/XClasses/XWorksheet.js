@@ -23,6 +23,14 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
 
     }
 
+    XWorksheet.prototype.exportData = function () {
+        return{
+            name: this.Name,
+            values: this._values,
+            formulas: this._formulas
+        };
+    };
+
 
     //  throw new Error("Office methods not implemented.");
     /**

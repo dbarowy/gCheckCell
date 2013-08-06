@@ -129,7 +129,8 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] += r[i][j];
+                                    //converts "" to 0
+                                    l[i][j] = (+l[i][j])+ (+r[i][j]);
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;
@@ -148,7 +149,8 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] -= r[i][j];
+                                    //converts "" to 0
+                                    l[i][j] = (+l[i][j])- (+r[i][j]);
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;
@@ -167,7 +169,8 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] *= r[i][j];
+                                    //converts "" to 0
+                                    l[i][j] = (+l[i][j])* (+r[i][j]);
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;
@@ -186,7 +189,13 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] /= r[i][j];
+                                    l[i][j] = +l[i][j];
+                                    r[i][j] = +r[i][j];
+                                    if (r[i][j] === 0) {
+                                        l[i][j] = "#DIV/0";
+                                    } else {
+                                        l[i][j] /= r[i][j];
+                                    }
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;
@@ -205,7 +214,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] = Math.pow(l[i][j], r[i][j]);
+                                    l[i][j] = Math.pow(+l[i][j], +r[i][j]);
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;
@@ -361,6 +370,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                 if (isnan) {
                     l = ("" + l).toLocaleUpperCase();
                     r = ("" + r).toLocaleUpperCase();
+
                 }
                 switch (this.Operator) {
                     case "+":
@@ -376,7 +386,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             }
                         }
                         else {
-                            return l + r;
+                            return (+l) + (+r);
                         }
                     }
                         break;
@@ -393,7 +403,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             }
                         }
                         else {
-                            return l - r;
+                            return (+l) - (+r);
                         }
                     }
                         break;
@@ -410,7 +420,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             }
                         }
                         else {
-                            return l * r;
+                            return (+l) * (+r);
                         }
                     }
                         break;
@@ -427,6 +437,8 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             }
                         }
                         else {
+                            l = +l;
+                            r = +r;
                             if (r === 0) {
                                 return "#DIV/0";
                             } else {
@@ -448,7 +460,9 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             }
                         }
                         else {
-                            return Math.pow(l, r);
+                            l = l === "" ? 0 : l;
+                            r = r === "" ? 0 : r;
+                            return Math.pow(+l, +r);
                         }
                     }
                         break;

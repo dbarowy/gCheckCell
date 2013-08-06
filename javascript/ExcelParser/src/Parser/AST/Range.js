@@ -2,7 +2,7 @@
  * This file contains the Range class which is used to represent ranges in the sheet.
  * Example: A2:A3
  */
-define("Parser/AST/Range", function () {
+define("Parser/AST/Range",["Parser/AST/Address"], function (Address) {
     "use strict";
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
         this._tl = topleft;

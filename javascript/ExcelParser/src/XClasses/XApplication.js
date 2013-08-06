@@ -24,7 +24,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
          * @private
          */
         _extractFormulas: function (/*XWorkbook*/ xBook) {
-            var i, j, k, address, formula, res=[];
+            var i, j, k, address, formula, res = [];
             var xSheets = xBook.getWorksheets();
             for (k = 0; k < xSheets.length; k++) {
                 for (i = 0; i < xSheets[k]._formulas.length; i++) {
@@ -36,7 +36,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                             res = res.concat(this._getFnName(formula));
                             if (formula instanceof FSharp.None) {
                                 console.log("Something went wrong" + xSheets[k]._formulas[i][j]);
-                            }else{
+                            } else {
                                 this.formulaMap.put(address, formula);
                                 this._computed[address] = 0;
                             }
@@ -72,37 +72,43 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
             }
         },
 
-        compute: function (/*Address*/source) {
+        compute: function (/*Address*/source, /*Boolean*/array) {
             var formula = this.formulaMap.get(source);
             if (formula) {
                 if (this._computed[source]) {
                     return source.GetCOMObject(this).getValue();
                 } else {
                     this._computed[source] = 1;
-                    return formula.compute(this, source);
+                    return formula.compute(this, source, array, false);
                 }
             }
             else {
                 return source.GetCOMObject(this).getValue();
             }
         },
-        recompute: function (/*Address*/source) {
 
-            var val;
-            try {
-                val = this.compute(source);
-
-            } catch (err) {
-                //TODO a better idea when you have thought of this.
-                val = err.toString();
+        recompute_book: function () {
+            var i, set = this.formulaMap.getEntrySet();
+            for (i = 0; i < set.length; i++) {
+                this.recompute(set[i].key);
             }
-            console.log(val);
-            source.GetCOMObject(this).setValue(val);
             for (var a in this._computed) {
                 if (this._computed.hasOwnProperty(a)) {
                     this._computed[a] = 0;
                 }
             }
+        },
+        recompute: function (/*Address*/source) {
+
+            var val;
+            try {
+                val = this.compute(source, false);
+            } catch (err) {
+                //TODO a better idea when you have thought of this.
+                val = err.toString();
+            }
+            source.GetCOMObject(this).setValue(val);
+
         },
         /**
          * Initialize the XApplication data.
@@ -121,6 +127,16 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
 
             }
 
+        },
+        exportData: function () {
+            var ext = [], j;
+            for (j = 1; j < this._workbooks.length; j++) {
+                ext.push(this._workbooks[j].exportData())
+            }
+            return {
+                active_book:this._workbooks[0].exportData(),
+                external_books: ext
+            };
         },
 
         /**

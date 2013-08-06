@@ -12,9 +12,8 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
      * @returns {string}
      */
     Parser.no_ws = function (/*string*/str) {
-        return str.replace(" ", "");
+        return str.replace(/\s+/g, "");
     };
-
     /**
      * Parse the given string and see if it is an R1C1 Address
      * @param str String representing a R1C1 address
@@ -76,6 +75,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
     Parser.parseFormula = function (/*string*/str, /*Workbook*/wb, /*Worksheet*/ws) {
         var formula;
         try {
+
             formula = PEGParser.parse(this.no_ws(str), "Formula");
             formula.Resolve(wb, ws);
             formula.fixAssoc();
