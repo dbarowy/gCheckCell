@@ -4425,7 +4425,7 @@ numeric.svd= function svd(A) {
 };
 
 
-define("numeric", (function (global) {
+define("Libraries/numeric", (function (global) {
     return function () {
         var ret, fn;
         return ret || global.numeric;

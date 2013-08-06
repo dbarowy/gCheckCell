@@ -24,7 +24,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
          * @private
          */
         _extractFormulas: function (/*XWorkbook*/ xBook) {
-            var i, j, k, address, formula;
+            var i, j, k, address, formula, res=[];
             var xSheets = xBook.getWorksheets();
             for (k = 0; k < xSheets.length; k++) {
                 for (i = 0; i < xSheets[k]._formulas.length; i++) {
@@ -32,39 +32,30 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                         if (xSheets[k]._formulas[i][j] !== "") {
                             address = new AST.Address(i + 1, j + 1, xSheets[k].Name, xBook.Name);
                             formula = Parser.parseFormula(xSheets[k]._formulas[i][j], xBook, xSheets[k]);
-                            if(formula instanceof FSharp.None){
-                                console.log("Something went wrong"+xSheets[k]._formulas[i][j]);
+                            //Get all the functions used in this document
+                            res = res.concat(this._getFnName(formula));
+                            if (formula instanceof FSharp.None) {
+                                console.log("Something went wrong" + xSheets[k]._formulas[i][j]);
+                            }else{
+                                this.formulaMap.put(address, formula);
+                                this._computed[address] = 0;
                             }
-                            this.formulaMap.put(address, formula);
-                            this._computed[address] = 0;
                         }
                     }
                 }
             }
+            res.sort();
+            console.log(res.toString());
         },
         _getFnName: function (expr) {
-            if (expr instanceof AST.Address) {
+            if (expr instanceof AST.ReferenceRange || expr instanceof FSharp.None || expr instanceof AST.ReferenceNamed || expr instanceof AST.ReferenceAddress || expr instanceof AST.Address || expr instanceof AST.ConstantArray || expr instanceof AST.ConstantError || expr instanceof AST.ConstantLogical || expr instanceof AST.ConstantNumber || expr instanceof AST.ConstantString || expr instanceof AST.Range) {
                 return [];
             } else if (expr instanceof AST.BinOpExpr) {
                 return this._getFnName(expr.Left).concat(this._getFnName(expr.Right));
-            } else if (expr instanceof AST.ConstantArray) {
-                return [];
-            } else if (expr instanceof AST.ConstantError) {
-                return [];
-            } else if (expr instanceof AST.ConstantLogical) {
-                return [];
-            } else if (expr instanceof AST.ConstantNumber) {
-                return [];
-            } else if (expr instanceof AST.ConstantString) {
-                return [];
             } else if (expr instanceof AST.ParensExpr) {
                 return this._getFnName(expr.Expr);
             } else if (expr instanceof AST.PostfixOpExpr) {
                 return this._getFnName(expr.Expr);
-            } else if (expr instanceof AST.Range) {
-                return [];
-            } else if (expr instanceof AST.ReferenceAddress) {
-                return [];
             } else if (expr instanceof AST.ReferenceExpr) {
                 return this._getFnName(expr.Ref);
             } else if (expr instanceof AST.ReferenceFunction) {
@@ -73,33 +64,14 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                     res = res.concat(this._getFnName(expr.ArgumentList[i]));
                 }
                 return res;
-            } else if (expr instanceof AST.ReferenceNamed) {
-                return [];
             } else if (expr instanceof AST.UnaryOpExpr) {
                 return this._getFnName(expr.Expr);
-            } else if (expr instanceof FSharp.None) {
-                return [];
             } else {
-                throw new Error("Unknown type");
+                console.log(expr.toString());
+                return [];
             }
         },
-        _extractFunctionNames: function (/*XWorkbook*/xBook) {
-            var i, j, k, formula;
-            var res = [];
-            var xSheets = xBook.getWorksheets();
-            for (k = 0; k < xSheets.length; k++) {
-                for (i = 0; i < xSheets[k]._formulas.length; i++) {
-                    for (j = 0; j < xSheets[k]._formulas[i].length; j++) {
-                        if (xSheets[k]._formulas[i][j] !== "") {
-                            formula = Parser.parseFormula(xSheets[k]._formulas[i][j], xBook, xSheets[k]);
-                            res = res.concat(this._getFnName(formula));
-                        }
-                    }
-                }
-            }
-            res.sort();
-            console.log(res.toString());
-        },
+
         compute: function (/*Address*/source) {
             var formula = this.formulaMap.get(source);
             if (formula) {
@@ -135,7 +107,6 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
         /**
          * Initialize the XApplication data.
          * XApplication is designed as a global entry point to the information of the sheet.
-         * TODO Is this better than a constructor?
          * @param data
          */
         init: function (/*Data*/ data) {
@@ -147,7 +118,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
 
             for (i = 0, len = this._workbooks.length; i < len; i++) {
                 this._extractFormulas(this._workbooks[i]);
-                this._extractFunctionNames(this._workbooks[i]);
+
             }
 
         },

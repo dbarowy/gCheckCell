@@ -1,4 +1,4 @@
-start = f:current {return f.toString();}
+
 Int32 = s:[+-]?number:digit_sequence {return parseInt(s+number);} ;
 AsciiUpper = [A-Z];
 character = [^\ufffe-\uffff] ;
@@ -80,7 +80,7 @@ NamedReferenceFirstChar = letter / underscore / backslash;
 NamedReferenceLastChars = r:(NamedReferenceCharacters *) {return r.join("");};
 NamedReferenceCharacters = letter / digit / underscore / full_stop ; 
 
-ArrayConstant = "{" c:constant_list_rows "}"{ if(c.length==0){ return null;}else{var norm=c[0].length; for(i=1; i<c.length; i++){if(c[i].length!==norm)return null;} } return new AST.ConstantArray(null, c);};
+ArrayConstant = "{" c:constant_list_rows "}"{ if(c.length==0){ return null;}else{var norm=c[0].length; for(var i=1; i<c.length; i++){if(c[i].length!==norm)return null;} } return new AST.ConstantArray(null, c);};
 constant_list_rows = res:((hd:constant_list_row tl:(";" constant_list_row) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 constant_list_row = res:((hd:array_constant tl:("," array_constant) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 array_constant = sign:("+"/"-")? num:NumericalConstant {if(sign) return new AST.UnaryOpExpr(sign, num); else return num; }
@@ -129,7 +129,7 @@ ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(
 
 Formula = "=" exp:Expression {return exp;};
 ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);} / c:Constant {return new AST.ReferenceExpr(c);};
-PrefixExpression = op:prefix_operator exp:Expression {return new AST.UnaryOpExpr(op,exp);};
+PrefixExpression = op:prefix_operator exp:Expression { var fix_assoc = function(expr){ if(expr instanceof AST.BinOpExpr){ expr.Left=fix_assoc(expr.Left); return expr; }else{ return new AST.UnaryOpExpr(op,expr);}}; exp=fix_assoc(exp); return exp;}
 ExpressionSimple = PrefixExpression / ExpressionAtom / ParensExpr ;
 
 Expression = exp:ExpressionSimple a:aux {
@@ -152,9 +152,7 @@ Expression = exp:ExpressionSimple a:aux {
 
 			
 
-aux =	o:postfix_operator {return {opt:2,postfix:[o]}}
-		/o:infix_operator exp:Expression {return {opt:4, infix:o,postfix:[], expression:exp}} 
-		/o:postfix_operator a:aux {
+aux = o:postfix_operator a:aux {
 		if(a.opt===2){
 			a.postfix.push(o);
 		}else if(a.opt===4){
@@ -167,7 +165,11 @@ aux =	o:postfix_operator {return {opt:2,postfix:[o]}}
 		a.opt=1; 
 		return a;
 		}
-		/o:infix_operator exp:Expression a:aux {
+	/ o:postfix_operator {return {opt:2,postfix:[o]}}
+	
+	/o:infix_operator exp:Expression {return {opt:4, infix:o,postfix:[], expression:exp}} 
+		
+	/o:infix_operator exp:Expression a:aux {
 		if(a.opt===2){
 			a.expression = new AST.PostfixOpExpr(a.postfix[0], exp);
 			a.infix=o;
@@ -199,5 +201,5 @@ aux =	o:postfix_operator {return {opt:2,postfix:[o]}}
 		return a;
 	}
 	;
-	current = Expression;
+
 

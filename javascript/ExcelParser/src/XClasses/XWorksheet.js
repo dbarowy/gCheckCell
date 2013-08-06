@@ -31,16 +31,17 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
      */
     XWorksheet.prototype.getUsedRange = function () {
         var i, j, len1, len2, range = [], row;
-        for (i = 0, len1 = this._values.length; i < len1; i++) {
+        for (i = 1, len1 = this._values.length; i <= len1; i++) {
             row = [];
-            for (j = 0, len2 = this._values[i].length; j < len2; j++) {
-                row.push(new XRange(this.Workbook, this, i + 1, j + 1, i + 1, j + 1));
+            for (j = 1, len2 = this._values[i].length; j <= len2; j++) {
+                row.push(new XRange(this.Workbook, this, i, j, i, j));
             }
             range.push(row);
         }
         return range;
     };
     /**
+     * TODO What should I do when the requested range is outside of the used data range?
      * Get the specified range from the sheet.
      * @param startRow
      * @param startCol

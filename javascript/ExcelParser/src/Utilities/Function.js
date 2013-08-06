@@ -1,4 +1,4 @@
-define("Utilities/Function", ["formula"], function (Formula) {
+define("Utilities/Function", ["Libraries/formula"], function (Formula) {
     "use strict";
     var func = {};
     func._isError = function (value) {
@@ -71,6 +71,62 @@ define("Utilities/Function", ["formula"], function (Formula) {
             }
         }
     };
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.MIN = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        var k, val, min = +Infinity, i, j;
+        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        for (k = 0; k < args.length; k++) {
+            val = args[k].compute(app, source, array, true);
+            if (val instanceof Array) {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (err.test(val[i][j])) {
+                            if (array) {
+                                return [
+                                    [val[i][j]]
+                                ];
+                            } else {
+                                return val[i][j];
+                            }
+                        } else {
+                            if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && !(val[i][j] instanceof String) && val[i][j] < min) {
+                                min = val[i][j];
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (err.test(val)) {
+                    if (array) {
+                        return [
+                            [val]
+                        ];
+                    } else {
+                        return val;
+                    }
+                } else {
+                    if (isFinite(val) && val !== true && val !== false && !(val instanceof String) && val < min) {
+                        min = val;
+                    }
+                }
+            }
+        }
+        if (!isFinite(min)) {
+            min = "#VALUE!";
+        }
+        if (array) {
+            return [
+                [min]
+            ];
+        } else {
+            return min;
+        }
+    };
+
+
     /**
      * @returns {*}
      * @constructor

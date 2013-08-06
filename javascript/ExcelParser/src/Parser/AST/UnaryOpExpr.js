@@ -21,10 +21,6 @@ define("Parser/AST/UnaryOpExpr",["Parser/AST/BinOpExpr"], function (BinOpExpr) {
 
     UnaryOpExpr.prototype.fixAssoc = function () {
         this.Expr.fixAssoc();
-        if(this.Expr instanceof BinOpExpr){
-            this.Expr.Left = new UnaryOpExpr(this.Operator, this.Expr.Left);
-        }
-
     };
 
     /**

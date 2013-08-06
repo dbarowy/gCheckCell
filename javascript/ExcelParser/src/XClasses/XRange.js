@@ -20,8 +20,27 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         this.endCol = endCol;
     }
 
+    /**
+     * Return the value in the upper left corner of the range;
+     * @returns {*}
+     */
     XRange.prototype.getValue = function () {
         return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
+    };
+    /**
+     * Return the values in this range as a matrix
+     * @returns {Array}
+     */
+    XRange.prototype.getValues = function () {
+        var i, j, row, res = [];
+        for (i = this.startRow - 1; i <= this.endRow - 1; i++) {
+            row = [];
+            for (j = this.startCol - 1; j <= this.endCol - 1; j++) {
+                row.push(this.Worksheet._values[i][j])
+            }
+            res.push(row);
+        }
+        return res;
     };
 
     XRange.prototype.setValue = function (value) {
@@ -48,7 +67,10 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         }
         return false;
     };
-
+    /**
+     * Check if the top left cell contains a formula;
+     * @returns {boolean}
+     */
     XRange.prototype.hasFormula = function () {
         return this.Worksheet._formulas[this.startRow - 1][this.startCol - 1] !== "";
     };

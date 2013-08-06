@@ -39,7 +39,6 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
              */
             parse: function(input, startRule) {
                 var parseFunctions = {
-                    "start": parse_start,
                     "Int32": parse_Int32,
                     "AsciiUpper": parse_AsciiUpper,
                     "character": parse_character,
@@ -128,7 +127,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                         throw new Error("Invalid rule name: " + quote(startRule) + ".");
                     }
                 } else {
-                    startRule = "start";
+                    startRule = "Int32";
                 }
 
                 var pos = 0;
@@ -174,21 +173,6 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                     }
 
                     rightmostFailuresExpected.push(failure);
-                }
-
-                function parse_start() {
-                    var result0;
-                    var pos0;
-
-                    pos0 = pos;
-                    result0 = parse_Expression();
-                    if (result0 !== null) {
-                        result0 = (function(offset, f) {return f.toString();})(pos0, result0);
-                    }
-                    if (result0 === null) {
-                        pos = pos0;
-                    }
-                    return result0;
                 }
 
                 function parse_Int32() {
@@ -3198,7 +3182,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                         pos = pos1;
                     }
                     if (result0 !== null) {
-                        result0 = (function(offset, op, exp) {return new AST.UnaryOpExpr(op,exp);})(pos0, result0[0], result0[1]);
+                        result0 = (function(offset, op, exp) { var fix_assoc = function(expr){ if(expr instanceof AST.BinOpExpr){ expr.Left=fix_assoc(expr.Left); return expr; }else{ return new AST.UnaryOpExpr(op,expr);}}; exp=fix_assoc(exp); return exp;})(pos0, result0[0], result0[1]);
                     }
                     if (result0 === null) {
                         pos = pos0;
@@ -3276,31 +3260,43 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                     var pos0, pos1;
 
                     pos0 = pos;
+                    pos1 = pos;
                     result0 = parse_postfix_operator();
                     if (result0 !== null) {
-                        result0 = (function(offset, o) {return {opt:2,postfix:[o]}})(pos0, result0);
+                        result1 = parse_aux();
+                        if (result1 !== null) {
+                            result0 = [result0, result1];
+                        } else {
+                            result0 = null;
+                            pos = pos1;
+                        }
+                    } else {
+                        result0 = null;
+                        pos = pos1;
+                    }
+                    if (result0 !== null) {
+                        result0 = (function(offset, o, a) {
+                            if(a.opt===2){
+                                a.postfix.push(o);
+                            }else if(a.opt===4){
+                                a.postfix[0]=o;
+                            }else if(a.opt===3){
+                                a.postfix.push(o);
+                            }else if(a.opt===1){
+                                a.postfix.push(o);
+                            }
+                            a.opt=1;
+                            return a;
+                        })(pos0, result0[0], result0[1]);
                     }
                     if (result0 === null) {
                         pos = pos0;
                     }
                     if (result0 === null) {
                         pos0 = pos;
-                        pos1 = pos;
-                        result0 = parse_infix_operator();
+                        result0 = parse_postfix_operator();
                         if (result0 !== null) {
-                            result1 = parse_Expression();
-                            if (result1 !== null) {
-                                result0 = [result0, result1];
-                            } else {
-                                result0 = null;
-                                pos = pos1;
-                            }
-                        } else {
-                            result0 = null;
-                            pos = pos1;
-                        }
-                        if (result0 !== null) {
-                            result0 = (function(offset, o, exp) {return {opt:4, infix:o,postfix:[], expression:exp}})(pos0, result0[0], result0[1]);
+                            result0 = (function(offset, o) {return {opt:2,postfix:[o]}})(pos0, result0);
                         }
                         if (result0 === null) {
                             pos = pos0;
@@ -3308,9 +3304,9 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                         if (result0 === null) {
                             pos0 = pos;
                             pos1 = pos;
-                            result0 = parse_postfix_operator();
+                            result0 = parse_infix_operator();
                             if (result0 !== null) {
-                                result1 = parse_aux();
+                                result1 = parse_Expression();
                                 if (result1 !== null) {
                                     result0 = [result0, result1];
                                 } else {
@@ -3322,19 +3318,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                                 pos = pos1;
                             }
                             if (result0 !== null) {
-                                result0 = (function(offset, o, a) {
-                                    if(a.opt===2){
-                                        a.postfix.push(o);
-                                    }else if(a.opt===4){
-                                        a.postfix[0]=o;
-                                    }else if(a.opt===3){
-                                        a.postfix.push(o);
-                                    }else if(a.opt===1){
-                                        a.postfix.push(o);
-                                    }
-                                    a.opt=1;
-                                    return a;
-                                })(pos0, result0[0], result0[1]);
+                                result0 = (function(offset, o, exp) {return {opt:4, infix:o,postfix:[], expression:exp}})(pos0, result0[0], result0[1]);
                             }
                             if (result0 === null) {
                                 pos = pos0;
@@ -3534,7 +3518,6 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
 
         return result;
     })();
-
 
     return PEGParser;
 });
