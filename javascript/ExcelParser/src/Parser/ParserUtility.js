@@ -93,7 +93,29 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
         }
         return res;
     };
-
+    /**
+     * Get single cell and range references from the sheet while parsing the formulas only once.
+     * @param formula
+     * @param wb
+     * @param ws
+     * @param addresses
+     * @param ranges
+     * @returns {Array}
+     */
+    ParserUtility.getAllReferencesFromFormula = function (/*string*/ formula, /*XWorkbook*/wb, /*XWorksheet*/ws, /*Address[]*/addresses, /*XRanges[]*/ranges) {
+        var tree = Parser.parseFormula(formula, wb, ws), res = [];
+        var refs, i, len;
+        if (!tree instanceof FSharp.None) {
+            refs = ParserUtility.getExprRanges(tree);
+            for (i = 0, len = refs.length; i < len; i++) {
+                ranges.push(refs[i].GetCOMObject(wb.Application));
+            }
+            refs = ParserUtility.getSCExprRanges(tree);
+            for (i = 0, len = refs.length; i < len; i++) {
+                addresses.push(refs[i]);
+            }
+        }
+    };
 
 //Single cell variants
     ParserUtility.getSCExprRanges = function (/*AST.Expression*/expr) {

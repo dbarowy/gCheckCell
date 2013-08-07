@@ -36,6 +36,7 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
             this.type = NodeTypes.Range;
             this.is_formula = false;
         }
+        this.weight = 0;
         this.dont_perturb = true;
     }
 
@@ -84,28 +85,6 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
             this.children.push(node);
         }
     };
-    TreeNode.prototype.hasChild = function (/*TreeNode*/node) {
-        var child_already_added = false;
-        var i, len;
-        for (i = 0, len = this.children.length; i < len; i++) {
-            if (node.name === this.children[i].name) {
-                child_already_added = true;
-                break;
-            }
-        }
-        return child_already_added;
-    };
-
-    TreeNode.prototype.hasParent = function (/*TreeNode*/node) {
-        var parent_already_added = false, i, len;
-        for (i = 0, len = this.parents.length; i < len; i++) {
-            if (node.name === this.parents[i].name) {
-                parent_already_added = true;
-                break;
-            }
-        }
-        return parent_already_added;
-    };
 
     TreeNode.prototype.hasChildren = function () {
         return (this.children > 0);
@@ -113,6 +92,10 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
 
     TreeNode.prototype.hasParents = function () {
         return (this.parents.length > 0);
+    };
+
+    TreeNode.prototype.getHashCode = function () {
+        return this.name;
     };
 
 
@@ -124,6 +107,10 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
     };
     TreeNode.prototype.isCell = function () {
         return this.type === NodeTypes.Cell;
+    };
+
+    TreeNode.prototype.getCOMValueAsString = function () {
+        return this.com.toString();
     };
 
 

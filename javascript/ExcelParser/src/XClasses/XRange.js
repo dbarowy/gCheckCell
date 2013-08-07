@@ -134,6 +134,22 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         }
     };
 
+    XRange.prototype.toString = function () {
+        var res = "[", row = "", values = this.Worksheet._values, i, j;
+        if (this.startRow === this.endRow && this.startCol === this.endCol) {
+            return this.Worksheet._values[this.startRow - 1][this.startCol - 1].toString();
+        } else {
+            for (i = this.startRow - 1; i <= this.endRow - 1; i++) {
+                row = "[";
+                for (j = this.startCol - 1; j <= this.endCol - 1; j++) {
+                    row += values[i][j] + ", ";
+                }
+                res += row + "],";
+            }
+            return res + "]";
+        }
+    };
+
     return XRange;
 
 });

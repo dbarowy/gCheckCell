@@ -1,4 +1,4 @@
-define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser"], function (StartValue, ParserUtility, HashMap, TreeNode, Parser) {
+define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser"], function (ParserUtility, HashMap, TreeNode, Parser) {
     "use strict";
     var ConstructTree = {};
     /**
@@ -21,10 +21,11 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
             formula_node = nodes[i].value;
             //For each of the ranges found in the formula by the parser
             //1.Make a TreeNode for the range
-            ranges = ParserUtility.getReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
+            ranges = [];
+            addresses = [];
+            ParserUtility.getAllReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet, addresses, ranges);
             for (j = 0; j < ranges.length; j++) {
                 range_node = ConstructTree.makeRangeTreeNode(analysisData.input_ranges, ranges[j], formula_node);
-                //     ConstructTree.createCellNodesFromRange(range_node, formula_node, analysisData.formula_nodes, analysisData.cell_nodes);
                 range_node.addParent(formula_node);
                 formula_node.addChild(range_node);
                 //I don't create nodes from the ranges. We don't need the children of the range
@@ -46,39 +47,6 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
         //ConstructTree.storeOutputs(analysisData);
     };
 
-    ConstructTree.countNodes = function (/*AnalysisData*/data) {
-        var nodes = data.formula_nodes;
-        var tree = 0, sum;
-        var i, entrySet = nodes.getEntrySet();
-        sum = entrySet.length;
-        sum += data.input_ranges.length;
-        for (i = 0; i < entrySet.length; i++) {
-            tree += entrySet[i].value.parents.length;
-        }
-        for (i = 0; i < data.input_ranges.length; i++) {
-            tree += data.input_ranges[i].parents.length;
-        }
-    };
-
-    //TODO This has to be rewritten
-    ConstructTree.createCellNodesFromRange = function (/*TreeNode*/rangeNode, /*TreeNode*/formulaNode, /*HashMap*/formula_nodes, /*HashMap*/cell_nodes) {
-        var cellRange = rangeNode.com.getCellMatrix();
-        var i, j, len, len1, address, cellNode, cell;
-        for (i = 0, len = cellRange.length; i < len; i++) {
-            for (j = 0, len1 = cellRange[i].length; j < len1; j++) {
-                cell = cellRange[i][j];
-                address = Parser.getAddress(cell.getR1C1Address(), cell.Workbook, cell.Worksheet);
-                if ((cellNode = formula_nodes.get(address))) {
-                    rangeNode.addParent(cellNode);
-                    cellNode.addChild(rangeNode);
-                }
-                //if(cellNode.com.startRow==9 && cellNode.com.startCol==9)
-
-
-            }
-        }
-        return rangeNode;
-    };
 
     ConstructTree.genGraph = function (/*AnalysisData*/data) {
         var nodes = data.formula_nodes;
@@ -103,46 +71,13 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
         return "digraph g{" + tree + "}";
     };
 
-    ConstructTree.storeOutputs = function (/*AnalysisData*/data) {
-
-        var i, j, node, len, average, nodes = data.formula_nodes.getEntrySet(), sv;
-        var sum, parent_range, nodeWorksheet, cell, val;
-        for (i = 0, len = nodes.length; i < len; i++) {
-            node = nodes[i].Value;
-            if (!node.hasChildren() && node.hasParents()) {
-                data.output_cells.push(node);
-            }
-        }
-
-        for (i = 0; i < data.output_cells.length; i++) {
-            if (data.output_cells[i].is_chart) {
-                sum = 0;
-                parent_range = data.output_cells[i].parents[0];
-                for (j = 0; j < parent_range.parents.length; j++) {
-                    sum += parent_range.parents[j].worksheet.get_Range(parent_range.parents[j].name).getValue();
-                }
-                average = sum / parent_range.parents.length;
-                sv = new StartValue(average);
-                data.starting_outputs.push(sv);
-            } else {
-                //TODO the StartValue constrctor is overloaded but I do not take that into account
-                //Solve that when you find out why.
-                nodeWorksheet = data.output_cells[i].worksheet;//The worksheet where the node n is located
-                cell = nodeWorksheet.get_Range(data.output_cells[i].name);
-                val = cell.getValue();
-                sv = new StartValue(val);
-                data.starting_outputs.push(sv);
-            }
-        }
-    };
-
     /**
      * Return a bidimensional array of cells with formulas.
      * Each item in the array represents an array of cells with formulas from the same sheet.
      * @param app The application context. This is used to access Office/_GDocs specific methods
      * @returns {Array}
      */
-    ConstructTree.getFormulaRanges = function (/*AppContext*/app) {
+    ConstructTree.getFormulaRanges = function (/*XApplication*/app) {
         var i, len, len1, len2, j, k, usedRange;
         var sheets = app.getWorksheets();
         var analysisRanges = [];//Bidimensional array of cells with formulas
@@ -215,6 +150,8 @@ define("DataDebugMethods/ConstructTree", ["DataDebugMethods/StartValue", "Parser
             range_node = new TreeNode(range, range.Worksheet, formula_node.workbook);
             range_nodes.push(range_node);
         }
+        range_node.dont_perturb = range_node.com.containsFormula();
+
         return range_node;
     };
     return ConstructTree;

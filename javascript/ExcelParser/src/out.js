@@ -1,1 +1,165 @@
-define("FSharp/FSharp",[],function(){function e(){}function t(){}return t.prototype.toString=function(){return"None"},e.None=t,e}),define("Parser/AST/Address",["FSharp/FSharp"],function(e){function t(e,n,r,i){this.WorksheetName=r,this.WorkbookName=i,isNaN(n)?this.X=t.CharColToInt(n):this.X=n,this.Y=e,this._com=null,this._hash=null}return t.CharColToInt=function(e){var t,n=0,r,i=0;t=e.length-1,e=e.toUpperCase(),r=new RegExp("\\b[A-Z]+\\b");if(!r.test(e))throw new Error("The column string doesn't respect the specification");do i=e.charCodeAt(t)-64,n+=Math.pow(26,e.length-t-1)*i,t--;while(t>=0);return n},t.IntToColChars=function(e){var t,n,r="";if(Math.floor(e)!==e||e<=0)throw new Error("This works only for integers");do t=e/26,n=e%26,n===0&&t--,n===0?r="Z"+r:r=String.fromCharCode(64+n)+r,e=t;while(t>=1);return r},t.prototype.A1Local=function(){return""+t.IntToColChars(this.X)+this.Y},t.prototype.A1Worksheet=function(){if(typeof this.WorksheetName=="undefined"||this.WorksheetName===null||this.WorksheetName instanceof e.None)throw new Error("Worksheet string should never be unset");return this.WorksheetName},t.prototype.A1Workbook=function(){if(typeof this.WorkbookName=="undefined"||this.WorkbookName===null||this.WorkbookName instanceof e.None)throw new Error("Workbook string should never be unset");return this.WorkbookName},t.prototype.A1FullyQualified=function(){return"["+this.A1Workbook()+"]"+this.A1Worksheet()+"!"+this.A1Local()},t.prototype.R1C1=function(){var t,n;return typeof this.WorksheetName=="undefined"||this.WorksheetName===null||this.WorksheetName instanceof e.None?t="":t=this.WorksheetName+"!",typeof this.WorkbookName=="undefined"||this.WorkbookName===null||this.WorkbookName instanceof e.None?n="":n="["+this.WorkbookName+"]",n+t+"R"+this.Y+"C"+this.X},t.prototype.getHashCode=function(){return this._hash===null&&(this._hash=""+this.A1Workbook()+"_"+this.A1Worksheet()+"_"+this.X+"_"+this.Y),this._hash},t.prototype.InsideRange=function(e){return!(this.X<e.getXLeft()||this.Y<e.getYTop()||this.X>e.getXRight()||this.Y>e.getYBottom())},t.prototype.InsideAddr=function(e){return this.X===e.X&&this.Y===e.Y},t.prototype.GetCOMObject=function(e){return this._com===null&&(this._com=e.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y,this.X)),this._com},t.prototype.toString=function(){return"("+this.Y+","+this.X+")"},t.prototype.compute=function(e,t,n,r){return this._com===null&&(this._com=e.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y,this.X)),this._com.hasFormula()?e.compute(this,n):n?[[this._com.getValue()]]:this._com.getValue()},t}),define("Parser/AST/Reference",["FSharp/FSharp"],function(e){function t(e){this.WorkbookName=null,this.WorksheetName=e}return t.prototype.InsideRef=function(e){return!1},t.prototype.Resolve=function(t,n){if(this.WorksheetName instanceof e.None||this.WorkbookName===null||typeof this.WorkbookName=="undefined")this.WorkbookName=t.Name;if(this.WorksheetName instanceof e.None||this.WorksheetName===null||typeof this.WorksheetName=="undefined")this.WorksheetName=n.Name},t}),define("Parser/AST/ReferenceRange",["require","Parser/AST/Reference","Parser/AST/ReferenceAddress","FSharp/FSharp"],function(e,t,n,r){function s(e,n){t.call(this,e),this.Range=n,this.Range.SetWorksheetName(e)}var i=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return i(s,t),s.prototype.toString=function(){return this.WorksheetName===null||typeof this.WorksheetName=="undefined"||this.WorksheetName instanceof r.None?"ReferenceRange(None, "+this.Range.toString()+")":"ReferenceRange("+this.WorksheetName+","+this.Range.toString()+")"},s.prototype.InsideRef=function(t){n||(n=e("Parser/AST/ReferenceAddress"));if(t instanceof n)return this.Range.InsideAddr(t.Address);if(t instanceof s)return this.Range.InsideRange(t.Range);throw new Error("Unknown Reference subclass.")},s.prototype.Resolve=function(e,t){this.WorkbookName===null||typeof this.WorkbookName=="undefined"||this.WorkbookName instanceof r.None?(this.Range.SetWorkbookName(e.Name),this.WorkbookName=e.Name):this.Range.SetWorkbookName(this.WorkbookName),this.WorksheetName===null||typeof this.WorksheetName=="undefined"||this.WorksheetName instanceof r.None?(this.Range.SetWorksheetName(t.Name),this.WorksheetName=t.Name):this.Range.SetWorksheetName(this.WorksheetName)},s.prototype.compute=function(e,t,n,r){return this.Range.compute(e,t,n,r)},s}),define("Parser/AST/ReferenceAddress",["FSharp/FSharp","Parser/AST/Reference","Parser/AST/ReferenceRange"],function(e,t,n){function i(e,n){t.call(this,e),this.Address=n,this.Address.WorksheetName=e}var r=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return r(i,t),i.prototype.toString=function(){return this.WorksheetName===null||typeof this.WorksheetName=="undefined"||this.WorksheetName instanceof e.None?"ReferenceAddress(None, "+this.Address.toString()+")":"ReferenceAddress("+this.WorksheetName.toString()+", "+this.Address.toString()+")"},i.prototype.InsideRef=function(e){if(e instanceof i)return this.Address.InsideAddr(e.Address);if(e instanceof n)return this.Address.InsideRange(e.Range);throw new Error("Invalid Reference subclass.")},i.prototype.Resolve=function(t,n){this.WorkbookName===null||typeof this.WorkbookName=="undefined"||this.WorkbookName instanceof e.None?(this.Address.WorkbookName=t.Name,this.WorkbookName=t.Name):this.Address.WorkbookName=this.WorkbookName,this.WorksheetName===null||typeof this.WorksheetName=="undefined"||this.WorksheetName instanceof e.None?(this.WorksheetName=n.Name,this.Address.WorksheetName=n.Name):this.Address.WorksheetName=this.WorksheetName},i.prototype.compute=function(e,t,n,r){return this.Address.compute(e,t,n,!1)},i}),define("Parser/AST/BinOpExpr",["Parser/AST/ReferenceAddress","Parser/AST/ReferenceRange"],function(e,t){function n(e,t,n){this.Operator=e,this.Left=t,this.Right=n}return n.prototype._precedence={":":6," ":6,",":6,"^":5,"*":4,"/":4,"+":3,"-":3,"&":2,"=":1,"<>":1,"<=":1,">=":1,"<":1,">":1},n.prototype.toString=function(){return'BinOpExpr("'+this.Operator+'",\n	'+this.Left.toString()+",\n	"+this.Right.toString()+")"},n.prototype.Resolve=function(e,t){this.Left.Resolve(e,t),this.Right.Resolve(e,t)},n.prototype.fixAssoc=function(){this.Left.fixAssoc(),this.Right.fixAssoc(),this.Right instanceof n&&this._precedence[this.Operator]>=this._precedence[this.Right.Operator]&&(this.Left=new n(this.Operator,this.Left,this.Right.Left),this.Operator=this.Right.Operator,this.Right=this.Right.Right),this.Left.fixAssoc(),this.Right.fixAssoc()},n.prototype._adjustMatrix=function(e,t,n){var r=[],i,s;for(i=0;i<e[0].length;i++)r.push("#N/A");if(e.length===1&&e[0].length==1)for(s=0;s<n-1;s++)e[0].push(e[0][0]);if(e.length<t)if(e.length===1)for(i=1;i<t;i++)e.push(e[0]);else for(i=e.length;i<t;i++)e.push(r);if(e[0].length<n)if(e[0].length===1)for(i=0;i<e.length;i++)for(s=1;s<n;s++)e[i].push(e[i][0]);else for(i=0;i<e.length;i++)for(s=1;s<n-e[0].length+1;s++)e[i].push("#N/A")},n.prototype.compute=function(e,t,n,r){var i,s,o,u,a,f,l,c=new RegExp("(#DIV/0|#N/A|#NAME?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");i=this.Left.compute(e,t,n,!1),s=this.Right.compute(e,t,n,!1);if(n){u=i.length>s.length?i.length:s.length,a=i[0].length>s[0].length?i[0].length:s[0].length,this._adjustMatrix(i,u,a),this._adjustMatrix(s,u,a);switch(this.Operator){case"+":for(f=0;f<u;f++)for(l=0;l<a;l++)if(isFinite(i[f][l])&&isFinite(s[f][l]))i[f][l]+=s[f][l];else{if(c.test(i[f][l]))break;c.test(s[f][l])?i[f][l]=s[f][l]:i[f][l]="#VALUE!"}break;case"-":for(f=0;f<u;f++)for(l=0;l<a;l++)if(isFinite(i[f][l])&&isFinite(s[f][l]))i[f][l]-=s[f][l];else{if(c.test(i[f][l]))break;c.test(s[f][l])?i[f][l]=s[f][l]:i[f][l]="#VALUE!"}break;case"*":for(f=0;f<u;f++)for(l=0;l<a;l++)if(isFinite(i[f][l])&&isFinite(s[f][l]))i[f][l]*=s[f][l];else{if(c.test(i[f][l]))break;c.test(s[f][l])?i[f][l]=s[f][l]:i[f][l]="#VALUE!"}break;case"/":for(f=0;f<u;f++)for(l=0;l<a;l++)if(isFinite(i[f][l])&&isFinite(s[f][l]))i[f][l]/=s[f][l];else{if(c.test(i[f][l]))break;c.test(s[f][l])?i[f][l]=s[f][l]:i[f][l]="#VALUE!"}break;case"^":for(f=0;f<u;f++)for(l=0;l<a;l++)if(isFinite(i[f][l])&&isFinite(s[f][l]))i[f][l]=Math.pow(i[f][l],s[f][l]);else{if(c.test(i[f][l]))break;c.test(s[f][l])?i[f][l]=s[f][l]:i[f][l]="#VALUE!"}break;case"&":for(f=0;f<u;f++)for(l=0;l<a;l++){if(c.test(i[f][l]))break;c.test(s[f][l])?i[f][l]=s[f][l]:i[f][l]=""+i[f][l]+s[f][l]}break;case"=":for(f=0;f<u;f++)for(l=0;l<a;l++)c.test(i[f][l])||(c.test(s[f][l])?i[f][l]=s[f][l]:isFinite(i[f][l]&&isFinite(s[f][l]))?i[f][l]=i[f][l]==s[f][l]:i[f][l]=i[f][l].toLocaleUpperCase().localeCompare(s[f][l].toLocaleUpperCase())===0);break;case"<>":for(f=0;f<u;f++)for(l=0;l<a;l++)c.test(i[f][l])||(c.test(s[f][l])?i[f][l]=s[f][l]:isFinite(i[f][l]&&isFinite(s[f][l]))?i[f][l]=i[f][l]!=s[f][l]:i[f][l]=i[f][l].toLocaleUpperCase().localeCompare(s[f][l].toLocaleUpperCase())!==0);break;case"<=":for(f=0;f<u;f++)for(l=0;l<a;l++)c.test(i[f][l])||(c.test(s[f][l])?i[f][l]=s[f][l]:isFinite(i[f][l]&&isFinite(s[f][l]))?i[f][l]=i[f][l]<=s[f][l]:i[f][l]=i[f][l].toLocaleUpperCase().localeCompare(s[f][l].toLocaleUpperCase())<=0);break;case">=":for(f=0;f<u;f++)for(l=0;l<a;l++)c.test(i[f][l])||(c.test(s[f][l])?i[f][l]=s[f][l]:isFinite(i[f][l]&&isFinite(s[f][l]))?i[f][l]=i[f][l]>=s[f][l]:i[f][l]=i[f][l].toLocaleUpperCase().localeCompare(s[f][l].toLocaleUpperCase())>=0);break;case"<":for(f=0;f<u;f++)for(l=0;l<a;l++)c.test(i[f][l])||(c.test(s[f][l])?i[f][l]=s[f][l]:isFinite(i[f][l]&&isFinite(s[f][l]))?i[f][l]=i[f][l]<s[f][l]:i[f][l]=i[f][l].toLocaleUpperCase().localeCompare(s[f][l].toLocaleUpperCase())<0);break;case">":for(f=0;f<u;f++)for(l=0;l<a;l++)c.test(i[f][l])||(c.test(s[f][l])?i[f][l]=s[f][l]:isFinite(i[f][l]&&isFinite(s[f][l]))?i[f][l]=i[f][l]>s[f][l]:i[f][l]=i[f][l].toLocaleUpperCase().localeCompare(s[f][l].toLocaleUpperCase())>0);break;default:throw new Error("Unsupported binary operation."+this.toString())}return i}o=!isFinite(i)||!isFinite(s),o&&(i=(""+i).toLocaleUpperCase(),s=(""+s).toLocaleUpperCase());switch(this.Operator){case"+":return o?c.test(i)?i:c.test(s)?s:"#VALUE!":i+s;case"-":return o?c.test(i)?i:c.test(s)?s:"#VALUE!":i-s;case"*":return o?c.test(i)?i:c.test(s)?s:"#VALUE!":i*s;case"/":return o?c.test(i)?i:c.test(s)?s:"#VALUE!":s===0?"#DIV/0":i/s;case"^":return o?c.test(i)?i:c.test(s)?s:"#VALUE!":Math.pow(i,s);case"&":return c.test(i)?i:c.test(s)?s:""+i+s;case"=":return c.test(i)?i:c.test(s)?s:o?i.localeCompare(s)==0:i==s;case"<>":return c.test(i)?i:c.test(s)?s:o?i.localeCompare(s)!=0:i!=s;case"<=":return c.test(i)?i:c.test(s)?s:o?i.localeCompare(s)<=0:i<=s;case">=":return c.test(i)?i:c.test(s)?s:o?i.localeCompare(s)>=0:i>=s;case"<":return c.test(i)?i:c.test(s)?s:o?i.localeCompare(s)<0:i<s;case">":return c.test(i)?i:c.test(s)?s:o?i.localeCompare(s)>0:i>s;default:throw new Error("Unknown operator"+this.toString())}},n}),define("Parser/AST/ParensExpr",[],function(){function e(e){this.Expr=e}return e.prototype.toString=function(){return"ParensExpr("+this.Expr+")"},e.prototype.Resolve=function(e,t){this.Expr.Resolve(e,t)},e.prototype.fixAssoc=function(){this.Expr.fixAssoc()},e.prototype.compute=function(e,t,n,r){return this.Expr.compute(e,t,n,r)},e}),define("Parser/AST/Range",[],function(){function e(e,t){this._tl=e,this._br=t,this._com=null}return e.prototype.toString=function(){return this._tl.toString()+","+this._br.toString()},e.prototype.getXLeft=function(){return this._tl.X},e.prototype.getXRight=function(){return this._br.X},e.prototype.getYTop=function(){return this._tl.Y},e.prototype.getYBottom=function(){return this._br.Y},e.prototype.InsideRange=function(e){return!(this.getXLeft()<e.getXLeft()||this.getYTop()<e.getYTop()||this.getXRight()>e.getXRight()||this.getYBottom()>e.getYBottom())},e.prototype.InsideAddr=function(e){return!(this.getXLeft()<e.X||this.getYTop()<e.Y||this.getXRight()>e.X||this.getYBottom()>e.Y)},e.prototype.SetWorksheetName=function(e){this._tl.WorksheetName=e,this._br.WorksheetName=e},e.prototype.SetWorkbookName=function(e){this._tl.WorkbookName=e,this._br.WorkbookName=e},e.prototype.GetCOMObject=function(e){return this._com===null&&(this._com=e.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y,this._tl.X,this._br.Y,this._br.X)),this._com},e.prototype.compute=function(e,t,n,r){var i,s,o,u,a=[],f;this._com===null&&(this._com=e.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y,this._tl.X,this._br.Y,this._br.X));if(r||n){o=this._com.Worksheet.Name,u=this._com.Workbook.Name;for(i=this._com.startRow;i<=this._com.endRow;i++){f=[];for(s=this._com.startCol;s<=this._com.endCol;s++)f.push(e.compute(new Address(i,s,o,u),n));a.push(f)}return a}if(this._com.getColumnCount()===1){if(this._com.startRow<=t.Y&&t.Y<=this._com.endRow)return e.compute(new Address(this._com.startRow,t.X,this._com.Worksheet.Name,this._com.Workbook.Name),n)}else if(this._com.getRowCount()===1&&this._com.startCol<=t.X&&t.X<=this._com.endCol)return e.compute(new Address(this._com.startRow,t.X,this._com.Worksheet.Name,this._com.Workbook.Name),n);return"#VALUE!"},e}),define("Parser/AST/ConstantNumber",["Parser/AST/Reference"],function(e){function n(t,n){e.call(this,t),this._value=n}var t=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return t(n,e),n.prototype.toString=function(){return"Constant("+this._value+")"},n.prototype.compute=function(e,t,n,r){return n?[[this._value]]:this._value},n}),define("Parser/AST/ReferenceFunction",["Parser/AST/Reference"],function(e,t){function r(t,n,r){e.call(this,t),this.ArgumentList=r,this.FunctionName=n}var n=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return n(r,e),r.prototype.toString=function(){return this.FunctionName+"("+this.ArgumentList.join(",")+")"},r.prototype.Resolve=function(e,t){var n,r;for(n=0,r=this.ArgumentList.length;n<r;n++)this.ArgumentList[n].Resolve(e,t)},r.prototype.fixAssoc=function(){var e,t;for(e=0,t=this.ArgumentList.length;e<t;e++)this.ArgumentList[e].fixAssoc()},r.prototype._containsError=function(e){var t=new RegExp("(#DIV/0|#N/A|#NAME?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)"),n,r;for(n=0;n<e.length;n++)for(r=0;r<e[0].length;r++)if(t.test(e[n][r]))return e[n][r];return!1},r.prototype.compute=function(e,n,r,i){var s=t[this.FunctionName];if(typeof s=="undefined")throw new Error("Unimplemented function "+this.FunctionName);return s(e,n,r,i,this.ArgumentList)},r}),define("Parser/AST/ReferenceExpr",["Parser/AST/ReferenceFunction"],function(e){function t(e){this.Ref=e}return t.prototype.toString=function(){return"ReferenceExpr."+this.Ref.toString()},t.prototype.Resolve=function(e,t){this.Ref.Resolve(e,t)},t.prototype.fixAssoc=function(){this.Ref instanceof e&&this.Ref.fixAssoc()},t.prototype.compute=function(e,t,n,r){return this.Ref.compute(e,t,n,r)},t}),define("Parser/AST/ReferenceNamed",["Parser/AST/Reference","FSharp/FSharp"],function(e,t){function r(t,n){e.call(this,t),this._varname=n}var n=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return n(r,e),r.prototype.toString=function(){return this.WorksheetName===null||typeof this.WorksheetName=="undefined"||this.WorksheetName instanceof t.None?"ReferenceName(None, "+this._varname+")":"ReferenceName("+this.WorksheetName+","+this._varname+")"},r}),define("Parser/AST/ConstantString",["Parser/AST/Reference"],function(e){function n(t,n){e.call(this,t),this._value=n}var t=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return t(n,e),n.prototype.toString=function(){return"String("+this._value+")"},n.prototype.compute=function(e,t,n,r){return n?[[this._value]]:this._value},n}),define("Parser/AST/UnaryOpExpr",["Parser/AST/BinOpExpr"],function(e){function t(e,t){this.Expr=t,this.Operator=e}return t.prototype.toString=function(){return"UnaryOpExpr('"+this.Operator+"',"+this.Expr+")"},t.prototype.Resolve=function(e,t){this.Expr.Resolve(e,t)},t.prototype.fixAssoc=function(){this.Expr.fixAssoc()},t.prototype.compute=function(e,t,n,r){var i=this.Expr.compute(e,t,n,!1),s,o,u=new RegExp("(#DIV/0|#N/A|#NAME?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");if(n)switch(this.Operator){case"+":return i;case"-":for(s=0;s<i.length;s++)for(o=0;o<i[s].length;o++)if(isFinite(i[s][o]))i[s][o]=-i[s][o];else{if(u.test(i[s][o]))break;i[s][o]="#VALUE!"}return i;default:throw new Error("Unknown operator")}else{if(!isFinite(i))return"#VALUE!";switch(this.Operator){case"+":return i;case"-":return-i;default:throw new Error("Unknown operator")}}},t}),define("Parser/AST/PostfixOpExpr",[],function(){function e(e,t){this.Operator=e,this.Expr=t}return e.prototype.toString=function(){return'PostfixOpExpr("'+this.Operator+'",'+this.Expr.toString()+")"},e.prototype.Resolve=function(e,t){this.Expr.Resolve(e,t)},e.prototype.fixAssoc=function(){this.Expr.fixAssoc()},e.prototype.compute=function(e,t,n,r){var i=this.Expr.compute(e,t,n,!1),s,o,u=new RegExp("(#DIV/0|#N/A|#NAME?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");if(!n)return i/100;for(s=0;s<i.length;s++)for(o=0;o<i[s].length;o++)if(isFinite(i[s][o]))i[s][o]=i[s][o]/100;else{if(u.test(i[s][o]))break;i[s][o]="#VALUE!"}},e}),define("Parser/AST/ConstantLogical",["Parser/AST/Reference"],function(e){function n(t,n){e.call(this,t),this._value=n==="TRUE"}var t=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return t(n,e),n.prototype.toString=function(){return"Logical("+this._value+")"},n.prototype.compute=function(e,t,n,r){return n?[[this._value]]:this._value},n}),define("Parser/AST/ConstantError",["Parser/AST/Reference"],function(e){function n(t,n){e.call(this,t),this._value=n}var t=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return t(n,e),n.prototype.toString=function(){return"Error("+this._value+")"},n.prototype.compute=function(e,t,n,r){return n?[[this._value]]:this._value},n}),define("Parser/AST/ConstantArray",["Parser/AST/Reference"],function(e){function n(t,n){e.call(this,t),this._values=n}var t=function(e,t){var n=Object.create(t.prototype);n.constructor=e,e.prototype=n};return t(n,e),n.prototype.toString=function(){var e,t,n,r,i,s="[";for(e=0,t=this._values.length;e<t;e++){i="[";for(r=0,n=this._values[e].length;r<n;r++)i+=this._values[e][r].toString()+", ";s+=i.substring(0,i.length-2)+"],"}return s=s.substring(0,s.length-1)+"]","Array("+s+")"},n.prototype.compute=function(e,t,n,r){var i,s,o,u,a=[],f;if(n||r){for(i=0,o=this._values.length;i<o;i++){f=[];for(s=0,u=this._values[i].length;s<u;s++)f.push(this._values[i][s].compute(e,t,!1,!1));a.push(f)}return a}return this._values[0][0].compute(e,t,n,!1)},n}),define("Parser/AST/AST",["Parser/AST/Address","Parser/AST/BinOpExpr","Parser/AST/ParensExpr","Parser/AST/Range","Parser/AST/Reference","Parser/AST/ReferenceAddress","Parser/AST/ConstantNumber","Parser/AST/ReferenceExpr","Parser/AST/ReferenceFunction","Parser/AST/ReferenceNamed","Parser/AST/ReferenceRange","Parser/AST/ConstantString","Parser/AST/UnaryOpExpr","Parser/AST/PostfixOpExpr","Parser/AST/ConstantLogical","Parser/AST/ConstantError","Parser/AST/ConstantArray"],function(e,t,n,r,i,s,o,u,a,f,l,c,h,p,d,v,m){return{ReferenceAddress:s,UnaryOpExpr:h,ParensExpr:n,BinOpExpr:t,ReferenceExpr:u,ReferenceRange:l,ReferenceFunction:a,ConstantNumber:o,ReferenceNamed:f,Reference:i,Range:r,Address:e,ConstantLogical:d,ConstantString:c,PostfixOpExpr:p,ConstantError:v,ConstantArray:m}}),require(["Parser/AST/AST","FSharp/FSharp"],function(e,t){window.FSharp=t,window.AST=e}),define("main-built",function(){});
+/**
+ * @license jahashtable, a JavaScript implementation of a hash table. It creates a single constructor function called
+ * Hashtable in the global scope.
+ *
+ * http://www.timdown.co.uk/jshashtable/
+ * Copyright 2013 Tim Down.
+ * Version: 3.0
+ * Build date: 17 July 2013
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+var Hashtable = function (t) {
+    function n(t) {
+        return typeof t == p ? t : "" + t
+    }
+
+    function e(t) {
+        var r;
+        return typeof t == p ? t : typeof t.hashCode == y ? (r = t.hashCode(), typeof r == p ? r : e(r)) : n(t)
+    }
+
+    function r(t, n) {
+        for (var e in n)n.hasOwnProperty(e) && (t[e] = n[e])
+    }
+
+    function i(t, n) {
+        return t.equals(n)
+    }
+
+    function u(t, n) {
+        return typeof n.equals == y ? n.equals(t) : t === n
+    }
+
+    function o(n) {
+        return function (e) {
+            if (null === e)throw new Error("null is not a valid " + n);
+            if (e === t)throw new Error(n + " must not be undefined")
+        }
+    }
+
+    function s(t, n, e, r) {
+        this[0] = t, this.entries = [], this.addEntry(n, e), null !== r && (this.getEqualityFunction = function () {
+            return r
+        })
+    }
+
+    function a(t) {
+        return function (n) {
+            for (var e, r = this.entries.length, i = this.getEqualityFunction(n); r--;)if (e = this.entries[r], i(n, e[0]))switch (t) {
+                case E:
+                    return!0;
+                case K:
+                    return e;
+                case q:
+                    return[r, e[1]]
+            }
+            return!1
+        }
+    }
+
+    function l(t) {
+        return function (n) {
+            for (var e = n.length, r = 0, i = this.entries, u = i.length; u > r; ++r)n[e + r] = i[r][t]
+        }
+    }
+
+    function f(t, n) {
+        for (var e, r = t.length; r--;)if (e = t[r], n === e[0])return r;
+        return null
+    }
+
+    function h(t, n) {
+        var e = t[n];
+        return e && e instanceof s ? e : null
+    }
+
+    function c() {
+        var n = [], i = {}, u = {replaceDuplicateKey: !0, hashCode: e, equals: null}, o = arguments[0], a = arguments[1];
+        a !== t ? (u.hashCode = o, u.equals = a) : o !== t && r(u, o);
+        var l = u.hashCode, c = u.equals;
+        this.properties = u, this.put = function (t, e) {
+            g(t), d(e);
+            var r, o, a = l(t), f = null;
+            return r = h(i, a), r ? (o = r.getEntryForKey(t), o ? (u.replaceDuplicateKey && (o[0] = t), f = o[1], o[1] = e) : r.addEntry(t, e)) : (r = new s(a, t, e, c), n.push(r), i[a] = r), f
+        }, this.get = function (t) {
+            g(t);
+            var n = l(t), e = h(i, n);
+            if (e) {
+                var r = e.getEntryForKey(t);
+                if (r)return r[1]
+            }
+            return null
+        }, this.containsKey = function (t) {
+            g(t);
+            var n = l(t), e = h(i, n);
+            return e ? e.containsKey(t) : !1
+        }, this.containsValue = function (t) {
+            d(t);
+            for (var e = n.length; e--;)if (n[e].containsValue(t))return!0;
+            return!1
+        }, this.clear = function () {
+            n.length = 0, i = {}
+        }, this.isEmpty = function () {
+            return!n.length
+        };
+        var y = function (t) {
+            return function () {
+                for (var e = [], r = n.length; r--;)n[r][t](e);
+                return e
+            }
+        };
+        this.keys = y("keys"), this.values = y("values"), this.entries = y("getEntries"), this.remove = function (t) {
+            g(t);
+            var e, r = l(t), u = null, o = h(i, r);
+            return o && (u = o.removeEntryForKey(t), null !== u && 0 == o.entries.length && (e = f(n, r), n.splice(e, 1), delete i[r])), u
+        }, this.size = function () {
+            for (var t = 0, e = n.length; e--;)t += n[e].entries.length;
+            return t
+        }
+    }
+
+    var y = "function", p = "string", v = "undefined";
+    if (typeof encodeURIComponent == v || Array.prototype.splice === t || Object.prototype.hasOwnProperty === t)return null;
+    var g = o("key"), d = o("value"), E = 0, K = 1, q = 2;
+    return s.prototype = {getEqualityFunction: function (t) {
+        return typeof t.equals == y ? i : u
+    }, getEntryForKey: a(K), getEntryAndIndexForKey: a(q), removeEntryForKey: function (t) {
+        var n = this.getEntryAndIndexForKey(t);
+        return n ? (this.entries.splice(n[0], 1), n[1]) : null
+    }, addEntry: function (t, n) {
+        this.entries.push([t, n])
+    }, keys: l(0), values: l(1), getEntries: function (t) {
+        for (var n = t.length, e = 0, r = this.entries, i = r.length; i > e; ++e)t[n + e] = r[e].slice(0)
+    }, containsKey: a(E), containsValue: function (t) {
+        for (var n = this.entries, e = n.length; e--;)if (t === n[e][1])return!0;
+        return!1
+    }}, c.prototype = {each: function (t) {
+        for (var n, e = this.entries(), r = e.length; r--;)n = e[r], t(n[0], n[1])
+    }, equals: function (t) {
+        var n, e, r, i = this.size();
+        if (i == t.size()) {
+            for (n = this.keys(); i--;)if (e = n[i], r = t.get(e), null === r || r !== this.get(e))return!1;
+            return!0
+        }
+        return!1
+    }, putAll: function (t, n) {
+        for (var e, r, i, u, o = t.entries(), s = o.length, a = typeof n == y; s--;)e = o[s], r = e[0], i = e[1], a && (u = this.get(r)) && (i = n(r, u, i)), this.put(r, i)
+    }, clone: function () {
+        var t = new c(this.properties);
+        return t.putAll(this), t
+    }}, c.prototype.toQueryString = function () {
+        for (var t, e = this.entries(), r = e.length, i = []; r--;)t = e[r], i[r] = encodeURIComponent(n(t[0])) + "=" + encodeURIComponent(n(t[1]));
+        return i.join("&")
+    }, c
+}();
