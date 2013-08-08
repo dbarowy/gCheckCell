@@ -52,6 +52,15 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         }
     };
 
+    XRange.prototype.setFormula = function (formula) {
+        var i, j;
+        for (i = this.startRow - 1; i < this.endRow; i++) {
+            for (j = this.startCol - 1; j < this.endCol; j++) {
+                this.Worksheet._formulas[i][j] = formula;
+            }
+        }
+    };
+
     /**
      * Check if a cell in the range contains a formula
      * @returns {boolean}
