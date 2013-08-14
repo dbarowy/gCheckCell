@@ -26,6 +26,17 @@ define("Utilities/HashMap",function () {
         }
         return res;
     };
+
+    HashMap.prototype.toString=function(){
+        var str="[";
+        for (var pair in this._map) {
+            if (this._map.hasOwnProperty(pair)) {
+                str+=this._map[pair].key.toString() +"="  +this._map[pair].value.toString()+", ";
+
+            }
+        }
+        return str+"]";
+    };
     return HashMap;
 
 });

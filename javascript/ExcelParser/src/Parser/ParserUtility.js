@@ -105,7 +105,7 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
     ParserUtility.getAllReferencesFromFormula = function (/*string*/ formula, /*XWorkbook*/wb, /*XWorksheet*/ws, /*Address[]*/addresses, /*XRanges[]*/ranges) {
         var tree = Parser.parseFormula(formula, wb, ws), res = [];
         var refs, i, len;
-        if (!tree instanceof FSharp.None) {
+        if (!(tree instanceof FSharp.None)) {
             refs = ParserUtility.getExprRanges(tree);
             for (i = 0, len = refs.length; i < len; i++) {
                 ranges.push(refs[i].GetCOMObject(wb.Application));

@@ -41,7 +41,7 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
         var i, j, len1, len2, range = [], row;
         for (i = 1, len1 = this._values.length; i <= len1; i++) {
             row = [];
-            for (j = 1, len2 = this._values[i].length; j <= len2; j++) {
+            for (j = 1, len2 = this._values[i-1].length; j <= len2; j++) {
                 row.push(new XRange(this.Workbook, this, i, j, i, j));
             }
             range.push(row);

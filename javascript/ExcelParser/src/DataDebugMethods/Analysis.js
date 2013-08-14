@@ -1,4 +1,4 @@
-define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/InputSample", "DataDebugMethods/BootMemo", "DataDebugMethods/FunctionOutput"], function (HashMap, InputSample, BootMemo, FunctionOutput) {
+define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/InputSample", "DataDebugMethods/BootMemo", "DataDebugMethods/FunctionOutput","DataDebugMethods/TreeNode"], function (HashMap, InputSample, BootMemo, FunctionOutput,TreeNode) {
     "use strict";
     var Analysis = {};
     /**
@@ -83,12 +83,23 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         }
         return ss;
     };
+    Analysis.init3DArray = function (/*int*/fn_idx_sz, /*int*/o_idx_sz, /*int*/b_idx_sz) {
+        var bs = new Array(fn_idx_sz), i, j;
+        for (i = 0; i < fn_idx_sz; i++) {
+            bs[i] = new Array(o_idx_sz);
+            for (j = 0; j < o_idx_sz; j++) {
+                bs[i][j] = new Array(b_idx_sz);
+            }
+        }
+        return bs;
+    };
 
     Analysis.computeBootstraps = function (/*int*/num_bootstraps, /*HashMap<TreeNode, InputSample>*/initial_inputs, /*InputSample[][]*/resamples, /*TreeNode[]*/input_arr, /*TreeNode[]*/output_arr, /*AnalysisData*/data) {
-        var i, bootstraps = [], com, fos, b, t;
+        var i, com, fos, b, t;
         var /*BootMemo[]*/bootsaver = new Array(input_arr.length);
         // compute function outputs for each bootstrap
         // inputs[i] is the ith input range
+        var bootstraps = this.init3DArray(output_arr.length, input_arr.length, num_bootstraps);
         for (i = 0; i < input_arr.length; i++) {
             t = input_arr[i];
             com = t.com;
@@ -189,6 +200,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
     Analysis.rejectNullHypothesis = function (/*FunctionOutput[]*/ boots, /* string*/ original_output, /*int*/ exclude_index) {
         var boots_exc = [], i, j, p_val;
         if (typeof boots[0].value === "string") {
+            console.log("string");
             // filter bootstraps which include exclude_index
             for (i = 0; i < boots.length; i++) {
                 for (j = 0; j < boots[i].excludes.length; j++) {
@@ -206,11 +218,9 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         }
         else {
             for (i = 0; i < boots.length; i++) {
-                for (j = 0; j < boots[i].excludes.length; j++) {
-                    if (boots[i].excludes[j] === exclude_index) {
-                        boots_exc.push(boots[i]);
-                        break;
-                    }
+                if(typeof boots[i].excludes[exclude_index]!=="undefined"){
+                    boots_exc.push(boots[i]);
+                    break;
                 }
             }
             var low_index = Math.floor((boots_exc.length - 1) * 0.025);
@@ -254,6 +264,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
                 //this function's input range treenode
                 rangeNode = input_rngs[i];
                 if (this.functionOutputsAreNumeric(boots[f][i])) {
+
                     s = this.numericHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
                 } else {
                     s = this.stringHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
@@ -295,9 +306,9 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         var input_range = rangeNode.com.getCellMatrix();
         var input_cells = [], aux;
         for (i = 0; i < input_range.length; i++) {
-            for (j = 0; j < input_range[i]; j++) {
+            for (j = 0; j < input_range[i].length; j++) {
                 aux = input_range[i][j];
-                input_cells = new TreeNode(aux, aux.Worksheet, aux.Workbook);
+                input_cells.push(new TreeNode(aux, aux.Worksheet, aux.Workbook));
             }
         }
 
@@ -319,6 +330,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             if (weighted) {
                 weight = Math.floor(functionNode.weight);
             }
+
             outlieriness = this.rejectNullHypothesis(sorted_num_boots, initial_output, i);
             if (outlieriness != 0.0) {
                 //get the xth indexed input in input_rng i
@@ -369,7 +381,6 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         //second index: the ith input
         //third index: the bth bootstrap
         var boots = this.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
-
         //restore formulas
         //TODO DO we really need to do this?
         //Why would we restore formulas. The formulas have never been modified

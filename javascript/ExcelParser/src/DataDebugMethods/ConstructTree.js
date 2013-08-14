@@ -53,11 +53,14 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
     ConstructTree.genGraph = function (/*AnalysisData*/data) {
         var nodes = data.formula_nodes;
         var tree = "";
+
         var i, entrySet = nodes.getEntrySet();
         for (i = 0; i < entrySet.length; i++) {
             tree += entrySet[i].value.toGVString() + "\n";
         }
+
         for (i = 0; i < data.input_ranges.length; i++) {
+
             tree += data.input_ranges[i].toGVString() + "\n";
         }
         return "digraph g{" + tree + "}";

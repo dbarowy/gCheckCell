@@ -118,13 +118,13 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
         init: function (/*Data*/ data) {
             var i, len;
             this._workbooks.push(new XWorkbook(data.active_book, this));
+            this._active = this._workbooks[0];
             for (i = 0, len = data.external_books.length; i < len; i++) {
                 this._workbooks.push(new XWorkbook(data.external_books[i], this));
             }
 
             for (i = 0, len = this._workbooks.length; i < len; i++) {
                 this._extractFormulas(this._workbooks[i]);
-
             }
 
         },
@@ -134,7 +134,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                 ext.push(this._workbooks[j].exportData())
             }
             return {
-                active_book:this._workbooks[0].exportData(),
+                active_book: this._workbooks[0].exportData(),
                 external_books: ext
             };
         },

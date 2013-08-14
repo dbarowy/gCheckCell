@@ -11,7 +11,10 @@ define("DataDebugMethods/InputSample", function () {
 
     InputSample.prototype.add = function (/*string*/datum) {
         var pair = this.oneDtoTwoD(this._i);
-        this.input_array[pair.row][pair.col] = datums;
+        if(this.input_array[pair.row]==null){
+            this.input_array[pair.row]=[];
+        }
+        this.input_array[pair.row][pair.col] = datum;
         this._i++;
     };
 
@@ -23,7 +26,7 @@ define("DataDebugMethods/InputSample", function () {
     };
 
     InputSample.prototype.oneDtoTwoD = function (/*int*/idx) {
-        return {row: idx % this.cols, col: Math.floor(idx / this.cols)};
+        return {col: idx % this.cols, row: Math.floor(idx / this.cols)};
     };
 
     InputSample.prototype.getInput = function (/*int*/num) {

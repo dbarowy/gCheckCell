@@ -12,8 +12,8 @@ define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap
         // in our list of excluded functions
         entrySet = this.formula_nodes.getEntrySet();
         for (i = 0, len = entrySet.length; i < len; i++) {
-            if (entrySet.value.parents.length===0)
-                res.push(entrySet.value);
+            if (entrySet[i].value.parents.length===0)
+                res.push(entrySet[i].value);
         }
         return res;
     };

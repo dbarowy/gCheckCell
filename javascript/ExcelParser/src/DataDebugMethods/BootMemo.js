@@ -9,7 +9,7 @@ define("DataDebugMethods/BootMemo", ["Utilities/HashMap", "DataDebugMethods/Func
         var fo_arr, k;
         if (typeof(fo_arr = this._d.get(sample)) === "undefined") {
             //replace the COM value
-            this.replaceExcelRange(com, sample);
+            BootMemo.replaceExcelRange(com, sample);
             //initialize array;
             fo_arr = new Array(outputs.length);
             for (k = 0; k < outputs.length; k++) {
@@ -17,13 +17,13 @@ define("DataDebugMethods/BootMemo", ["Utilities/HashMap", "DataDebugMethods/Func
             }
             this._d.put(sample, fo_arr);
             if (replace_original) {
-                this.replaceExcelRange(com, orig);
+                BootMemo.replaceExcelRange(com, orig);
             }
         }
         return fo_arr;
     };
 
-    BootMemo.prototype.replaceExcelRange = function (/*XRange*/com, /*InputSample*/input) {
+    BootMemo.replaceExcelRange = function (/*XRange*/com, /*InputSample*/input) {
         com.setValues(input.input_array);
         XApplication.recompute_book();
     };

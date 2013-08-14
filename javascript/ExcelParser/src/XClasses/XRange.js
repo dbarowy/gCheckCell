@@ -122,6 +122,7 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
             }
             range.push(row);
         }
+
         return range;
 
     };
