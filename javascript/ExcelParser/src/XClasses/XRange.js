@@ -42,7 +42,10 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
         }
         return res;
     };
-
+    /**
+     *
+     * @param value
+     */
     XRange.prototype.setValue = function (value) {
         var i, j;
         for (i = this.startRow - 1; i < this.endRow; i++) {
@@ -50,6 +53,20 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
                 this.Worksheet._values[i][j] = value;
             }
         }
+    };
+
+    XRange.prototype.setValues = function (values) {
+        var i, j, k, l;
+        if (values.length !== this.endRow - this.startRow + 1 || values[0].length !== this.endCol - this.startCol + 1) {
+            throw new Error("Values matrix must have the same size as the range.");
+        } else {
+            for (i = this.startRow - 1, k = 0; i < this.endRow; i++, k++) {
+                for (j = this.startCol - 1, l = 0; j < this.endCol; j++, l++) {
+                    this.Worksheet._values[i][j] = values[k][l];
+                }
+            }
+        }
+
     };
 
     XRange.prototype.setFormula = function (formula) {

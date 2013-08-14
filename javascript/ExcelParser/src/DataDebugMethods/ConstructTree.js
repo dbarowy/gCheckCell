@@ -1,3 +1,5 @@
+//TODO Cells that contain a formula and are part of a range and are not used directly anywhere else, are considered terminal outputs
+
 define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser"], function (ParserUtility, HashMap, TreeNode, Parser) {
     "use strict";
     var ConstructTree = {};

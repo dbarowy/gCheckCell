@@ -1,17 +1,8 @@
 define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap) {
     "use strict";
-    function AnalysisData(/*XApplication*/ app) {
-        this.worksheets = app.getWorksheets();
-        //this.charts=app.getCharts();
-        this.nodelist = [];//holds all the TreeNodes in the Excel file.
+    function AnalysisData() {
         this.input_ranges = [];//holds all the input ranges of TreeNodes in the Excel file.
-        this.starting_outputs = [];//holds all the values of all the output odes at the start of the procedure for swapping values
-        this.output_cells = [];   //holds the output nodes at the start of the fuzzing procedure
-        this.input_cells_in_computation_count = 0;
-        this.raw_input_cells_in_computation_count = 0;
-        this.formula_cells_count = 0;
         this.formula_nodes = new HashMap();
-        this.cell_nodes = new HashMap();
     }
 
     AnalysisData.prototype.getTerminalFormulaNodes = function () {
@@ -21,7 +12,7 @@ define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap
         // in our list of excluded functions
         entrySet = this.formula_nodes.getEntrySet();
         for (i = 0, len = entrySet.length; i < len; i++) {
-            if (!entrySet.value.hasParents())
+            if (entrySet.value.parents.length===0)
                 res.push(entrySet.value);
         }
         return res;
