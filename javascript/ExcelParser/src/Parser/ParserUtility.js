@@ -108,7 +108,11 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
         if (!(tree instanceof FSharp.None)) {
             refs = ParserUtility.getExprRanges(tree);
             for (i = 0, len = refs.length; i < len; i++) {
+                try{
                 ranges.push(refs[i].GetCOMObject(wb.Application));
+                } catch(e){
+                    console.log(e+"\n"+formula);
+                }
             }
             refs = ParserUtility.getSCExprRanges(tree);
             for (i = 0, len = refs.length; i < len; i++) {

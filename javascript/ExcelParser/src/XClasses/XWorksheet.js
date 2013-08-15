@@ -59,6 +59,7 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
      */
     XWorksheet.prototype.getRange = function (/*int*/startRow, /*int*/startCol, /*optional int*/endRow, /*optional int*/endCol) {
         //Check if this range has the starting position in the used range
+
         if (typeof(endRow) === "undefined" && typeof(endCol) === "undefined") {
             if (startRow <= this._lastRow && startCol <= this._lastColumn) {
                 return new XRange(this.Workbook, this, startRow, startCol, startRow, startCol);

@@ -36,7 +36,7 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
             this.type = NodeTypes.Range;
             this.is_formula = false;
         }
-        this.weight = 0;
+        this.weight = 0.0;
         this.dont_perturb = true;
     }
 
@@ -51,7 +51,11 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
         }
         return this.name + "\nParents: " + parents_string + "\nChildren: " + children_string;
     };
-
+    /**
+     * Get the GraphViz representation of this node.
+     * TODO Some characters are illegal in this representation. Determine which characters are illegal and remove them.
+     * @returns {string}
+     */
     TreeNode.prototype.toGVString = function () {
         var i, len, parents_string = "";
         for (i = 0, len = this.parents.length; i < len; i++) {
@@ -59,7 +63,10 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
         }
         return ("\n" + this.name.replace(" ", "").replace(":", "") + "[shape=ellipse]" + parents_string).replace("$", "");
     };
-
+    /**
+     * Add the node as a parent to the current TreeNode.
+     * @param node
+     */
     TreeNode.prototype.addParent = function (/*TreeNode*/node) {
         var parent_already_added = false, i, len;
         for (i = 0, len = this.parents.length; i < len; i++) {
@@ -72,6 +79,10 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
             this.parents.push(node);
         }
     };
+    /**
+     * Add the node as a child to the current TreeNode
+     * @param node
+     */
     TreeNode.prototype.addChild = function (/*TreeNode*/node) {
         var child_already_added = false;
         var i, len;
@@ -85,19 +96,14 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
             this.children.push(node);
         }
     };
-
-    TreeNode.prototype.hasChildren = function () {
-        return (this.children > 0);
-    };
-
-    TreeNode.prototype.hasParents = function () {
-        return (this.parents.length > 0);
-    };
-
+    /**
+     * The name is used as a hashcode when using an object as a hashmap.
+     * The hashcode
+     * @returns {*}
+     */
     TreeNode.prototype.getHashCode = function () {
         return this.name;
     };
-
 
     TreeNode.prototype.isRange = function () {
         return this.type === NodeTypes.Range;
@@ -108,11 +114,6 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
     TreeNode.prototype.isCell = function () {
         return this.type === NodeTypes.Cell;
     };
-
-    TreeNode.prototype.getCOMValueAsString = function () {
-        return this.com.toString();
-    };
-
 
     return TreeNode;
 });

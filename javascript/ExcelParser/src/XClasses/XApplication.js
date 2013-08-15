@@ -4,7 +4,7 @@
  * and Excel.Application in Microsoft Office.
  * @type {{_GDocs: boolean, getWorksheets: Function, getActiveWorkbook: Function}}
  */
-
+var counter = 0;
 define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp) {
     "use strict";
     return {
@@ -45,7 +45,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                 }
             }
             res.sort();
-            console.log(res.toString());
+       //     console.log(res.toString());
         },
         _getFnName: function (expr) {
             if (expr instanceof AST.ReferenceRange || expr instanceof FSharp.None || expr instanceof AST.ReferenceNamed || expr instanceof AST.ReferenceAddress || expr instanceof AST.Address || expr instanceof AST.ConstantArray || expr instanceof AST.ConstantError || expr instanceof AST.ConstantLogical || expr instanceof AST.ConstantNumber || expr instanceof AST.ConstantString || expr instanceof AST.Range) {
@@ -88,6 +88,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
         },
 
         recompute_book: function () {
+            counter++;
             var i, set = this.formulaMap.getEntrySet();
             for (i = 0; i < set.length; i++) {
                 this.recompute(set[i].key);

@@ -1,4 +1,4 @@
-define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/InputSample", "DataDebugMethods/BootMemo", "DataDebugMethods/FunctionOutput","DataDebugMethods/TreeNode"], function (HashMap, InputSample, BootMemo, FunctionOutput,TreeNode) {
+define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/InputSample", "DataDebugMethods/BootMemo", "DataDebugMethods/FunctionOutput", "DataDebugMethods/TreeNode"], function (HashMap, InputSample, BootMemo, FunctionOutput, TreeNode) {
     "use strict";
     var Analysis = {};
     /**
@@ -130,7 +130,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             set = d2.getEntrySet();
             for (i = 0; i < set.length; i++) {
                 score = d3.get(set[i].key);
-                if (typeof score !== "undefined") {
+                if (score == 0 || score) {
                     d3.put(set[i].key, set[i].value + score);
                 } else {
                     d3.put(set[i].key, set[i].value);
@@ -200,13 +200,11 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
     Analysis.rejectNullHypothesis = function (/*FunctionOutput[]*/ boots, /* string*/ original_output, /*int*/ exclude_index) {
         var boots_exc = [], i, j, p_val;
         if (typeof boots[0].value === "string") {
-            console.log("string");
             // filter bootstraps which include exclude_index
             for (i = 0; i < boots.length; i++) {
                 for (j = 0; j < boots[i].excludes.length; j++) {
                     if (boots[i].excludes[j] === exclude_index) {
                         boots_exc.push(boots[i]);
-                        break;
                     }
                 }
             }
@@ -218,11 +216,11 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         }
         else {
             for (i = 0; i < boots.length; i++) {
-                if(typeof boots[i].excludes[exclude_index]!=="undefined"){
+                if (boots[i].excludes[exclude_index]!=null) {
                     boots_exc.push(boots[i]);
-                    break;
                 }
             }
+
             var low_index = Math.floor((boots_exc.length - 1) * 0.025);
             var high_index = Math.ceil((boots_exc.length - 1) * 0.975);
             var low_value = boots_exc[low_index].value;
@@ -231,6 +229,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             var low_value_tr = Math.round(low_value * 10000) / 10000;
             var high_value_tr = Math.round(high_value * 10000) / 10000;
             var original_tr = Math.round(original_output_d * 10000) / 10000;
+
             if (high_value_tr != low_value_tr) {
                 if (original_tr < low_value_tr) {
                     return Math.abs((original_tr - low_value_tr) / Math.abs(high_value_tr - low_value_tr)) * 100.0;
@@ -254,6 +253,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         //dict of exclusion scores for each input CELL TreeNode
         var iexc_scores = new HashMap();
 
+
         // convert bootstraps to numeric, if possible, sort in ascending order
         // then compute quantiles and test whether an input is an outlier
         // i is the index of the range in the input array; an ARRAY of CELLS
@@ -264,7 +264,6 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
                 //this function's input range treenode
                 rangeNode = input_rngs[i];
                 if (this.functionOutputsAreNumeric(boots[f][i])) {
-
                     s = this.numericHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
                 } else {
                     s = this.stringHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
@@ -272,8 +271,49 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
                 iexc_scores = this.dictAdd(iexc_scores, s);
             }
         }
+
         return iexc_scores;
     };
+
+    Analysis.ColorOutliers = function (/*HashMap<TreeNode, int>*/input_exclusion_scores) {
+        //find value of the max element. we use this to calibrate our scale
+        var len, max_score, min_score, i, entrySet, outlierValue = "";
+        entrySet = input_exclusion_scores.getEntrySet();
+        if (entrySet.length > 0) {
+            max_score = entrySet[0].value;
+            min_score = entrySet[0].value;
+        }
+        for (i = 1, len = entrySet.length; i < len; i++) {
+            if (entrySet[i].value > max_score) {
+                max_score = entrySet[i].value;
+            }
+            if (entrySet[i].value < min_score && entrySet[i].value!=0) {
+                min_score = entrySet[i].value;
+            }
+        }
+        if (min_score == max_score) {
+            min_score = 0;
+        }
+        min_score = 0.50 * min_score; //this is so that the smallest outlier also gets colored, rather than being white
+        for (i = 0, len = entrySet.length; i < len; i++) {
+            var cell = entrySet[i].key;
+            var cval = 0;
+            if (max_score == min_score) {
+                cval = 0;
+            } else {
+                if (entrySet[i].value != 0) {
+                    cval = Math.round(255 * (entrySet[i].value - min_score) / (max_score - min_score));
+                    outlierValue += cell.com.getA1Address() + ":" + entrySet[i].value + ";\t" + cval + "\n";
+                }
+            }
+            if (cval != 0) {
+
+            }
+
+        }
+        // console.log(outlierValue);
+    };
+
 
     /**
      * Check if all the function outputs in the array are numeric
@@ -283,7 +323,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
     Analysis.functionOutputsAreNumeric = function (/*FunctionOutput[]*/boots) {
         var b;
         for (b = 0; b < boots.length; b++) {
-            if (!isFinite(boots[b].value)) {
+            if (!isFinite(boots[b].value) || boots[b].value == "" || boots[b].value == null) {
                 return false;
             }
         }
@@ -293,12 +333,9 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
     Analysis.convertToNumericOutput = function (/*FunctionOutput<string>[]*/boots) {
         var b, fi_boots = new Array(boots.length), value, boot;
         for (b = 0; b < boots.length; b++) {
-            boot = boots[b];
-            //convert to number
-            value = +(boot.value);
-            fi_boots[b] = new FunctionOutput(value, boot.excludes);
+            boots[b].value = +boots[b].value;
         }
-        return fi_boots;
+        return boots;
     };
 
     Analysis.numericHypothesisTest = function (/*TreeNode*/ rangeNode, /*TreeNode*/ functionNode, /* FunctionOutput[]*/ boots, /*string*/ initial_output, /*bool*/ weighted) {
@@ -331,6 +368,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
                 weight = Math.floor(functionNode.weight);
             }
 
+
             outlieriness = this.rejectNullHypothesis(sorted_num_boots, initial_output, i);
             if (outlieriness != 0.0) {
                 //get the xth indexed input in input_rng i
@@ -347,6 +385,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             }
 
         }
+        //console.log(input_exclusion_scores.toString());
         return input_exclusion_scores;
     };
 
