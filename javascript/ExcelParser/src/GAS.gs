@@ -1,53 +1,104 @@
-<?!= include('require'); ?>
-<?!= include('jstat'); ?>
-<?!= include('lodash'); ?>
-<?!= include('moment'); ?>
-<?!= include('numeral'); ?>
-<?!= include('underscore_string'); ?>
-<?!= include('numeric'); ?>
-<?!= include('formula'); ?>
+function _getSheetData(sheet){
+    var dataRange = sheet.getDataRange();
+    dataRange.setBackground("#FFFFFF");
+    return{
+        name:sheet.getSheetName(),
+        values:dataRange.getValues(),
+        formulas:dataRange.getFormulas()
+    };
+}
 
-<?!= include('Address'); ?>
-<?!= include('BinOpExpr'); ?>
-<?!= include('ConstantArray'); ?>
-<?!= include('ConstantError'); ?>
-<?!= include('ConstantLogical'); ?>
-<?!= include('ConstantNumber'); ?>
-<?!= include('ConstantString'); ?>
-<?!= include('ParensExpr'); ?>
-<?!= include('PostfixOpExpr'); ?>
-<?!= include('ReferenceAddress'); ?>
-<?!= include('PEG'); ?>
-<?!= include('PEGParser'); ?>
-<?!= include('FSharp'); ?>
-<?!= include('HashMap'); ?>
-<?!= include('Profiler'); ?>
-<?!= include('XLogger'); ?>
-<?!= include('ReferenceExpr'); ?>
-<?!= include('ReferenceNamed'); ?>
-<?!= include('UnaryOpExpr'); ?>
-<?!= include('Range'); ?>
-<?!= include('Reference'); ?>
-<?!= include('ReferenceRange'); ?>
-<?!= include('ReferenceFunction'); ?>
-<?!= include('AST'); ?>
-<?!= include('Parser'); ?>
-<?!= include('ParserUtility'); ?>
-<?!= include('XApplication'); ?>
-<?!= include('XRange'); ?>
-<?!= include('XWorkbook'); ?>
-<?!= include('XWorksheet'); ?>
+function _getBookData(book){
+    var sheets, sheetsdata=[];
+    sheets=book.getSheets();
+    for(var i=0; i<sheets.length; i++){
+        sheetsdata.push(_getSheetData(sheets[i]));
+    }
+    return {
+        name:book.getId(),
+        sheets:sheetsdata,
+        named_ranges:[]
+    };
+}
 
-<script>
-  function onSuccess(data) {
-  require(["XClasses/XApplication", "Parser/AST/AST"], function(XApplication, AST){
-  XApplication.init(JSON.parse(data));
-  XApplication.recompute(new AST.Address(1,3,"Data", "TestSheet"));
- 
-});
-  }
+function getData(){
+    var res= {
+        active_book:_getBookData(SpreadsheetApp.getActive()),
+        external_books:[]
+    };
+    return Utilities.jsonStringify(res);
+}
 
-  google.script.run.withSuccessHandler(onSuccess)
-      .getData()
-console.log("done");
-</script>
+function _getColorBook(book){
+    var sheets=book.getSheets();
+    var res={};
+    var id;
+    for(i=0;i<sheets.length; i++){
+        res[sheets[i].getSheetName()]=sheets[i].getDataRange().getBackgrounds();
+    }
+    return res;
+}
+
+function _getColorData(){
+    var activeSheet = SpreadsheetApp.getActive();
+    var res={};
+    res[activeSheet.getId()]=_getColorBook(activeSheet);
+    return res;
+}
+
+function colorCells(outliers){
+    var colors = _getColorData();
+    for(var i=0; i<outliers.length; i++){
+        var range=outliers[i];
+        if(colors[range.cell.book] && colors[range.cell.book][range.cell.sheet] && colors[range.cell.book][range.cell.sheet][range.cell.row]&& colors[range.cell.book][range.cell.sheet][range.cell.row][range.cell.col]){
+            colors[range.cell.book][range.cell.sheet][range.cell.row][range.cell.col] = range.color;
+        }
+    }
+
+    _updateColors(colors);
+}
+
+function _updateColors(colors){
+    Logger.log(colors);
+}
+
+function compare(data){
+    Logger.log("Result of comparison");
+    var orig, calc;
+    orig=Utilities.jsonParse(getData());
+    calc=Utilities.jsonParse(data);
+    for(var i=0; i< orig.active_book.sheets.length; i++){
+        var sheetOrig = orig.active_book.sheets[i];
+        var sheetCalc = calc.active_book.sheets[i];
+        for(k=0; k<sheetOrig.values.length; k++){
+            for(j=0; j<sheetOrig.values[k].length; j++){
+                if(sheetCalc.values[k][j]!==sheetOrig.values[k][j]){
+                    Logger.log(k+" "+ j + " "+sheetCalc.values[k][j] +"!=" +sheetOrig.values[k][j]+" "+ sheetOrig.formulas[k][j] );
+                }
+            }
+        }
+    }
+
+};
+
+// Use this version for Google Sheets
+var ss = SpreadsheetApp.getActive();
+
+function onOpen() {
+    var menu = [{name: 'Open', functionName: 'openDialog'},{name: 'Color', functionName: 'colorCells'}];
+    ss.addMenu('Dialog', menu);
+}
+
+
+
+function openDialog() {
+    var html= HtmlService.createTemplateFromFile('index')
+        .evaluate().setSandboxMode(HtmlService.SandboxMode.NATIVE);
+    ss.show(html);
+}
+
+
+function include(filename) {
+    return HtmlService.createHtmlOutputFromFile(filename).setSandboxMode(HtmlService.SandboxMode.NATIVE)
+        .getContent();
+}

@@ -19,6 +19,8 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         analysisData.formula_nodes = ConstructTree.createFormulaNodes(formulaRanges, app);
         //Now we parse the formulas in nodes to extract any range and cell references
         nodes = analysisData.formula_nodes.getEntrySet();
+        var r= 0, a=0;
+
         for (i = 0; i < nodes.length; i++) {
             formula_node = nodes[i].value;
             //For each of the ranges found in the formula by the parser
@@ -36,7 +38,6 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             //FOr each single-cell input found in the formula by the parser
             //link to output TreeNode if the input cell is a formula. This allows
             //us to consider functions with single-cell inputs as outputs
-            addresses = ParserUtility.getSingleCellReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet);
             for (j = 0; j < addresses.length; j++) {
                 if (tn = analysisData.formula_nodes.get(addresses[j])) {
                     if (tn.is_formula) {

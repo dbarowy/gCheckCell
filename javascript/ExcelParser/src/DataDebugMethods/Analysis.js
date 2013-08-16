@@ -44,21 +44,35 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             com = inputs[i].com;
             s.addArray(com.getValues());
             d.put(inputs[i], s);
-            //TODO WHY?
-            //BootMemo.ReplaceExcelRange(com,s)
+            // this is to force excel to recalculate its outputs
+            // exactly the same way that it will for our bootstraps
+            BootMemo.replaceExcelRange(com, s)
         }
         return d;
     };
-
+    /**
+     * Save the actual value of the function.
+     * @param outputs
+     * @returns A map of TreeNode->String which represents associates each treenode with its output
+     */
     Analysis.storeOutputs = function (/*TreeNode[]*/outputs) {
         var i, len;
         var /*HashMap<TreeNode, string>*/ d = new HashMap();
         for (i = 0, len = outputs.length; i < len; i++) {
+            // we want to save the actual value of the function
+            // since we don't know whether the function is string or numeric
+            // until later, leave it as string for now
             d.put(outputs[i], outputs[i].com.getValue() + "");
         }
         return d;
     };
 
+    /**
+     * Generate the given number of resamples from the original value
+     * @param num_bootstraps The number of resamples to generate
+     * @param orig_vals The original value from which to generate the bootstraps
+     * @returns {Array}
+     */
     Analysis.resample = function (/*int*/num_bootstraps, /*InputSample*/orig_vals) {
         var ss = new Array(num_bootstraps), j, i, s, inc_count, input_idx, size;
         // sample with replacement to get num_bootstraps
@@ -83,6 +97,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         }
         return ss;
     };
+
     Analysis.init3DArray = function (/*int*/fn_idx_sz, /*int*/o_idx_sz, /*int*/b_idx_sz) {
         var bs = new Array(fn_idx_sz), i, j;
         for (i = 0; i < fn_idx_sz; i++) {
@@ -94,7 +109,20 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         return bs;
     };
 
-    Analysis.computeBootstraps = function (/*int*/num_bootstraps, /*HashMap<TreeNode, InputSample>*/initial_inputs, /*InputSample[][]*/resamples, /*TreeNode[]*/input_arr, /*TreeNode[]*/output_arr, /*AnalysisData*/data) {
+    /**
+     * Return a 3D array with FunctionOutputs
+     * The first index represents the fth function output
+     * The second index represents the ith input
+     * The third index represents the bth bootstrap
+     * @param num_bootstraps The number of resamples to generate for each bootstrap
+     * @param initial_inputs an array of initial inputs
+     * @param resamples
+     * @param input_arr
+     * @param output_arr
+     * @param data
+     * @returns {*}
+     */
+    Analysis.computeBootstraps = function (/*int*/num_bootstraps, /*HashMap<TreeNode, InputSample>*/initial_inputs, /*InputSample[][]*/resamples, /*TreeNode[]*/input_arr, /*TreeNode[]*/output_arr) {
         var i, com, fos, b, t;
         var /*BootMemo[]*/bootsaver = new Array(input_arr.length);
         // compute function outputs for each bootstrap
@@ -118,6 +146,12 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         return bootstraps;
 
     };
+    /**
+     * Merge the two dictionaries and sum the scores for key that are in both dictionaries
+     * @param d1
+     * @param d2
+     * @returns A dictionary that contains a mapping from TreeNodes to integers
+     */
     Analysis.dictAdd = function (/*<TreeNode, int>*/d1, /*<TreeNode, int>*/d2) {
         var d3 = new HashMap(), set, i, score;
         if (d1 !== null) {
@@ -145,10 +179,12 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         //this range's input cells
         var input_range = rangeNode.com.getCellMatrix();
         var input_cells = [], aux;
+        //Create TreeNodes from the cells that feed into this range
         for (i = 0; i < input_range.length; i++) {
             for (j = 0; j < input_range[i]; j++) {
                 aux = input_range[i][j];
                 input_cells = new TreeNode(aux, aux.Worksheet, aux.Workbook);
+                //TODO Should I establish a parent-child relationship?
             }
         }
 
@@ -164,7 +200,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
                 weight = Math.round(functionNode.weight);
             }
             if (this.rejectNullHypothesis(boots, initial_output, i)) {
-                if (typeof(score = iexc_scores.get(xtree)) !== "undefined") {
+                if (score = iexc_scores.get(xtree)) {
                     iexc_scores.put(xtree, score + weight);
                 } else {
                     iexc_scores.put(xtree, weight);
@@ -179,22 +215,27 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
 
     };
 
+    /**
+     * Count instances of unique string output values and return an object with the outputs as keys and the frequency as values
+     * @param boots
+     * @returns An object with the outputs as keys and the frequency as values
+     */
     Analysis.BootstrapFrequency = function (/*FunctionOutput<string>[]*/ boots) {
-        var counts = new HashMap(), i, key, count;
+        var counts = {}, entry, i, key, count;
         for (i = 0; i < boots.length; i++) {
             key = boots[i].value;
-            if ((count = counts.get(key))) {
-                counts.put(key, count + 1);
+            if ((count = counts[key])) {
+                counts[key] = count + 1;
             } else {
-                counts.put(key, 1);
+                counts[key] = 1;
             }
         }
-        var p_values = new HashMap();
-        var entry = counts.getEntrySet();
-        for (i = 0; i < entry.length; i++) {
-            p_values.put(entry[i].key, entry[i].value / boots.length);
+        for (entry in counts) {
+            if (counts.hasOwnProperty(entry)) {
+                counts[entry] = counts[entry] / boots.length
+            }
         }
-        return p_values;
+        return counts;
     };
 
     Analysis.rejectNullHypothesis = function (/*FunctionOutput[]*/ boots, /* string*/ original_output, /*int*/ exclude_index) {
@@ -202,21 +243,19 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         if (typeof boots[0].value === "string") {
             // filter bootstraps which include exclude_index
             for (i = 0; i < boots.length; i++) {
-                for (j = 0; j < boots[i].excludes.length; j++) {
-                    if (boots[i].excludes[j] === exclude_index) {
-                        boots_exc.push(boots[i]);
-                    }
+                if (boots[i].excludes[exclude_index] != null) {
+                    boots_exc.push(boots[i]);
                 }
             }
             var freq = this.BootstrapFrequency(boots_exc);
-            if ((p_val = freq.get(original_output))) {
+            if (!(p_val = freq[original_output])) {
                 p_val = 0.0;
             }
             return p_val < 0.05;
         }
         else {
             for (i = 0; i < boots.length; i++) {
-                if (boots[i].excludes[exclude_index]!=null) {
+                if (boots[i].excludes[exclude_index] != null) {
                     boots_exc.push(boots[i]);
                 }
             }
@@ -253,7 +292,6 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         //dict of exclusion scores for each input CELL TreeNode
         var iexc_scores = new HashMap();
 
-
         // convert bootstraps to numeric, if possible, sort in ascending order
         // then compute quantiles and test whether an input is an outlier
         // i is the index of the range in the input array; an ARRAY of CELLS
@@ -277,7 +315,15 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
 
     Analysis.ColorOutliers = function (/*HashMap<TreeNode, int>*/input_exclusion_scores) {
         //find value of the max element. we use this to calibrate our scale
-        var len, max_score, min_score, i, entrySet, outlierValue = "";
+        var len, max_score, min_score, i, entrySet, outlierValue = "", color, outliers = [];
+        var componentToHex = function (c) {
+            var hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        };
+        var rgbToHex = function (r, g, b) {
+            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+        };
+
         entrySet = input_exclusion_scores.getEntrySet();
         if (entrySet.length > 0) {
             max_score = entrySet[0].value;
@@ -287,7 +333,7 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             if (entrySet[i].value > max_score) {
                 max_score = entrySet[i].value;
             }
-            if (entrySet[i].value < min_score && entrySet[i].value!=0) {
+            if (entrySet[i].value < min_score && entrySet[i].value != 0) {
                 min_score = entrySet[i].value;
             }
         }
@@ -303,15 +349,14 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             } else {
                 if (entrySet[i].value != 0) {
                     cval = Math.round(255 * (entrySet[i].value - min_score) / (max_score - min_score));
-                    outlierValue += cell.com.getA1Address() + ":" + entrySet[i].value + ";\t" + cval + "\n";
+                    // outlierValue += cell.com.getA1Address() + ":" + entrySet[i].value + ";\t" + cval + "\n";
                 }
             }
             if (cval != 0) {
-
+                outliers.push({cell: {book: cell.com.Workbook.Name, sheet: cell.com.Worksheet.Name, row: cell.com.startRow, col: cell.com.startCol}, color: rgbToHex(255, 255 - Math.round(cval), 255 - Math.round(cval))});
             }
-
         }
-        // console.log(outlierValue);
+        return outliers;
     };
 
 
@@ -329,9 +374,13 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         }
         return true;
     };
-
+    /**
+     * Convert each value in the FunctionOutputs to a number
+     * @param boots
+     * @returns The FunctionOutput array with all the numbers converted to numbers
+     */
     Analysis.convertToNumericOutput = function (/*FunctionOutput<string>[]*/boots) {
-        var b, fi_boots = new Array(boots.length), value, boot;
+        var b;
         for (b = 0; b < boots.length; b++) {
             boots[b].value = +boots[b].value;
         }
@@ -367,8 +416,6 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             if (weighted) {
                 weight = Math.floor(functionNode.weight);
             }
-
-
             outlieriness = this.rejectNullHypothesis(sorted_num_boots, initial_output, i);
             if (outlieriness != 0.0) {
                 //get the xth indexed input in input_rng i
@@ -385,7 +432,6 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
             }
 
         }
-        //console.log(input_exclusion_scores.toString());
         return input_exclusion_scores;
     };
 
@@ -409,7 +455,6 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         //we save initial inputs here
         initial_inputs = this.storeInputs(input_rngs);
         initial_outputs = this.storeOutputs(output_fns);
-
         resamples = new Array(input_rngs.length);
         // populate bootstrap array
         // for each input range (a TreeNode)
@@ -419,17 +464,8 @@ define("DataDebugMethods/Analysis", ["Utilities/HashMap", "DataDebugMethods/Inpu
         //first index: the fth function output
         //second index: the ith input
         //third index: the bth bootstrap
-        var boots = this.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
+        var boots = this.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns);
         //restore formulas
-        //TODO DO we really need to do this?
-        //Why would we restore formulas. The formulas have never been modified
-        formula_nodes = data.formula_nodes.getEntrySet();
-        for (i = 0; i < formula_nodes.length; i++) {
-            node = formula_nodes[i].value;
-            if (node.is_formula) {
-                node.com.setFormula(node.formula);
-            }
-        }
 
         return this.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted);
 
