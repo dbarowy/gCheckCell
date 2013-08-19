@@ -12,6 +12,8 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
         for (var i = 0, len = wb.sheets.length; i < len; i++) {
             this._sheets.push(new XWorksheet(wb.sheets[i], this));
         }
+        this.NamedRanges=wb.named_ranges;
+        this.ExternalRanges=wb.external_ranges;
 
     };
     XWorkbook.prototype.exportData = function () {

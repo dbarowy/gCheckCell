@@ -1,4 +1,4 @@
-define("Utilities/Function", ["Libraries/formula"], function (Formula) {
+define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", "XClasses/XLogger"], function (Formula, ConstantString, XLogger) {
     "use strict";
     var func = {};
     func._isError = function (value) {
@@ -527,6 +527,51 @@ define("Utilities/Function", ["Libraries/formula"], function (Formula) {
             }
         } else {
             return args[0].compute(app, source, true, true);
+        }
+    };
+
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.ImportRange = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        //TODO Rewrite
+        "use strict";
+        var val;
+        if (args.length !== 2) {
+            if (array) {
+                return [
+                    ["#N/A"]
+                ];
+            } else {
+                return "#N/A";
+            }
+        } else if (args[0].Ref instanceof ConstantString && args[1].Ref instanceof ConstantString) {
+            try {
+                val = app.getExternalRange(args[0].Ref._value, args[1].Ref._value);
+                if (array || range) {
+                    return val;
+                } else {
+                    return val[0][0];
+                }
+            } catch (e) {
+                XLogger.log("ImportRange error " + e);
+                if (array) {
+                    return [
+                        ["#REF!"]
+                    ];
+                } else {
+                    return "#REF!";
+                }
+            }
+        } else {
+            if (array) {
+                return [
+                    ["#REF!"]
+                ];
+            } else {
+                return  "#REF!";
+            }
         }
     };
     /**+

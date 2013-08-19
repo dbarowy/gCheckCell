@@ -815,7 +815,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                         pos = pos1;
                     }
                     if (result0 !== null) {
-                        result0 = (function(offset, r, c) {return new AST.Address(r, c, null, null);})(pos0, result0[0], result0[1]);
+                        result0 = (function(offset, r, c) {return new AST.Address(r, c, null, null); })(pos0, result0[0], result0[1]);
                     }
                     if (result0 === null) {
                         pos = pos0;
@@ -960,7 +960,7 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                         pos = pos1;
                     }
                     if (result0 !== null) {
-                        result0 = (function(offset, l, r) {return new AST.Address(r, l, null, null);})(pos0, result0[0], result0[1]);
+                        result0 = (function(offset, l, r) {return new AST.Address(r, l, null, null); })(pos0, result0[0], result0[1]);
                     }
                     if (result0 === null) {
                         pos = pos0;
@@ -2831,6 +2831,9 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                     if (result0 === null) {
                         pos = pos0;
                     }
+                    if (result0 === null) {
+                        result0 = parse_NamedReference();
+                    }
                     return result0;
                 }
 
@@ -3132,27 +3135,27 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                     var pos0;
 
                     pos0 = pos;
-                    result0 = parse_Function();
+                    result0 = parse_Constant();
                     if (result0 !== null) {
-                        result0 = (function(offset, fn) {return new AST.ReferenceExpr(fn);})(pos0, result0);
+                        result0 = (function(offset, c) {return new AST.ReferenceExpr(c);})(pos0, result0);
                     }
                     if (result0 === null) {
                         pos = pos0;
                     }
                     if (result0 === null) {
                         pos0 = pos;
-                        result0 = parse_Reference();
+                        result0 = parse_Function();
                         if (result0 !== null) {
-                            result0 = (function(offset, ref) {return new AST.ReferenceExpr(ref);})(pos0, result0);
+                            result0 = (function(offset, fn) {return new AST.ReferenceExpr(fn);})(pos0, result0);
                         }
                         if (result0 === null) {
                             pos = pos0;
                         }
                         if (result0 === null) {
                             pos0 = pos;
-                            result0 = parse_Constant();
+                            result0 = parse_Reference();
                             if (result0 !== null) {
-                                result0 = (function(offset, c) {return new AST.ReferenceExpr(c);})(pos0, result0);
+                                result0 = (function(offset, ref) {return new AST.ReferenceExpr(ref);})(pos0, result0);
                             }
                             if (result0 === null) {
                                 pos = pos0;

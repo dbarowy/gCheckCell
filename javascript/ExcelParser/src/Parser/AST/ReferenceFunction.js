@@ -2,7 +2,7 @@
  * This file contains the ReferenceFunction class.
  * This class is used to represent function calls in the formulas.
  */
-define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "Utilities/Function"], function (Reference, Function) {
+define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference"/*, "Utilities/Function"*/], function (Reference, Function) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -32,20 +32,6 @@ define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "Utilities/Funct
         for (i = 0, len = this.ArgumentList.length; i < len; i++) {
             this.ArgumentList[i].fixAssoc();
         }
-    };
-
-
-    ReferenceFunction.prototype._containsError = function (matrix) {
-        var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
-        var i, j;
-        for (i = 0; i < matrix.length; i++) {
-            for (j = 0; j < matrix[0].length; j++) {
-                if (err.test(matrix[i][j])) {
-                    return matrix[i][j];
-                }
-            }
-        }
-        return false;
     };
 
     /**

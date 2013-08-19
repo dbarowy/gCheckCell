@@ -45,7 +45,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                 }
             }
             res.sort();
-       //     console.log(res.toString());
+            //     console.log(res.toString());
         },
         _getFnName: function (expr) {
             if (expr instanceof AST.ReferenceRange || expr instanceof FSharp.None || expr instanceof AST.ReferenceNamed || expr instanceof AST.ReferenceAddress || expr instanceof AST.Address || expr instanceof AST.ConstantArray || expr instanceof AST.ConstantError || expr instanceof AST.ConstantLogical || expr instanceof AST.ConstantNumber || expr instanceof AST.ConstantString || expr instanceof AST.Range) {
@@ -100,16 +100,18 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
             }
         },
         recompute: function (/*Address*/source) {
-
             var val;
             try {
                 val = this.compute(source, false);
             } catch (err) {
-                //TODO a better idea when you have thought of this.
-                val = err.toString();
+                console.log(err);
+                val = "#UNKNOWN?"
             }
-            source.GetCOMObject(this).setValue(val);
-
+            if (val instanceof Array) {
+                source.GetCOMObject(this).setValue(val[0][0]);
+            }else{
+                source.GetCOMObject(this).setValue(val[0]);
+            }
         },
         /**
          * Initialize the XApplication data.
@@ -123,7 +125,6 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
             for (i = 0, len = data.external_books.length; i < len; i++) {
                 this._workbooks.push(new XWorkbook(data.external_books[i], this));
             }
-
             for (i = 0, len = this._workbooks.length; i < len; i++) {
                 this._extractFormulas(this._workbooks[i]);
             }
@@ -164,8 +165,27 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
             }
             //If we don't have the workbook, we have a big problem.
             throw new Error("Workbook with name " + name + " cannot be found");
+        },
+        getNamedRange: function (referenceNamed) {
+            //Might throw an error
+            var book = this.getWorkbookByName(referenceNamed.WorkbookName);
+            var rng, sh, rn;
+            if (book && (rng = book.NamedRanges[referenceNamed._varname])) {
+                if (sh = book.getWorksheetByName(rng.sheet_name)) {
+                    return Parser.getAddressReference(rng.range, book, sh);
+                }
+            }
+            throw new Error("Named range could not be found");
+        },
+        getExternalRange: function (bookId, range) {
+            var bk, rng;
+            if (bk = this._active.ExternalRanges[bookId]) {
+                if (rng = bk[range]) {
+                    return rng;
+                }
+            }
+            throw new Error("Range could not be imported.");
         }
-
     };
 
 

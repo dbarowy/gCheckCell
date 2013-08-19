@@ -3,7 +3,7 @@
  *
  */
 
-define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"], function (AST, FSharp, PEGParser) {
+define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", "XClasses/XLogger"], function (AST, FSharp, PEGParser, XLogger) {
     "use strict";
     var Parser = {};
     /**
@@ -45,6 +45,19 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
             return new FSharp.None();
         }
     };
+
+
+    Parser.getAddressReference = function (/*string*/str, /*XWorkbook*/wb, /*XWorksheet*/ws) {
+        var reference;
+        try {
+            reference = PEGParser.parse(this.no_ws(str), "ReferenceKinds");
+            reference.Resolve(wb, ws);
+            return reference
+        } catch (e) {
+            XLogger.log("getAddressReference\n"+e);
+            return new FSharp.None();
+        }
+    };
     /**
      * Parse the input string checking if it is a Reference
      * @param str String representing a Reference
@@ -81,13 +94,67 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser"],
             formula.fixAssoc();
             return formula;
         } catch (e) {
-            console.log("Parse formula error "+e);
+            XLogger.log("Parse formula error " + e);
             return new FSharp.None();
         }
     };
 
     Parser.isNumber = function (number) {
         return (!isNaN(parseFloat(number)) && isFinite(number));
+    };
+
+
+    Parser._extractNamedRanges = function (formula) {
+        var res = [], i;
+        if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceRange) {
+            return [];
+        } else if (formula instanceof AST.ReferenceNamed) {
+            return [formula];
+        } else if (formula instanceof AST.BinOpExpr) {
+            return this._extractNamedRanges(formula.Left).concat(this._extractNamedRanges(formula.Right));
+        } else if (formula instanceof AST.ParensExpr) {
+            return this._extractNamedRanges(formula.Expr);
+        } else if (formula instanceof AST.PostfixOpExpr) {
+            return this._extractNamedRanges(formula.Expr);
+        } else if (formula instanceof AST.ReferenceExpr) {
+            return this._extractNamedRanges(formula.Ref);
+        } else if (formula instanceof AST.ReferenceFunction) {
+            for (i = 0; i < formula.ArgumentList.length; i++) {
+                res = res.concat(this._extractNamedRanges(formula.ArgumentList[i]));
+            }
+            return res;
+        } else if (formula instanceof AST.UnaryOpExpr) {
+            return this._extractNamedRanges(formula.Expr);
+        } else {
+            throw Error("Unsupported type");
+        }
+    };
+    Parser._extractImportRange = function (formula) {
+        var res = [], i;
+        if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceNamed || formula instanceof AST.ReferenceRange) {
+            return [];
+        } else if (formula instanceof AST.BinOpExpr) {
+            return this._extractImportRange(formula.Left).concat(this._extractImportRange(formula.Right));
+        } else if (formula instanceof AST.ParensExpr) {
+            return this._extractImportRange(formula.Expr);
+        } else if (formula instanceof AST.PostfixOpExpr) {
+            return this._extractImportRange(formula.Expr);
+        } else if (formula instanceof AST.ReferenceExpr) {
+            return this._extractImportRange(formula.Ref);
+        } else if (formula instanceof AST.ReferenceFunction) {
+            if (formula.FunctionName == "ImportRange") {
+                return [formula];
+            } else {
+                for (i = 0; i < formula.ArgumentList.length; i++) {
+                    res = res.concat(this._extractImportRange(formula.ArgumentList[i]));
+                }
+            }
+            return res;
+        } else if (formula instanceof AST.UnaryOpExpr) {
+            return this._extractImportRange(formula.Expr);
+        } else {
+            throw Error("Unsupported type");
+        }
     };
 
     return Parser;

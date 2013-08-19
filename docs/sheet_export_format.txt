@@ -14,21 +14,15 @@ Sheet:{
 /* 
 Named Ranges are unique to the workbook. I think this is all the information we need to identify a named range.
 */
-Named_Range:{
-	- String name
-	- String sheet
-	- int startRow
-	- int startCol
-	- int endRow
-	- int endCol
-	- String[][] values
-	- String[][] formulas
-}
+
 
 Workbook:{
   	- String name
 	- Sheet[] sheets
-	- Named_Range[] named_ranges
+	- Object named_ranges // An object that has the names of the named ranges as keys and a AST.Range or AST.Address object as values 
+	- Object external_ranges // The keys of this object are the keys of the external workbooks, the values are object
+				// each second level object has the key the imported range string and as value the array of imported values
+				// In java, the object looks like this HashMap<String, HashMap<String,Double[][]>>
 }
 
 Data : {

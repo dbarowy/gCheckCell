@@ -28,13 +28,13 @@ The R1C1-style address parsing is incomplete.
 */
 AddrR = "R" r:Int32 { return r;};
 AddrC = "C" r:Int32 {return r;};
-AddrR1C1 = r:AddrR c:AddrC {return new AST.Address(r, c, null, null);};
+AddrR1C1 = r:AddrR c:AddrC {return new AST.Address(r, c, null, null); };
 AddrA = r: (letter + ) {return r.join("");};
 AddrAAbs = ("$" / "") r:AddrA {return r;};
 Addr1 = r:Int32 {return r;};
 Addr1Abs = ("$" / "") r:Addr1 {return r;};
 
-AddrA1 = l:AddrAAbs r:Addr1Abs {return new AST.Address(r, l, null, null);};
+AddrA1 = l:AddrAAbs r:Addr1Abs {return new AST.Address(r, l, null, null); };
 AnyAddr = AddrR1C1 / AddrA1;
 
 MoreAddrR1C1 = ":" r:AddrR1C1 { return r;};
@@ -74,6 +74,7 @@ AddressReferenceWorksheet = wsname:WorksheetName "!" addr:AnyAddr {return new AS
 AddressReferenceNoWorksheet = addr:AnyAddr {return new AST.ReferenceAddress(null, addr);};
 AddressReference = AddressReferenceWorksheet / AddressReferenceNoWorksheet;
 
+//Parsing named references for Excel is a bit more tricky. Excel allows names that have the same format as cell references
 NamedReference =wb:NamedReferenceBook? c:NamedReferenceFirstChar s:NamedReferenceLastChars {var ref = new AST.ReferenceNamed(null, c+s); if(wb!=="") ref.WorkbookName = wb; return ref;};
 NamedReferenceBook = wb:workbook_name "!" {return wb;};
 NamedReferenceFirstChar = letter / underscore / backslash;
@@ -119,7 +120,7 @@ There is a conflict between named references and AddressReferences.
 In Excel there is a runtime check to distinguish between the two
 */
 ReferenceKinds = RangeReference / AddressReference;
-Reference = (w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;}); /*/ NamedReference */
+Reference = (w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;}) / NamedReference;
 ParensExpr = "(" exp:Expression ")" {return new AST.ParensExpr(exp);};
 
 FunctionName = r:((letter / ".") +) {return r.join("");};
@@ -128,7 +129,7 @@ Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFu
 ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}
 
 Formula = "=" exp:Expression {return exp;};
-ExpressionAtom = fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);} / c:Constant {return new AST.ReferenceExpr(c);};
+ExpressionAtom =  c:Constant {return new AST.ReferenceExpr(c);} / fn:Function {return new AST.ReferenceExpr(fn);} / ref:Reference{return new AST.ReferenceExpr(ref);};
 PrefixExpression = op:prefix_operator exp:Expression { var fix_assoc = function(expr){ if(expr instanceof AST.BinOpExpr){ expr.Left=fix_assoc(expr.Left); return expr; }else{ return new AST.UnaryOpExpr(op,expr);}}; exp=fix_assoc(exp); return exp;}
 ExpressionSimple = PrefixExpression / ExpressionAtom / ParensExpr ;
 
