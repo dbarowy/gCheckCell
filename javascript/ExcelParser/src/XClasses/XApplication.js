@@ -5,9 +5,9 @@
  * @type {{_GDocs: boolean, getWorksheets: Function, getActiveWorkbook: Function}}
  */
 var counter = 0;
-define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp) {
+define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp) {
     "use strict";
-    return {
+    return  {
         //All the known workbooks
         _workbooks: [],
         //Active workbook
@@ -18,8 +18,13 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
         _computed: {},
         // Mapping between Addresses and the parsed formula contained in the cell.
         formulaMap: new HashMap(),
+        n_ranges: [],
+        e_ranges: [],
+        named_ranges: {},
+        external_ranges: {},
         /**
-         * Parse the formulas in the worbook add the pair Address->Formula to the formulaMap
+         * Parse the formulas in the workbook add the pair Address->Formula to the formulaMap
+         * This will help to determine if a cell has to be computed or the we have to retrieve the value
          * @param xBook
          * @private
          */
@@ -33,43 +38,22 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                             address = new AST.Address(i + 1, j + 1, xSheets[k].Name, xBook.Name);
                             formula = Parser.parseFormula(xSheets[k]._formulas[i][j], xBook, xSheets[k]);
                             //Get all the functions used in this document
-                            res = res.concat(this._getFnName(formula));
+                            res = res.concat(Parser.extractFunctionName(formula));
                             if (formula instanceof FSharp.None) {
-                                console.log("Something went wrong" + xSheets[k]._formulas[i][j]);
+                                XLogger.log("Something went wrong" + xSheets[k]._formulas[i][j]);
                             } else {
                                 this.formulaMap.put(address, formula);
                                 this._computed[address] = 0;
+                                this.n_ranges = this.n_ranges.concat(Parser.extractNamedRanges(formula));
+                                this.e_ranges = this.e_ranges.concat(Parser.extractImportRange(formula));
                             }
                         }
                     }
                 }
             }
-            res.sort();
+            //Too see what functions we need to implement
+            // res.sort();
             //     console.log(res.toString());
-        },
-        _getFnName: function (expr) {
-            if (expr instanceof AST.ReferenceRange || expr instanceof FSharp.None || expr instanceof AST.ReferenceNamed || expr instanceof AST.ReferenceAddress || expr instanceof AST.Address || expr instanceof AST.ConstantArray || expr instanceof AST.ConstantError || expr instanceof AST.ConstantLogical || expr instanceof AST.ConstantNumber || expr instanceof AST.ConstantString || expr instanceof AST.Range) {
-                return [];
-            } else if (expr instanceof AST.BinOpExpr) {
-                return this._getFnName(expr.Left).concat(this._getFnName(expr.Right));
-            } else if (expr instanceof AST.ParensExpr) {
-                return this._getFnName(expr.Expr);
-            } else if (expr instanceof AST.PostfixOpExpr) {
-                return this._getFnName(expr.Expr);
-            } else if (expr instanceof AST.ReferenceExpr) {
-                return this._getFnName(expr.Ref);
-            } else if (expr instanceof AST.ReferenceFunction) {
-                var res = [expr.FunctionName];
-                for (var i = 0; i < expr.ArgumentList.length; i++) {
-                    res = res.concat(this._getFnName(expr.ArgumentList[i]));
-                }
-                return res;
-            } else if (expr instanceof AST.UnaryOpExpr) {
-                return this._getFnName(expr.Expr);
-            } else {
-                console.log(expr.toString());
-                return [];
-            }
         },
 
         compute: function (/*Address*/source, /*Boolean*/array) {
@@ -109,7 +93,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
             }
             if (val instanceof Array) {
                 source.GetCOMObject(this).setValue(val[0][0]);
-            }else{
+            } else {
                 source.GetCOMObject(this).setValue(val[0]);
             }
         },
@@ -118,7 +102,7 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
          * XApplication is designed as a global entry point to the information of the sheet.
          * @param data
          */
-        init: function (/*Data*/ data) {
+        setBookData: function (/*Data*/ data) {
             var i, len;
             this._workbooks.push(new XWorkbook(data.active_book, this));
             this._active = this._workbooks[0];
@@ -129,6 +113,29 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
                 this._extractFormulas(this._workbooks[i]);
             }
 
+        },
+        setRangeData: function (named, external) {
+            var bk, res, rng, wb;
+            for (bk in named) {
+                wb = this.getWorkbookByName(bk);
+                if (!this.named_ranges[bk]) {
+                    this.named_ranges[bk] = {};
+                }
+                for (rng in named[bk]) {
+                    res = Parser.getAddressReference(named[bk][rng], wb, {});
+                    if (!(res instanceof FSharp.None)) {
+                        this.named_ranges[bk][rng] = res;
+                    }
+                }
+            }
+            for (bk in external) {
+                if (!this.external_ranges[bk]) {
+                    this.external_ranges[bk] = {};
+                }
+                for (rng in external[bk]) {
+                    this.external_ranges[bk][rng] = external[bk][rng];
+                }
+            }
         },
         exportData: function () {
             var ext = [], j;
@@ -167,27 +174,20 @@ define("XClasses/XApplication", ["XClasses/XWorkbook", "XClasses/XWorksheet", "U
             throw new Error("Workbook with name " + name + " cannot be found");
         },
         getNamedRange: function (referenceNamed) {
-            //Might throw an error
-            var book = this.getWorkbookByName(referenceNamed.WorkbookName);
-            var rng, sh, rn;
-            if (book && (rng = book.NamedRanges[referenceNamed._varname])) {
-                if (sh = book.getWorksheetByName(rng.sheet_name)) {
-                    return Parser.getAddressReference(rng.range, book, sh);
-                }
+            var res;
+            if (this.named_ranges[referenceNamed.WorkbookName] && (res = this.named_ranges[referenceNamed.WorkbookName][referenceNamed._varname])) {
+                return res;
             }
-            throw new Error("Named range could not be found");
+            throw new Error("Could not find the given range");
         },
         getExternalRange: function (bookId, range) {
-            var bk, rng;
-            if (bk = this._active.ExternalRanges[bookId]) {
-                if (rng = bk[range]) {
-                    return rng;
-                }
+            var res;
+            if(this.external_ranges[bookId] && (res=this.external_ranges[bookId][range])){
+                return res;
             }
-            throw new Error("Range could not be imported.");
+            throw new Error("Could not find the given range");
         }
     };
-
 
 })
 ;

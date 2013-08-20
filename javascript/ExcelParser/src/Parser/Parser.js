@@ -54,7 +54,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
             reference.Resolve(wb, ws);
             return reference
         } catch (e) {
-            XLogger.log("getAddressReference\n"+e);
+            XLogger.log("getAddressReference\n" + e);
             return new FSharp.None();
         }
     };
@@ -103,56 +103,89 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         return (!isNaN(parseFloat(number)) && isFinite(number));
     };
 
+    Parser.extractFunctionName = function (expr) {
+        if (expr instanceof AST.ReferenceRange || expr instanceof FSharp.None || expr instanceof AST.ReferenceNamed || expr instanceof AST.ReferenceAddress || expr instanceof AST.Address || expr instanceof AST.ConstantArray || expr instanceof AST.ConstantError || expr instanceof AST.ConstantLogical || expr instanceof AST.ConstantNumber || expr instanceof AST.ConstantString || expr instanceof AST.Range) {
+            return [];
+        } else if (expr instanceof AST.BinOpExpr) {
+            return this.extractFunctionName(expr.Left).concat(this.extractFunctionName(expr.Right));
+        } else if (expr instanceof AST.ParensExpr) {
+            return this.extractFunctionName(expr.Expr);
+        } else if (expr instanceof AST.PostfixOpExpr) {
+            return this.extractFunctionName(expr.Expr);
+        } else if (expr instanceof AST.ReferenceExpr) {
+            return this.extractFunctionName(expr.Ref);
+        } else if (expr instanceof AST.ReferenceFunction) {
+            var res = [expr.FunctionName];
+            for (var i = 0; i < expr.ArgumentList.length; i++) {
+                res = res.concat(this.extractFunctionName(expr.ArgumentList[i]));
+            }
+            return res;
+        } else if (expr instanceof AST.UnaryOpExpr) {
+            return this.extractFunctionName(expr.Expr);
+        } else {
+            XLogger.log(expr.toString());
+            return [];
+        }
+    };
 
-    Parser._extractNamedRanges = function (formula) {
+    Parser.extractNamedRanges = function (formula) {
         var res = [], i;
         if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceRange) {
             return [];
         } else if (formula instanceof AST.ReferenceNamed) {
-            return [formula];
+            return[
+                {book_name: formula.WorkbookName, range_name: formula._varname}
+            ];
         } else if (formula instanceof AST.BinOpExpr) {
-            return this._extractNamedRanges(formula.Left).concat(this._extractNamedRanges(formula.Right));
+            return this.extractNamedRanges(formula.Left).concat(this.extractNamedRanges(formula.Right));
         } else if (formula instanceof AST.ParensExpr) {
-            return this._extractNamedRanges(formula.Expr);
+            return this.extractNamedRanges(formula.Expr);
         } else if (formula instanceof AST.PostfixOpExpr) {
-            return this._extractNamedRanges(formula.Expr);
+            return this.extractNamedRanges(formula.Expr);
         } else if (formula instanceof AST.ReferenceExpr) {
-            return this._extractNamedRanges(formula.Ref);
+            return this.extractNamedRanges(formula.Ref);
         } else if (formula instanceof AST.ReferenceFunction) {
             for (i = 0; i < formula.ArgumentList.length; i++) {
-                res = res.concat(this._extractNamedRanges(formula.ArgumentList[i]));
+                res = res.concat(this.extractNamedRanges(formula.ArgumentList[i]));
             }
             return res;
         } else if (formula instanceof AST.UnaryOpExpr) {
-            return this._extractNamedRanges(formula.Expr);
+            return this.extractNamedRanges(formula.Expr);
         } else {
+            XLogger.log(formula.toString());
             throw Error("Unsupported type");
         }
     };
-    Parser._extractImportRange = function (formula) {
+
+    Parser.extractImportRange = function (formula) {
         var res = [], i;
         if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceNamed || formula instanceof AST.ReferenceRange) {
             return [];
         } else if (formula instanceof AST.BinOpExpr) {
-            return this._extractImportRange(formula.Left).concat(this._extractImportRange(formula.Right));
+            return this.extractImportRange(formula.Left).concat(this._extractImportRange(formula.Right));
         } else if (formula instanceof AST.ParensExpr) {
-            return this._extractImportRange(formula.Expr);
+            return this.extractImportRange(formula.Expr);
         } else if (formula instanceof AST.PostfixOpExpr) {
-            return this._extractImportRange(formula.Expr);
+            return this.extractImportRange(formula.Expr);
         } else if (formula instanceof AST.ReferenceExpr) {
-            return this._extractImportRange(formula.Ref);
+            return this.extractImportRange(formula.Ref);
         } else if (formula instanceof AST.ReferenceFunction) {
             if (formula.FunctionName == "ImportRange") {
-                return [formula];
+                if (formula.ArgumentList.length === 2 && formula.ArgumentList[0].Ref instanceof AST.ConstantString && formula.ArgumentList[1].Ref instanceof AST.ConstantString) {
+                    return [
+                        {book_name: formula.ArgumentList[0].Ref._value, range_address: formula.ArgumentList[1].Ref._value}
+                    ];
+                }
             } else {
                 for (i = 0; i < formula.ArgumentList.length; i++) {
-                    res = res.concat(this._extractImportRange(formula.ArgumentList[i]));
+                    res = res.concat(this.extractImportRange(formula.ArgumentList[i]));
                 }
             }
             return res;
         } else if (formula instanceof AST.UnaryOpExpr) {
-            return this._extractImportRange(formula.Expr);
+            return this.extractImportRange(formula.Expr);
         } else {
+            XLogger.log(formula.toString());
             throw Error("Unsupported type");
         }
     };

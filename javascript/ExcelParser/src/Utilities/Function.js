@@ -25,6 +25,14 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
         return res;
     };
 
+    func._returnError = function (error, array) {
+        if (array) {
+            return [error];
+        } else {
+            return error;
+        }
+    };
+
     /**
      * This will resize the given matrix to the specified number of rows and columns.
      * It follows the rules in the Ecma Office Open XML Part 1 - Fundamentals And Markup Language Reference.pdf 4th edition
@@ -199,29 +207,26 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                 for (i = 0; i < val.length; i++) {
                     for (j = 0; j < val[i].length; j++) {
                         if (err.test(val[i][j])) {
-                            if (array) {
-                                return [
-                                    [val[i][j]]
-                                ];
-                            } else {
-                                return val[i][j];
-                            }
+                            return func._returnError(val[i][j], array);
+
                         } else {
-                            sum += (isFinite(val[i][j])) ? parseFloat(+val[i][j]) : 0;
+                            if (isFinite(val[i][j])) {
+                                sum += (+val[i][j]);
+                            } else {
+                                return func._returnError("#VALUE!", array);
+                            }
                         }
                     }
                 }
             } else {
                 if (err.test(val)) {
-                    if (array) {
-                        return [
-                            [val]
-                        ];
-                    } else {
-                        return val;
-                    }
+                    return func._returnError(val, array);
                 } else {
-                    sum += (isFinite(val)) ? parseFloat(+val) : 0;
+                    if (isFinite(val)) {
+                        sum += (+val);
+                    } else {
+                        return func._returnError("#VALUE!", array);
+                    }
                 }
             }
         }
@@ -233,6 +238,37 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
             return sum;
         }
     };
+
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.SQRT = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
+        var k, val, sum = 0, i, j;
+        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+
+        if (args.length !== 1) {
+            return func._returnError("#N/A", array);
+        } else {
+            val = args[0].compute(app, source, array, false);
+            if (array) {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (!err.test(val[i][j])) {
+                            val[i][j] = (isFinite(val[i][j]) && (+val[i][j]) >= 0) ? Math.sqrt(+val[i][j]) : "#VALUE!";
+                        }
+                    }
+                }
+            } else {
+                if (!err.test(val)) {
+                    val = (isFinite(val) && (+val) >= 0) ? Math.sqrt(+val) : "#VALUE!";
+                }
+            }
+        }
+        return val;
+
+    };
+
 
     /**
      * @returns {*}
