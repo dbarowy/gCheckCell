@@ -27,7 +27,9 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
 
     func._returnError = function (error, array) {
         if (array) {
-            return [error];
+            return [
+                [error]
+            ];
         } else {
             return error;
         }
@@ -94,13 +96,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                 for (i = 0; i < val.length; i++) {
                     for (j = 0; j < val[i].length; j++) {
                         if (err.test(val[i][j])) {
-                            if (array) {
-                                return [
-                                    [val[i][j]]
-                                ];
-                            } else {
-                                return val[i][j];
-                            }
+                            return func._returnError(val[i][j], array);
                         } else {
                             if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string') && val[i][j] < min) {
                                 min = val[i][j];
@@ -110,13 +106,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                 }
             } else {
                 if (err.test(val)) {
-                    if (array) {
-                        return [
-                            [val]
-                        ];
-                    } else {
-                        return val;
-                    }
+                    func._returnError(val, array);
                 } else {
                     if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string') && val < min) {
                         min = val;
@@ -152,13 +142,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                 for (i = 0; i < val.length; i++) {
                     for (j = 0; j < val[i].length; j++) {
                         if (err.test(val[i][j])) {
-                            if (array) {
-                                return [
-                                    [val[i][j]]
-                                ];
-                            } else {
-                                return val[i][j];
-                            }
+                            return func._returnError(val[i][j], array);
                         } else {
                             if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string') && val[i][j] > max) {
                                 max = val[i][j];
@@ -168,13 +152,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                 }
             } else {
                 if (err.test(val)) {
-                    if (array) {
-                        return [
-                            [val]
-                        ];
-                    } else {
-                        return val;
-                    }
+                    return func._returnError(val, array);
                 } else {
                     if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string') && val > max) {
                         max = val;
@@ -330,19 +308,16 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
     func.AVERAGE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, args) {
         var k, val, sum = 0, i, j, count = 0;
         var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        if (args.length == 0) {
+            return func._returnError("#N/A", array);
+        }
         for (k = 0; k < args.length; k++) {
             val = args[k].compute(app, source, array, true);
             if (val instanceof Array) {
                 for (i = 0; i < val.length; i++) {
                     for (j = 0; j < val[i].length; j++) {
                         if (err.test(val[i][j])) {
-                            if (array) {
-                                return [
-                                    [val[i][j]]
-                                ];
-                            } else {
-                                return val[i][j];
-                            }
+                            return func._returnError(val[i][j], array);
                         } else {
                             if (isFinite(val[i][j]) && val[i][j] !== true && val[i][j] !== false && (typeof val[i][j] !== 'string')) {
                                 sum += val[i][j];
@@ -353,13 +328,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                 }
             } else {
                 if (err.test(val)) {
-                    if (array) {
-                        return [
-                            [val]
-                        ];
-                    } else {
-                        return val;
-                    }
+                    return func._returnError(val, array);
                 } else {
                     if (isFinite(val) && val !== true && val !== false && (typeof val !== 'string')) {
                         sum += val;
@@ -369,7 +338,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
             }
         }
         if (count === 0) {
-            sum = "#DIV/0";
+            sum = "#DIV/0!";
         } else {
             sum = sum / count;
         }
