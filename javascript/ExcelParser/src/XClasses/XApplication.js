@@ -7,7 +7,7 @@
 var counter = 0;
 define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp) {
     "use strict";
-    return  {
+    var XApplication = {
         //All the known workbooks
         _workbooks: [],
         //Active workbook
@@ -52,18 +52,32 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 }
             }
             //Too see what functions we need to implement
-            // res.sort();
-            //     console.log(res.toString());
+            var funcs = [];
+            res.sort();
+            if (res.length) {
+                var aux = res[0];
+
+                for (i = 1; i < res.length; i++) {
+                    if (res[i] !== aux) {
+                        funcs.push(aux);
+                        aux = res[i];
+                    }
+                }
+                funcs.push(aux);
+            }
+
+            console.log(res.toString());
+
         },
 
-        compute: function (/*Address*/source, /*Boolean*/array) {
+        compute: function (/*Address*/source, /*Boolean*/array, /*Boolean*/full_range) {
             var formula = this.formulaMap.get(source);
             if (formula) {
                 if (this._computed[source]) {
                     return source.GetCOMObject(this).getValue();
                 } else {
                     this._computed[source] = 1;
-                    return formula.compute(this, source, array, false);
+                    return formula.compute(this, source, array, false, full_range);
                 }
             }
             else {
@@ -86,7 +100,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         recompute: function (/*Address*/source) {
             var val;
             try {
-                val = this.compute(source, false);
+                val = this.compute(source, false, true);
             } catch (err) {
                 console.log(err);
                 val = "#UNKNOWN?"
@@ -94,7 +108,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             if (val instanceof Array) {
                 source.GetCOMObject(this).setValue(val[0][0]);
             } else {
-                source.GetCOMObject(this).setValue(val[0]);
+                source.GetCOMObject(this).setValue(val);
             }
         },
         /**
@@ -182,12 +196,15 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         },
         getExternalRange: function (bookId, range) {
             var res;
-            if(this.external_ranges[bookId] && (res=this.external_ranges[bookId][range])){
+            if (this.external_ranges[bookId] && (res = this.external_ranges[bookId][range])) {
                 return res;
             }
             throw new Error("Could not find the given range");
         }
     };
+
+    return XApplication;
+
 
 })
 ;

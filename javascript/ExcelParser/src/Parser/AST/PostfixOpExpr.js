@@ -26,10 +26,12 @@ define("Parser/AST/PostfixOpExpr", function () {
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
      * @param range True if this is a range parameter to a function.
+     * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
+     * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
-        var val = this.Expr.compute(app, source, array, false), i, j;
+    PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range,/*Boolean*/full_range) {
+        var val = this.Expr.compute(app, source, array, false,false), i, j;
         var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
         if (array) {
             for (i = 0; i < val.length; i++) {

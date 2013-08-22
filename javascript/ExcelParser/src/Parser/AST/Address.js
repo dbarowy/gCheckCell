@@ -193,16 +193,18 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
      * @param range True if this is a range parameter to a function.
+     * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
+     * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+    Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array,  /*Boolean*/range,/*Boolean*/full_range) {
         if (this._com === null) {
             this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
         }
 
         //If the cell contains a formula, we have to compute the result before returning it
         if (this._com.hasFormula()) {
-            return app.compute(this, array);
+            return app.compute(this, array, false);
             //otherwise, return the value
         } else {
             //If this is an array formula, return a 1x1 matrix

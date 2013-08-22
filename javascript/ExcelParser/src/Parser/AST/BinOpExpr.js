@@ -111,13 +111,15 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
          * @param source The cell for which we are computing the formula
          * @param array True if we are computing an array formula, false otherwise
          * @param range True if this is a range parameter to a function.
+         * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
+         * This parameters tells the function if we want the complete range of just the first element
          * @returns {*}
          */
-        BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+        BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range,/*Boolean*/full_range) {
             var l, r, isnan, maxRows, maxCols, i, j;
             var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
-            l = this.Left.compute(app, source, array, false);
-            r = this.Right.compute(app, source, array, false);
+            l = this.Left.compute(app, source, array, false, false);
+            r = this.Right.compute(app, source, array, false, false);
             if (array) {
                 maxRows = l.length > r.length ? l.length : r.length;
                 maxCols = l[0].length > r[0].length ? l[0].length : r[0].length;

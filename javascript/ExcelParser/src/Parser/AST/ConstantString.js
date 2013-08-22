@@ -20,15 +20,18 @@ define("Parser/AST/ConstantString", ["Parser/AST/Reference"], function (Referenc
     ConstantString.prototype.toString = function () {
         return "String(" + this._value + ")";
     };
+
     /**
      * Compute the value of this expression.
      * @param app Entry point to the application data
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
      * @param range True if this is a range parameter to a function.
+     * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
+     * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+    ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range,/*Boolean*/full_range) {
         if (array) {
             return [
                 [this._value]

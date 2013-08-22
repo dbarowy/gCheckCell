@@ -33,11 +33,13 @@ define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
      * @param range True if this is a range parameter to a function.
+     * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
+     * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    ConstantArray.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+    ConstantArray.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         var i, j, len, len2, res = [], row;
-        if (array || range) {
+        if (array || range || full_range) {
             for (i = 0, len = this._values.length; i < len; i++) {
                 row = [];
                 for (j = 0, len2 = this._values[i].length; j < len2; j++) {

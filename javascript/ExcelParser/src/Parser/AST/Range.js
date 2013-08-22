@@ -2,7 +2,7 @@
  * This file contains the Range class which is used to represent ranges in the sheet.
  * Example: A2:A3
  */
-define("Parser/AST/Range",["Parser/AST/Address"], function (Address) {
+define("Parser/AST/Range", ["Parser/AST/Address"], function (Address) {
     "use strict";
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
         this._tl = topleft;
@@ -70,9 +70,11 @@ define("Parser/AST/Range",["Parser/AST/Address"], function (Address) {
      * @param source The cell for which we are computing the formula
      * @param array True if we are computing an array formula, false otherwise
      * @param range True if this is a range parameter to a function.
+     * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
+     * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    Range.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range) {
+    Range.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         var i, j, sheetName, wbName;
         var res = [], row;
         if (this._com === null) {
@@ -86,7 +88,7 @@ define("Parser/AST/Range",["Parser/AST/Address"], function (Address) {
             for (i = this._com.startRow; i <= this._com.endRow; i++) {
                 row = [];
                 for (j = this._com.startCol; j <= this._com.endCol; j++) {
-                    row.push(app.compute(new Address(i, j, sheetName, wbName), array));
+                    row.push(app.compute(new Address(i, j, sheetName, wbName), array, false));
                 }
                 res.push(row);
             }
@@ -95,12 +97,12 @@ define("Parser/AST/Range",["Parser/AST/Address"], function (Address) {
             //N*1 range
             if (this._com.getColumnCount() === 1) {
                 if (this._com.startRow <= source.Y && source.Y <= this._com.endRow) {
-                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array);
+                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false);
                 }
                 //1*N range
             } else if (this._com.getRowCount() === 1) {
                 if (this._com.startCol <= source.X && source.X <= this._com.endCol) {
-                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array);
+                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false);
                 }
             }
             return "#VALUE!";

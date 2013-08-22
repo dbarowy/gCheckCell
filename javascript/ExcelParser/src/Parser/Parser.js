@@ -162,7 +162,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceNamed || formula instanceof AST.ReferenceRange) {
             return [];
         } else if (formula instanceof AST.BinOpExpr) {
-            return this.extractImportRange(formula.Left).concat(this._extractImportRange(formula.Right));
+            return this.extractImportRange(formula.Left).concat(this.extractImportRange(formula.Right));
         } else if (formula instanceof AST.ParensExpr) {
             return this.extractImportRange(formula.Expr);
         } else if (formula instanceof AST.PostfixOpExpr) {

@@ -47,7 +47,9 @@
 <?!= include('InputSample'); ?>
 <?!= include('NodeTypes'); ?>
 <?!= include('TreeNode'); ?>
+<?!= include('JQueryCSS); ?>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 <script>
     function failedInit(error) {
         console.log("err" + error);
@@ -56,48 +58,75 @@
     function startInit(books) {
         console.log("success");
         require(["XClasses/XApplication", "Utilities/Profiler"], function (XApplication, Profiler) {
+            //console.log(books);
+            Profiler.start("startInit");
             XApplication.setBookData(JSON.parse(books));
+            Profiler.end("startInit");
             google.script.run.withSuccessHandler(finishInit).withFailureHandler(failedInit).getENRanges(XApplication.n_ranges, XApplication.e_ranges);
         });
     }
 
     function finishInit(data) {
-        require(["XClasses/XApplication", "Utilities/Profiler", "DataDebugMethods/AnalysisData", "DataDebugMethods/ConstructTree", "DataDebugMethods/Analysis"], function (XApplication, Profiler, AnalysisData, ConstructTree, Analysis) {
+
+        require(["XClasses/XApplication", "Utilities/Profiler", "DataDebugMethods/AnalysisData", "DataDebugMethods/ConstructTree", "DataDebugMethods/Analysis", "Parser/AST/AST"], function (XApplication, Profiler, AnalysisData, ConstructTree, Analysis, AST) {
+
+            Profiler.start("setRangeData");
             XApplication.setRangeData(data.named, data.external);
-//            var dat, NBOOTS, scores;
-//            dat = new AnalysisData();
-//            NBOOTS = Math.ceil(1000 * Math.exp(1.0));
-//            ConstructTree.constructTree(dat, XApplication);
-//            scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
-//            google.script.run.colorCells(Analysis.ColorOutliers(scores));
+            Profiler.end("setRangeData");
+            //onsole.log(XApplication.compute(new AST.Address(13,2,"Pre-Teen (10-12)","tIDPDVTGEFYrRcu2Knp4H5w")));
+
+            var dat, NBOOTS, scores;
+            dat = new AnalysisData();
+            NBOOTS = Math.ceil(1000 * Math.exp(1.0));
+            Profiler.start("constructTree");
+            ConstructTree.constructTree(dat, XApplication);
+            Profiler.end("constructTree");
+            Profiler.start("Bootstrap");
+            scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
+            Profiler.end("Bootstrap");
+            Profiler.report();
+            console.log("Number of recomputes " + counter);
+            google.script.run.colorCells(Analysis.ColorOutliers(scores));
+            //  google.script.run.compare(JSON.stringify(XApplication.exportData()));
         });
     }
 
-
-    google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
-            .getData();
-    // require(["XClasses/XApplication", "Parser/AST/AST",, "DataDebugMethods/ConstructTree", "DataDebugMethods/AnalysisData", "DataDebugMethods/Analysis", "DataDebugMethods/InputSample", "DataDebugMethods/FunctionOutput"], function (XApplication, AST, Profiler, ConstructTree, AnalysisData, Analysis, InputSample, FunctionOutput) {
-    //  console.log(data);
-    //    var dat = new AnalysisData();
-    //    var NBOOTS = Math.ceil(1000 * Math.exp(1.0));
-    //    var scores;
-    // console.log(data);
-    //console.log("here");
-    //  Profiler.start("init");
-    //  XApplication.init(JSON.parse(data));
-    //  Profiler.end("init");
-    // console.log(XApplication.compute(new AST.Address(6,4,"Sheet1","tIDPDVTGEFYrRcu2Knp4H5w")));
-    //
-    //    Profiler.start("constructTree");
-    //    ConstructTree.constructTree(dat, XApplication);
-    //    Profiler.end("constructTree");
-    //
-    //    Profiler.start("bootstrap");
-    //    scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
-    //    Profiler.end("bootstrap");
-    //    google.script.run.colorCells(Analysis.ColorOutliers(scores));
-    //    Profiler.report();
-    // });
+    function runCheckCell() {
+        var progressbar = $("#progressbar");
+        progressbar.show();
+        progressbar.progressbar("value", 0);
+        google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
+                .getData();
+    }
 
 
 </script>
+<script>
+    $(function () {
+        var progressbar = $("#progressbar"),
+                progressLabel = $(".progress-label");
+
+        progressbar.progressbar({
+            value: false,
+            change: function () {
+                console.log("changed" + progressbar.progressbar("value"));
+                progressLabel.text(progressbar.progressbar("value") + "%");
+            },
+            complete: function () {
+                progressLabel.text("Complete!");
+            }
+        });
+        progressbar.hide();
+    });
+
+    function progressBar(value) {
+        var progressbar = $("#progressbar");
+        progressbar.progressbar("value", value);
+    }
+</script>
+<h1> First Google CheckCell Demo </h1>
+
+<div id="progressbar">
+    <div class="progress-label"></div>
+</div>
+<button onclick="runCheckCell()">Run CheckCell</button>
