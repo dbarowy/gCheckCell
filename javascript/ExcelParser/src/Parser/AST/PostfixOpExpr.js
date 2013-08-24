@@ -2,7 +2,7 @@
  * This file contains the class PostfixOpExpr used to represent expressions that involve a postfix operator
  * Example: A3%
  */
-define("Parser/AST/PostfixOpExpr", function () {
+define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], function (XTypedValue, XTypes) {
     "use strict";
     function PostfixOpExpr(/*string*/op, /*Expression*/expr) {
         this.Operator = op;
@@ -30,23 +30,42 @@ define("Parser/AST/PostfixOpExpr", function () {
      * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range,/*Boolean*/full_range) {
-        var val = this.Expr.compute(app, source, array, false,false), i, j;
-        var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+    PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
+        var val = this.Expr.compute(app, source, array, false, false), i, j;
         if (array) {
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
-                    if (isFinite(val[i][j])) {
-                        val[i][j] = (+val[i][j]) / 100;
-                    } else if (err.test(val[i][j])) {
-                        break;
-                    } else {
-                        val[i][j] = "#VALUE!";
+                    switch (val[i][j].type) {
+                        case XTypes.Number:
+                        {
+                            val[i][j].value = val[i][j].value / 100;
+                        }
+                            break;
+                        case XTypes.Date:
+                        {
+                            val[i][j].value = Parser.getNumberFromDate(val[i][j].value) / 100;
+                            val[i][j].type = XTypes.Number;
+                        }
+                            break;
+                        //For the rest of the types we don't do anything
                     }
                 }
             }
         } else {
-            return val / 100;
+            switch (val.type) {
+                case XTypes.Number:
+                {
+                    val.value = val.value / 100;
+                }
+                    break;
+                case XTypes.Date:
+                {
+                    val.value = Parser.getNumberFromDate(val.value) / 100;
+                    val.type = XTypes.Number;
+                }
+                    break;
+                //For the rest of the types we don't do anything
+            }
         }
     };
 

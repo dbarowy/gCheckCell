@@ -1,5 +1,5 @@
 //TODO Circular dependency
-define("Parser/AST/ReferenceAddress",["FSharp/FSharp", "Parser/AST/Reference", "Parser/AST/ReferenceRange"], function (FSharp, Reference, ReferenceRange) {
+define("Parser/AST/ReferenceAddress", ["FSharp/FSharp", "Parser/AST/Reference", "Parser/AST/ReferenceRange"], function (FSharp, Reference, ReferenceRange) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -63,8 +63,10 @@ define("Parser/AST/ReferenceAddress",["FSharp/FSharp", "Parser/AST/Reference", "
      * This parameters tells the function if we want the complete range of just the first element
      * @returns {*}
      */
-    ReferenceAddress.prototype.compute = function(/*XApplication*/app, /*Address*/source,/*Boolean*/array, /*Boolean*/range,/*Boolean*/full_range){
-      return this.Address.compute(app, source, array, false,false);
+    ReferenceAddress.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
+        //There is no point to pass around the original values of range and full_range
+        //as those are irrelevant for the result of an Address
+        return this.Address.compute(app, source, array, false, false);
     };
 
     return ReferenceAddress;

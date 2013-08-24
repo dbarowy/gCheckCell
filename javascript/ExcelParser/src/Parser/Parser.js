@@ -3,7 +3,7 @@
  *
  */
 
-define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", "XClasses/XLogger"], function (AST, FSharp, PEGParser, XLogger) {
+define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", "XClasses/XLogger", "XClasses/XTypes", "XClasses/XTypedValue"], function (AST, FSharp, PEGParser, XLogger, XTypes, XTypedValue) {
     "use strict";
     var Parser = {};
     /**
@@ -188,6 +188,46 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
             XLogger.log(formula.toString());
             throw Error("Unsupported type");
         }
+    };
+
+    Parser.parseDate = function (/*string*/value, /*locale*/locale) {
+        if (locale == "en_US") {
+
+        }
+        return false;
+
+    };
+
+    Parser.parseValue = function (/*any*/value, /*string*/locale) {
+        var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        var ret;
+        if (typeof value == "number") {
+            ret = new XTypedValue(value, XTypes.Number);
+        } else if (err.test(value)) {
+            ret = new XTypedValue(value, XTypes.Error);
+        } else if (value === "FALSE") {
+            ret = new XTypedValue(false, XTypes.Boolean);
+        } else if (value === "TRUE") {
+            ret = new XTypedValue(true, XTypes.Boolean);
+        } else if (ret == Parser.parseDate(value, locale)) {
+            ret = new XTypedValue(ret, XTypes.Date);
+        } else {
+            //Just a string
+            ret = new XTypedValue(value, XTypes.String);
+        }
+        return ret;
+    };
+    Parser.getNumberFromDate = function (/*Date*/date) {
+        if (date instanceof Date) {
+            return 0;
+        } else {
+            throw new Error("This is not a date" + date);
+        }
+
+    };
+
+    Parser.getDateFromNumber = function (/*Number*/nr) {
+        return new Date();
     };
 
     return Parser;

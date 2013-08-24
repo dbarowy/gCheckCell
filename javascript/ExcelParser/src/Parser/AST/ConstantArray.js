@@ -43,13 +43,15 @@ define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference
             for (i = 0, len = this._values.length; i < len; i++) {
                 row = [];
                 for (j = 0, len2 = this._values[i].length; j < len2; j++) {
-                    row.push(this._values[i][j].compute(app, source, false, false));
+                    //The array holds only constant values
+                    row.push(this._values[i][j].compute(app, source, false, false, false));
                 }
                 res.push(row);
             }
             return res;
         } else {
-            return this._values[0][0].compute(app, source, array, false);
+            //The array holds only constant values, we don't care about array results so we set the array parameter to false
+            return this._values[0][0].compute(app, source, false, false, false);
         }
     };
     return ConstantArray;

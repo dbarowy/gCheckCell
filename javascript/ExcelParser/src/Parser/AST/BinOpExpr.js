@@ -2,7 +2,7 @@
  * This file contains the BinOpExpr class.
  * This class is used to represent expressions that involve an infix operator.
  */
-define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/ReferenceRange"], function (ReferenceAddress, ReferenceRange) {
+define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes", "XClasses/XTypedValue", "Parser/Parser"], function (Util, XTypes, XTypedValue, Parser) {
         "use strict";
         function BinOpExpr(/*string*/op, /*Expression*/left, /*Expression*/right) {
             this.Operator = op;
@@ -44,7 +44,6 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
          * so this method will solve it at runtime.
          */
         BinOpExpr.prototype.fixAssoc = function () {
-
             this.Left.fixAssoc();
             this.Right.fixAssoc();
             if (this.Right instanceof BinOpExpr) {
@@ -58,52 +57,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
             this.Left.fixAssoc();
             this.Right.fixAssoc();
         };
-        /**
-         * This will resize the given matrix to the specified number of rows and columns.
-         * It follows the rules in the Ecma Office Open XML Part 1 - Fundamentals And Markup Language Reference.pdf 4th edition
-         * @param matr The matrix to resize
-         * @param maxRows
-         * @param maxCols
-         * @returns {*}
-         * @private
-         */
-        BinOpExpr.prototype._adjustMatrix = function (matr, maxRows, maxCols) {
-            var row = [], i, j;
-            for (i = 0; i < matr[0].length; i++) {
-                row.push("#N/A");
-            }
-            if (matr.length === 1 && matr[0].length == 1) {
-                for (j = 0; j < maxCols - 1; j++) {
-                    matr[0].push(matr[0][0]);
-                }
-            }
-            if (matr.length < maxRows) {
-                if (matr.length === 1) {
-                    for (i = 1; i < maxRows; i++) {
-                        matr.push(matr[0]);
-                    }
-                } else {
-                    for (i = matr.length; i < maxRows; i++) {
-                        matr.push(row);
-                    }
-                }
-            }
-            if (matr[0].length < maxCols) {
-                if (matr[0].length === 1) {
-                    for (i = 0; i < matr.length; i++) {
-                        for (j = 1; j < maxCols; j++) {
-                            matr[i].push(matr[i][0]);
-                        }
-                    }
-                } else {
-                    for (i = 0; i < matr.length; i++) {
-                        for (j = 1; j < maxCols - matr[0].length + 1; j++) {
-                            matr[i].push("#N/A")
-                        }
-                    }
-                }
-            }
-        };
+
 
         /**
          * Compute the value of this expression.
@@ -115,7 +69,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
          * This parameters tells the function if we want the complete range of just the first element
          * @returns {*}
          */
-        BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range,/*Boolean*/full_range) {
+        BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
             var l, r, isnan, maxRows, maxCols, i, j;
             var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
             l = this.Left.compute(app, source, array, false, false);
@@ -130,17 +84,176 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    //converts "" to 0
-                                    l[i][j] = (+l[i][j])+ (+r[i][j]);
-                                } else {
-                                    if (err.test(l[i][j])) {
-                                        break;
-                                    } else if (err.test(r[i][j])) {
-                                        l[i][j] = r[i][j];
-                                    } else {
-                                        l[i][j] = "#VALUE!";
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value += r[i][j].value;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j].value += (+r[i][j].value);
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) + l[i][j]);
+                                                l[i][j].type = XTypes.Date;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value += r[i][j].value;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
                                     }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(l[i][j].value) + r[i][j].value);
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = Parser.getDateFromNumber(Parser.getNumberFromDate(l[i][j].value) + (+r[i][j].value));
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) + Parser.getNumberFromDate(l[i][j].value));
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(l[i][j].value) + r[i][j].value);
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = l[i][j].value + r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = l[i][j].value + (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) + l[i][j].value);
+                                                l[i][j].type = XTypes.Date;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = l[i][j].value + r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) + r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
+                                                    l[i][j] = (+l[i][j].value) + (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) + (+l[i][j].value));
+                                                    l[i][j].type = XTypes.Date;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) + r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
                                 }
                             }
                         }
@@ -150,9 +263,807 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value -= r[i][j].value;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j].value -= (+r[i][j].value);
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) - l[i][j]);
+                                                l[i][j].type = XTypes.Date;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value -= r[i][j].value;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(l[i][j].value) - r[i][j].value);
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = Parser.getDateFromNumber(Parser.getNumberFromDate(l[i][j].value) - (+r[i][j].value));
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(r[i][j].value) - Parser.getNumberFromDate(l[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(l[i][j].value) - r[i][j].value);
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = l[i][j].value - r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = l[i][j].value - (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) - l[i][j].value);
+                                                l[i][j].type = XTypes.Date;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = l[i][j].value - r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) - r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
+                                                    l[i][j] = (+l[i][j].value) - (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = Parser.getDateFromNumber(Parser.getNumberFromDate(r[i][j].value) - (+l[i][j].value));
+                                                    l[i][j].type = XTypes.Date;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) - r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
+                                }
+                            }
+                        }
+                    }
+                        break;
+                    case "*":
+                    {
+                        for (i = 0; i < maxRows; i++) {
+                            for (j = 0; j < maxCols; j++) {
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value *= r[i][j].value;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j].value *= (+r[i][j].value);
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(r[i][j].value) * l[i][j];
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value *= r[i][j].value;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) * r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = Parser.getNumberFromDate(l[i][j].value) * (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(r[i][j].value) * Parser.getNumberFromDate(l[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) * r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = l[i][j].value * r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = l[i][j].value * (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(r[i][j].value) * l[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = l[i][j].value * r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) * r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
+                                                    l[i][j] = (+l[i][j].value) * (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = Parser.getNumberFromDate(r[i][j].value) * (+l[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) * r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
+                                }
+                            }
+                        }
+                    }
+                        break;
+                    case "/":
+                    {
+                        for (i = 0; i < maxRows; i++) {
+                            for (j = 0; j < maxCols; j++) {
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value /= r[i][j].value;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j].value /= (+r[i][j].value);
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = l[i][j] / Parser.getNumberFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value /= r[i][j].value;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) / r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = Parser.getNumberFromDate(l[i][j].value) / (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) / Parser.getNumberFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) / r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = l[i][j].value / r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = l[i][j].value / (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = l[i][j].value / Parser.getNumberFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = l[i][j].value / r[i][j].value;
+                                                l[i][j].type = XTypes.Number;
+                                                if (!isFinite(l[i][j].value)) {
+                                                    l[i][j].value = "#DIV/0!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) / r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
+                                                    l[i][j] = (+l[i][j].value) / (+r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) / Parser.getNumberFromDate(r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = (+l[i][j].value) / r[i][j].value;
+                                                    l[i][j].type = XTypes.Number;
+                                                    if (!isFinite(l[i][j].value)) {
+                                                        l[i][j].value = "#DIV/0!";
+                                                        l[i][j].type = XTypes.Error;
+                                                    }
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
+                                }
+                            }
+                        }
+                    }
+                        break;
+                    case "^":
+                    {
+                        for (i = 0; i < maxRows; i++) {
+                            for (j = 0; j < maxCols; j++) {
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Math.pow(l[i][j].value, r[i][j].value);
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j].value = Math.pow(l[i][j], +r[i][j].value);
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Math.pow(l[i][j], Parser.getNumberFromDate(r[i][j].value));
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Math.pow(l[i][j].value, r[i][j].value);
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Math.pow(Parser.getNumberFromDate(l[i][j].value), r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = Math.pow(Parser.getNumberFromDate(l[i][j].value), (+r[i][j].value));
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Math.pow(Parser.getNumberFromDate(l[i][j].value), Parser.getNumberFromDate(r[i][j].value));
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Math.pow(Parser.getNumberFromDate(l[i][j].value), r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Math.pow(l[i][j].value, r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value)) {
+                                                    l[i][j] = Math.pow(l[i][j].value, (+r[i][j].value));
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Math.pow(l[i][j].value, Parser.getNumberFromDate(r[i][j].value));
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Math.pow(l[i][j].value, r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = Math.pow((+l[i][j].value), r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
+                                                    l[i][j] = Math.pow((+l[i][j].value), (+r[i][j].value));
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = Math.pow((+l[i][j].value), Parser.getNumberFromDate(r[i][j].value));
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                if (isFinite(l[i][j].value)) {
+                                                    l[i][j].value = Math.pow((+l[i][j].value), r[i][j].value);
+                                                    l[i][j].type = XTypes.Number;
+                                                } else {
+                                                    l[i][j].value = "#VALUE!";
+                                                    l[i][j].type = XTypes.Error;
+                                                }
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
+                                }
+                            }
+                        }
+                    }
+                        break;
+
+
+                        break;
+                    case "-":
+                    {
+                        for (i = 0; i < maxRows; i++) {
+                            for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
                                     //converts "" to 0
-                                    l[i][j] = (+l[i][j])- (+r[i][j]);
+                                    l[i][j] = (+l[i][j]) - (+r[i][j]);
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;
@@ -172,7 +1083,7 @@ define("Parser/AST/BinOpExpr", ["Parser/AST/ReferenceAddress", "Parser/AST/Refer
                             for (j = 0; j < maxCols; j++) {
                                 if (isFinite(l[i][j]) && isFinite(r[i][j])) {
                                     //converts "" to 0
-                                    l[i][j] = (+l[i][j])* (+r[i][j]);
+                                    l[i][j] = (+l[i][j]) * (+r[i][j]);
                                 } else {
                                     if (err.test(l[i][j])) {
                                         break;

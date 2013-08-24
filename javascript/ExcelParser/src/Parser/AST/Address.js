@@ -195,7 +195,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @param range True if this is a range parameter to a function.
      * @param full_range Some functions return an array of values even when they are not in an ARRAYFORMULA.
      * This parameters tells the function if we want the complete range of just the first element
-     * @returns {*}
+     * @returns An array with a single typed value or a typed value
      */
     Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array,  /*Boolean*/range,/*Boolean*/full_range) {
         if (this._com === null) {
@@ -210,11 +210,11 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
             //If this is an array formula, return a 1x1 matrix
             if (array) {
                 return [
-                    [this._com.getValue()]
+                    [this._com.getTypedValue()]
                 ];
                 //otherwise just return the value
             } else {
-                return this._com.getValue();
+                return this._com.getTypedValue();
             }
 
         }

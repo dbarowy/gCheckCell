@@ -3,7 +3,7 @@
  * This is used to represents error values in the formulas.
  * For the full list of possible errors, check the Excel documentation
  */
-define("Parser/AST/ConstantError", ["Parser/AST/Reference"], function (Reference) {
+define("Parser/AST/ConstantError", ["Parser/AST/Reference", "XClasses/XTypedValue", "XClasses/XTypes"], function (Reference, XTypedValue, XTypes) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -33,12 +33,13 @@ define("Parser/AST/ConstantError", ["Parser/AST/Reference"], function (Reference
      * @returns {*}
      */
     ConstantError.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
+        var val = new XTypedValue(this._value, XTypes.Error);
         if (array) {
             return [
-                [this._value]
+                [val]
             ];
         } else {
-            return this._value;
+            return val;
         }
     };
 

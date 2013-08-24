@@ -12,6 +12,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         _workbooks: [],
         //Active workbook
         _active: null,
+        locale:null,//TODO
         // Keep a simple mapping between addresses and a binary value that determines
         // whether the formula has already been computed for the respective cell.
         // It must be reset after each recompute call.

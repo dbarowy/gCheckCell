@@ -2,7 +2,7 @@
  * This file contains the Range class which is used to represent ranges in the sheet.
  * Example: A2:A3
  */
-define("Parser/AST/Range", ["Parser/AST/Address"], function (Address) {
+define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClasses/XTypes"], function (Address, XTypedValue, XTypes) {
     "use strict";
     function Range(/*Address*/ topleft, /*Address*/bottomright) {
         this._tl = topleft;
@@ -105,7 +105,7 @@ define("Parser/AST/Range", ["Parser/AST/Address"], function (Address) {
                     return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false);
                 }
             }
-            return "#VALUE!";
+            return new XTypedValue("#VALUE!", XTypes.Error);
         }
     };
 

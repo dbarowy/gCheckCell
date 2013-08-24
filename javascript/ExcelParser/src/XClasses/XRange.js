@@ -1,4 +1,4 @@
-define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
+define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Parser) {
     "use strict";
 
     /***
@@ -26,6 +26,30 @@ define("XClasses/XRange", ["Parser/AST/AST"], function (AST) {
      */
     XRange.prototype.getValue = function () {
         return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
+    };
+
+    XRange.prototype.getTypedValue = function () {
+        return Parser.parseValue(this.Worksheet._values[this.startRow - 1][this.startCol - 1], this.Workbook.Application.locale);
+    };
+
+    XRange.prototype.getTypedValues = function () {
+        var i, j, row, res = [];
+        var locale = this.Workbook.Application.locale;
+        for (i = this.startRow - 1; i <= this.endRow - 1; i++) {
+            row = [];
+            for (j = this.startCol - 1; j <= this.endCol - 1; j++) {
+                row.push(Parser.parseValue(this.Worksheet._values[i][j]), locale);
+            }
+            res.push(row);
+        }
+        return res;
+    };
+
+    XRange.prototype.setTypedValue = function () {
+
+    };
+    XRange.prototype.setTypedValues = function () {
+
     };
     /**
      * Return the values in this range as a matrix
