@@ -887,7 +887,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes", "XClasses/X
                                             case XTypes.String:
                                             {
                                                 if (isFinite(r[i][j].value)) {
-                                                    l[i][j].value = Math.pow(l[i][j], +r[i][j].value);
+                                                    l[i][j].value = Math.pow(l[i][j].value, +r[i][j].value);
                                                 } else {
                                                     l[i][j].value = "#VALUE!";
                                                     l[i][j].type = XTypes.Error;
@@ -896,7 +896,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes", "XClasses/X
                                                 break;
                                             case XTypes.Date:
                                             {
-                                                l[i][j].value = Math.pow(l[i][j], Parser.getNumberFromDate(r[i][j].value));
+                                                l[i][j].value = Math.pow(l[i][j].value, Parser.getNumberFromDate(r[i][j].value));
                                                 l[i][j].type = XTypes.Number;
                                             }
                                                 break;
@@ -1054,495 +1054,317 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes", "XClasses/X
                         }
                     }
                         break;
-
-
-                        break;
-                    case "-":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    //converts "" to 0
-                                    l[i][j] = (+l[i][j]) - (+r[i][j]);
-                                } else {
-                                    if (err.test(l[i][j])) {
-                                        break;
-                                    } else if (err.test(r[i][j])) {
-                                        l[i][j] = r[i][j];
-                                    } else {
-                                        l[i][j] = "#VALUE!";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                        break;
-                    case "*":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    //converts "" to 0
-                                    l[i][j] = (+l[i][j]) * (+r[i][j]);
-                                } else {
-                                    if (err.test(l[i][j])) {
-                                        break;
-                                    } else if (err.test(r[i][j])) {
-                                        l[i][j] = r[i][j];
-                                    } else {
-                                        l[i][j] = "#VALUE!";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                        break;
-                    case "/":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] = +l[i][j];
-                                    r[i][j] = +r[i][j];
-                                    if (r[i][j] === 0) {
-                                        l[i][j] = "#DIV/0";
-                                    } else {
-                                        l[i][j] /= r[i][j];
-                                    }
-                                } else {
-                                    if (err.test(l[i][j])) {
-                                        break;
-                                    } else if (err.test(r[i][j])) {
-                                        l[i][j] = r[i][j];
-                                    } else {
-                                        l[i][j] = "#VALUE!";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                        break;
-                    case "^":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (isFinite(l[i][j]) && isFinite(r[i][j])) {
-                                    l[i][j] = Math.pow(+l[i][j], +r[i][j]);
-                                } else {
-                                    if (err.test(l[i][j])) {
-                                        break;
-                                    } else if (err.test(r[i][j])) {
-                                        l[i][j] = r[i][j];
-                                    } else {
-                                        l[i][j] = "#VALUE!";
-                                    }
-                                }
-                            }
-                        }
-                    }
-                        break;
                     case "&":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                    break;
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    l[i][j] = "" + l[i][j] + r[i][j];
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = "" + l[i][j].value + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = "" + l[i][j].value + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = "" + l[i][j].value + Parser.getStringFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = "" + l[i][j].value + Util.boolToString(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Parser.getStringFromDate(l[i][j].value) + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = Parser.getStringFromDate(l[i][j].value) + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getStringFromDate(l[i][j].value) + Parser.getStringFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Parser.getStringFromDate(l[i][j].value) + Util.boolToString(r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Util.boolToString(l[i][j].value) + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = Util.boolToString(l[i][j].value) + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Util.boolToString(l[i][j].value) + Parser.getStringFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = Util.boolToString(l[i][j].value) + Util.boolToString(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = l[i][j].value + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = l[i][j].value + r[i][j].value;
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = l[i][j].value + Parser.getStringFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = l[i][j].value + Util.boolToString(r[i][j].value);
+                                                l[i][j].type = XTypes.String;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
                                 }
                             }
                         }
-
                     }
                         break;
                     case "=":
                     {
                         for (i = 0; i < maxRows; i++) {
                             for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
-                                        l[i][j] = (l[i][j] == r[i][j]);
-                                    } else {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) === 0);
+                                switch (l[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+
+                                                l[i][j].value = l[i][j].value === r[i][j].value;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = l[i][j].value === Parser.getNumberFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.String;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
                                     }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) === r[i][j].value;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                //TODO Not really sure of this
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = Parser.getNumberFromDate(l[i][j].value) === Parser.getNumberFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = l[i][j].value === r[i][j].value;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        switch (r[i][j].type) {
+                                            case XTypes.Number:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.String:
+                                            {
+                                                l[i][j].value = l[i][j].value == r[i][j].value;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Date:
+                                            {
+                                                //TODO
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+                                            }
+                                                break;
+                                            case XTypes.Boolean:
+                                            {
+                                                l[i][j].value = false;
+                                                l[i][j].type = XTypes.Boolean;
+
+                                            }
+                                                break;
+                                            case XTypes.Error:
+                                            {
+                                                l[i][j].value = r[i][j].value;
+                                                l[i][j].type = XTypes.Error;
+                                            }
+                                        }
+                                    }
+                                    //For the error, do not modify anything
                                 }
                             }
                         }
-
                     }
                         break;
-                    case "<>":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
-                                        l[i][j] = (l[i][j] != r[i][j]);
-                                    } else {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) !== 0);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                        break;
-                    case "<=":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
-                                        l[i][j] = (l[i][j] <= r[i][j]);
-                                    } else {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) <= 0);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                        break;
-                    case ">=":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
-                                        l[i][j] = (l[i][j] >= r[i][j]);
-                                    } else {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) >= 0);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                        break;
-                    case "<":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
-                                        l[i][j] = (l[i][j] < r[i][j]);
-                                    } else {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) < 0);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                        break;
-                    case ">":
-                    {
-                        for (i = 0; i < maxRows; i++) {
-                            for (j = 0; j < maxCols; j++) {
-                                if (err.test(l[i][j])) {
-                                } else if (err.test(r[i][j])) {
-                                    l[i][j] = r[i][j];
-                                } else {
-                                    if (isFinite(l[i][j] && isFinite(r[i][j]))) {
-                                        l[i][j] = (l[i][j] > r[i][j]);
-                                    } else {
-                                        l[i][j] = ((l[i][j].toLocaleUpperCase()).localeCompare(r[i][j].toLocaleUpperCase()) > 0);
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                        break;
-                    default:
-                    {
-                        throw new Error("Unsupported binary operation." + this.toString());
-                    }
-
-                }
-                return l;
-            } else {
-                isnan = !(isFinite(l) && isFinite(r));
-                if (isnan) {
-                    l = ("" + l).toLocaleUpperCase();
-                    r = ("" + r).toLocaleUpperCase();
-
-                }
-                switch (this.Operator) {
-                    case "+":
-                    {
-                        if (isnan) {
-                            if (err.test(l)) {
-                                return l;
-                            }
-                            else if (err.test(r)) {
-                                return r;
-                            } else {
-                                return "#VALUE!";
-                            }
-                        }
-                        else {
-                            return (+l) + (+r);
-                        }
-                    }
-                        break;
-                    case "-":
-                    {
-                        if (isnan) {
-                            if (err.test(l)) {
-                                return l;
-                            }
-                            else if (err.test(r)) {
-                                return r;
-                            } else {
-                                return "#VALUE!";
-                            }
-                        }
-                        else {
-                            return (+l) - (+r);
-                        }
-                    }
-                        break;
-                    case "*" :
-                    {
-                        if (isnan) {
-                            if (err.test(l)) {
-                                return l;
-                            }
-                            else if (err.test(r)) {
-                                return r;
-                            } else {
-                                return "#VALUE!";
-                            }
-                        }
-                        else {
-                            return (+l) * (+r);
-                        }
-                    }
-                        break;
-                    case "/" :
-                    {
-                        if (isnan) {
-                            if (err.test(l)) {
-                                return l;
-                            }
-                            else if (err.test(r)) {
-                                return r;
-                            } else {
-                                return "#VALUE!";
-                            }
-                        }
-                        else {
-                            l = +l;
-                            r = +r;
-                            if (r === 0) {
-                                return "#DIV/0";
-                            } else {
-                                return l / r;
-                            }
-                        }
-                    }
-                        break;
-                    case "^" :
-                    {
-                        if (isnan) {
-                            if (err.test(l)) {
-                                return l;
-                            }
-                            else if (err.test(r)) {
-                                return r;
-                            } else {
-                                return "#VALUE!";
-                            }
-                        }
-                        else {
-                            l = l === "" ? 0 : l;
-                            r = r === "" ? 0 : r;
-                            return Math.pow(+l, +r);
-                        }
-                    }
-                        break;
-                    case "&":
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            return "" + l + r;
-                        }
-                    }
-
-                    case "=" :
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            if (isnan) {
-                                return l.localeCompare(r) == 0;
-                            } else {
-                                return l == r;
-                            }
-                        }
-
-                    }
-                        break;
-                    case
-                    "<>"
-                    :
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            if (isnan) {
-                                return l.localeCompare(r) != 0;
-                            } else {
-                                return l != r;
-                            }
-                        }
-
-                    }
-                        break;
-                    case "<=" :
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            if (isnan) {
-                                return l.localeCompare(r) <= 0;
-                            } else {
-                                return l <= r;
-                            }
-                        }
-                    }
-                        break;
-                    case ">=" :
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            if (isnan) {
-                                return l.localeCompare(r) >= 0;
-                            } else {
-                                return l >= r;
-                            }
-                        }
-                    }
-                        break;
-                    case
-                    "<"
-                    :
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            if (isnan) {
-                                return l.localeCompare(r) < 0;
-                            } else {
-                                return l < r;
-                            }
-                        }
-                    }
-                        break;
-                    case ">" :
-                    {
-                        if (err.test(l)) {
-                            return l;
-                        }
-                        else if (err.test(r)) {
-                            return r;
-                        } else {
-                            if (isnan) {
-                                return l.localeCompare(r) > 0;
-                            } else {
-                                return l > r;
-                            }
-                        }
-                    }
-                        break;
-                    /* case ":":{
-                     //TODO Should I consider addresses on different sheets?
-                     if(this.Left instanceof ReferenceAddress && this.Right instanceof ReferenceAddress){
-                     if(this.Left.Address.X <= this.Right.Address.X){
-                     leftX=this.Left.Address.X;
-                     rightX=this.Right.Address.X;
-                     }else{
-                     leftX = this.Right.Address.X;
-                     rightX = this.Left.Address.X;
-                     }
-                     if(this.Left.Address.Y <= this.Right.Address.Y){
-                     topY=this.Left.Address.Y;
-                     bottomY=this.Right.Address.Y;
-                     }else{
-                     bottomY=this.Left.Address.Y;
-                     topY=this.Right.Address.Y;
-                     }
-                     }else if(this.Left instanceof ReferenceAddress && this.Right instanceof ReferenceRange){
-                     */
-                    /*  if(this.Left.Address.X <= this.Right.Range.getXLeft()){
-                     leftX = this.Left.Address.X;
-                     rightX = this.Right.Range.getXRight();
-                     }else{
-                     leftX = this.Right.Range.getXLeft();
-                     if(this.Left.Address.X >= this.Right.Range.getXRight()){
-                     rightX = this.Left.Address.X;
-                     }else{
-                     rightX = this.Right.Range.getXRight();
-                     }
-                     }*/
-                    /*
-                     }else if(this.Left instanceof ReferenceRange && this.Right instanceof ReferenceRange){
-                     leftX = (this.Left.Range.getXLeft() <= this.Right.Range.getXLeft())?this.Left.Range.getXLeft():this.Right.Range.getXLeft();
-                     rightX = (this.Left.Range.getXRight() >= this.Right.Range.getXRight())? this.Left.Range.getXRight(): this.Right.Range.getXRight();
-                     topY = (this.Left.Range.getYTop() <= this.Right.Range.getYTop())? this.Left.Range.getYTop():this.Right.Range.getYTop();
-                     bottomY = (this.Left.Range.getYBottom() >= this.Right.Range.getYBottom())? this.Left.Range.getYBottom(): this.Right.Range.getYBottom();
-                     }
-
-
-
-                     else{
-                     throw new Error("Illegal operator \":\"");
-                     }
-                     }
-                     break;*/
-                    default:
-                        throw new Error("Unknown operator" + this.toString());
                 }
             }
-
         }
         ;
         return BinOpExpr;
