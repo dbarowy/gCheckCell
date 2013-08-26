@@ -33,6 +33,7 @@ define("Parser/AST/ConstantString", ["Parser/AST/Reference", "XClasses/XTypedVal
      */
     ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         var val = new XTypedValue(this._value, XTypes.String);
+        //TODO Constant strings are sometimes converted to the dates they represent or numbers
         if (array) {
             return [
                 [val]

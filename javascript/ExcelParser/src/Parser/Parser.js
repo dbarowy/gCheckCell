@@ -226,7 +226,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
 
     };
 
-    Parser.getStringFromDate=function(/*Date*/date){
+    Parser.getStringFromDate = function (/*Date*/date) {
 
     };
 

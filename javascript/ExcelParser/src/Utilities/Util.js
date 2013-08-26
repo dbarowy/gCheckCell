@@ -6,8 +6,8 @@ define("Utilities/Util", function () {
      * @param maxRows
      * @param maxCols
      * @returns {*}
-     * @private
      */
+        //TODO
     adjustMatrix: function (matr, maxRows, maxCols) {
 
         var row = [], i, j;

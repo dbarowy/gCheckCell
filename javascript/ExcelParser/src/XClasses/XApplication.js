@@ -71,7 +71,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
 
         },
 
-        compute: function (/*Address*/source, /*Boolean*/array, /*Boolean*/full_range) {
+        compute: function (/*Address*/source:Address, /*Boolean*/array:Boolean, /*Boolean*/full_range:Boolean, b, b2) {
             var formula = this.formulaMap.get(source);
             if (formula) {
                 if (this._computed[source]) {
@@ -101,7 +101,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         recompute: function (/*Address*/source) {
             var val;
             try {
-                val = this.compute(source, false, true);
+                val = this.compute(source, false, true, false, false);
             } catch (err) {
                 console.log(err);
                 val = "#UNKNOWN?"

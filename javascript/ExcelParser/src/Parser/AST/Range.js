@@ -88,7 +88,7 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
             for (i = this._com.startRow; i <= this._com.endRow; i++) {
                 row = [];
                 for (j = this._com.startCol; j <= this._com.endCol; j++) {
-                    row.push(app.compute(new Address(i, j, sheetName, wbName), array, false));
+                    row.push(app.compute(new Address(i, j, sheetName, wbName), array, false, false, false));
                 }
                 res.push(row);
             }
@@ -97,12 +97,12 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
             //N*1 range
             if (this._com.getColumnCount() === 1) {
                 if (this._com.startRow <= source.Y && source.Y <= this._com.endRow) {
-                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false);
+                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false, false, false);
                 }
                 //1*N range
             } else if (this._com.getRowCount() === 1) {
                 if (this._com.startCol <= source.X && source.X <= this._com.endCol) {
-                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false);
+                    return app.compute(new Address(this._com.startRow, source.X, this._com.Worksheet.Name, this._com.Workbook.Name), array, false, false, false);
                 }
             }
             return new XTypedValue("#VALUE!", XTypes.Error);
