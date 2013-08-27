@@ -476,8 +476,6 @@ define(["Parser/PEGParser", "Parser/AST/AST", "FSharp/FSharp"], function (PEGPar
 
     describe("ExpressionAtom", function () {
         it("ExpressionAtom", function () {
-
-            console.log(PEGParser.parse("=\"Foaie1!A1:A2\"", "Formula").toString());
             var ref = new AST.ReferenceAddress("Worksheet", new AST.Address(2, 1, null, null));
             ref.WorkbookName = new FSharp.None();
             expect(PEGParser.parse("'Worksheet'!$A$2", "ExpressionAtom")).toEqual(new AST.ReferenceExpr(ref));

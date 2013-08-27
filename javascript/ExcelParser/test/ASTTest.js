@@ -1,4 +1,5 @@
-define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
+define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, FSharp, XTypes) {
+
     describe('Address test', function () {
         var address;
         beforeEach(function () {
@@ -122,7 +123,7 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
             var a = new AST.ConstantArray("sheet", [
                 [new AST.ConstantNumber("sheet", 123)]
             ]);
-            console.log(a.toString());
+
         });
     });
     describe("ConstantError", function () {
@@ -144,8 +145,8 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
         });
         it("compute", function () {
             var alog = new AST.ConstantLogical("sheet", "FALSE");
-            expect(log.compute({}, {})).toEqual(true);
-            expect(alog.compute({}, {})).toEqual(false);
+            expect(log.compute({}, {})).toEqual({value: true, type: XTypes.Boolean});
+            expect(alog.compute({}, {})).toEqual({value: false, type: XTypes.Boolean});
 
         });
     });
@@ -159,7 +160,7 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
             expect(number.toString()).toEqual("Constant(233)");
         });
         it("compute", function () {
-            expect(number.compute({}, {})).toEqual(233);
+            expect(number.compute({}, {})).toEqual({value: 233, type: XTypes.Number});
         })
 
     });
@@ -173,7 +174,7 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
             expect(str.toString()).toEqual("String(dsa)");
         });
         it("compute", function () {
-            expect(str.compute({}, {})).toEqual("dsa");
+            expect(str.compute({}, {})).toEqual({value: "dsa", type: XTypes.String});
         })
     });
     describe("ParensExpr", function () {
@@ -221,7 +222,7 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
             expect(postfix2.Expr.fixAssoc).toHaveBeenCalled();
         });
         it("compute", function () {
-            expect(postfix.compute({}, {})).toEqual(1.23);
+            expect(postfix.compute({}, {}, false, false, false)).toEqual({value: 1.23, type: XTypes.Number});
         });
     });
 
@@ -271,13 +272,13 @@ define(["Parser/AST/AST", "FSharp/FSharp" ], function (AST, FSharp) {
         });
         it("compute", function () {
             var b = new AST.UnaryOpExpr("-", new AST.ConstantNumber(null, 2));
-            expect(expr.compute({}, {})).toEqual(2);
-            expect(b.compute({}, {})).toEqual(-2);
+            expect(expr.compute({}, {})).toEqual({value: 2, type: XTypes.Number});
+            expect(b.compute({}, {})).toEqual({value: -2, type: XTypes.Number});
         });
     });
 
     //TODO
-    describe("BinOpExpr", function(){
+    xdescribe("BinOpExpr", function () {
 
     });
 

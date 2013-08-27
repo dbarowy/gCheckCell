@@ -1,5 +1,6 @@
 define("Utilities/Util", function () {
-    return {/**
+    var Util = {};
+    /**
      * This will resize the given matrix to the specified number of rows and columns.
      * It follows the rules in the Ecma Office Open XML Part 1 - Fundamentals And Markup Language Reference.pdf 4th edition
      * @param matr The matrix to resize
@@ -7,12 +8,11 @@ define("Utilities/Util", function () {
      * @param maxCols
      * @returns {*}
      */
-        //TODO
-    adjustMatrix: function (matr, maxRows, maxCols) {
-
+        //TODO replace the hardcoded error object with XTypes and XTypedValue
+    Util.adjustMatrix = function (matr, maxRows, maxCols) {
         var row = [], i, j;
         for (i = 0; i < matr[0].length; i++) {
-            row.push("#N/A");
+            row.push({value: "#N/A", type: 3});
         }
         if (matr.length === 1 && matr[0].length == 1) {
             for (j = 0; j < maxCols - 1; j++) {
@@ -41,15 +41,36 @@ define("Utilities/Util", function () {
                 for (i = 0; i < matr.length; i++) {
                     var pushes = maxCols - matr[i].length + 1;
                     for (j = 1; j < pushes; j++) {
-                        matr[i].push("#N/A");
+                        matr[i].push({value: "#N/A", type: 3});
                     }
                 }
             }
         }
-    } ,boolToString:function(){
+    };
 
-    }
+    Util.boolToString = function (val) {
+        if (val) {
+            return "TRUE";
+        } else {
+            return "FALSE";
+        }
+    };
+    Util.getNumberFromDate = function (/*Date*/date) {
+        if (date instanceof Date) {
+            return 0;
+        } else {
+            throw new Error("This is not a date" + date);
+        }
 
     };
+    Util.getStringFromDate = function (/*Date*/date) {
+
+
+    };
+
+    Util.getDateFromNumber = function (/*Number*/nr) {
+        return new Date();
+    };
+    return Util;
 })
 ;

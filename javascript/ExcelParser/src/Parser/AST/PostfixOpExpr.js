@@ -32,6 +32,7 @@ define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], 
      */
     PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         var val = this.Expr.compute(app, source, array, false, false), i, j;
+
         if (array) {
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
@@ -67,6 +68,7 @@ define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], 
                 //For the rest of the types we don't do anything
             }
         }
+        return val;
     };
 
     return PostfixOpExpr;

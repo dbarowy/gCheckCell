@@ -41,7 +41,7 @@ define(["Parser/Parser", "FSharp/FSharp", "Parser/AST/AST"], function (Parser, F
         expect(Parser.parseFormula("=D6 - D15", wb, ws)).not.toEqual(new FSharp.None());
 
 
-  /*      var start = new Date();
+      var start = new Date();
         for (var i = 0; i < 40; i++) {
             Parser.parseFormula("=+AF3+AG3 ", wb, ws);
             Parser.parseFormula("=(AD3+AE3+AH3-MIN(AD3,AE3,AH3))/2", wb, ws);
@@ -54,7 +54,8 @@ define(["Parser/Parser", "FSharp/FSharp", "Parser/AST/AST"], function (Parser, F
             Parser.parseFormula("=+(6*AI4+1.5*(AL4+AN4))/9+AP4", wb, ws);
             Parser.parseFormula("=+A4%%%", wb, ws);
         }
-        console.log((new Date() - start) / 1000);*/
+        console.log((new Date() - start) / 1000);
+
 
     });
 });

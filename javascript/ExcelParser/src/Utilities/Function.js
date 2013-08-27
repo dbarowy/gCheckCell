@@ -1,4 +1,4 @@
-define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", "XClasses/XLogger", "XClasses/XTypes", "XClasses/XTypedValue", "Parser/Parser", "Utilities/Util"], function (Formula, ConstantString, XLogger, XTypes, XTypedValue, Parser, Util) {
+define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", "XClasses/XLogger", "XClasses/XTypes", "XClasses/XTypedValue", "Utilities/Util"], function (Formula, ConstantString, XLogger, XTypes, XTypedValue, Util) {
     "use strict";
     var func = {};
     func._isError = function (value) {
@@ -39,7 +39,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
     func.INT = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var val, i, j;
         if (args.length !== 1) {
-            return func._returnError("#N/A", array);
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         } else {
             val = args[0].compute(app, source, array, false, false);
             if (!array) {
@@ -57,7 +57,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.String:
                         {
-                            if (isFinite(val[i][j])) {
+                            if (isFinite(val[i][j].value)) {
                                 val[i][j].value = Math.floor(+val[i][j].value);
                                 val[i][j].type = XTypes.Number;
                             } else {
@@ -68,14 +68,14 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            val[i][j].value = Math.floor(Parser.getNumberFromDate(val[i][j].value));
+                            val[i][j].value = Math.floor(Util.getNumberFromDate(val[i][j].value));
                             val[i][j].type = XTypes.Date;
                         }
                             break;
                         case XTypes.Boolean:
                         {
                             val[i][j].value = "#VALUE!";
-                            val[i][j].value = XTypes.error;
+                            val[i][j].type = XTypes.Error;
                         }
                         //If we have an error, let it be
 
@@ -99,6 +99,9 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
      */
     func.MIN = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var k, val, min = +Infinity, i, j;
+        if (args.length === 0) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        }
         for (k = 0; k < args.length; k++) {
             val = args[k].compute(app, source, array, true, true);
             if (!(val instanceof Array)) {
@@ -119,7 +122,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            var temp = Parser.getNumberFromDate(val[i][j].value);
+                            var temp = Util.getNumberFromDate(val[i][j].value);
                             if (temp < min) {
                                 min = temp;
                             }
@@ -157,6 +160,9 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
      */
     func.MAX = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var k, val, max = -Infinity, i, j;
+        if (args.length === 0) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        }
         for (k = 0; k < args.length; k++) {
             val = args[k].compute(app, source, array, true, true);
             if (!(val instanceof Array)) {
@@ -176,7 +182,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            var temp = Parser.getNumberFromDate(val[i][j].value);
+                            var temp = Util.getNumberFromDate(val[i][j].value);
                             if (temp > max) {
                                 max = temp;
                             }
@@ -212,7 +218,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
     func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var k, val, sum = 0, final_type = XTypes.Number, i, j;
         if (args.length === 0) {
-            return func._returnError("#N/A", array);
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         }
         for (k = 0; k < args.length; k++) {
             val = args[k].compute(app, source, array, true, true);
@@ -237,7 +243,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            sum += Parser.getNumberFromDate(val[i][j].value);
+                            sum += Util.getNumberFromDate(val[i][j].value);
                             final_type = XTypes.Date;
                         }
                             break;
@@ -277,7 +283,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
     func.SQRT = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var val, i, j;
         if (args.length !== 1) {
-            return func._returnError("#N/A", array);
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         } else {
             val = args[0].compute(app, source, array, false, false);
             if (!array) {
@@ -300,7 +306,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            var temp = Parser.getNumberFromDate(val[i][j].value);
+                            var temp = Util.getNumberFromDate(val[i][j].value);
                             if (temp >= 0) {
                                 val[i][j].value = Math.sqrt(temp);
                                 val[i][j].type = XTypes.Number;
@@ -367,7 +373,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            product *= Parser.getNumberFromDate(val[i][j].value);
+                            product *= Util.getNumberFromDate(val[i][j].value);
                             ok = 1;
                         }
                             break;
@@ -483,7 +489,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                                 break;
                             case XTypes.Date:
                             {
-                                med.push(Parser.getNumberFromDate(val[i][j].value));
+                                med.push(Util.getNumberFromDate(val[i][j].value));
                             }
                                 break;
                             case XTypes.Error:
@@ -536,7 +542,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                                 break;
                             case XTypes.Date:
                             {
-                                sum += Parser.getNumberFromDate(val[i][j].value);
+                                sum += Util.getNumberFromDate(val[i][j].value);
                                 count++;
                             }
                                 break;
@@ -591,7 +597,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            val[i][j].value = Math.abs(Parser.getNumberFromDate(val[i][j].value));
+                            val[i][j].value = Math.abs(Util.getNumberFromDate(val[i][j].value));
                             val[i][j].type = XTypes.Number;
                         }
                             break;
@@ -654,7 +660,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            aux = Parser.getNumberFromDate(val[i][j].value);
+                            aux = Util.getNumberFromDate(val[i][j].value);
                             if (aux < -1 || aux > 1) {
                                 val[i][j].value = "#NUM!";
                                 val[i][j].type = XTypes.Error;
@@ -730,7 +736,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            aux = Parser.getNumberFromDate(val[i][j].value);
+                            aux = Util.getNumberFromDate(val[i][j].value);
                             if (aux < 1) {
                                 val[i][j].value = "#NUM!";
                                 val[i][j].type = XTypes.Error;
@@ -808,7 +814,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            aux = Parser.getNumberFromDate(val[i][j].value);
+                            aux = Util.getNumberFromDate(val[i][j].value);
                             if (aux < -1 || aux > 1) {
                                 val[i][j].value = "#NUM!";
                                 val[i][j].type = XTypes.Error;
@@ -879,7 +885,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            aux = Parser.getNumberFromDate(val[i][j].value);
+                            aux = Util.getNumberFromDate(val[i][j].value);
                             val[i][j].value = Math.log(aux + Math.sqrt(aux * aux + 1));
                             val[i][j].type = XTypes.Number;
 
@@ -937,7 +943,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            val[i][j].value = Math.atan(Parser.getNumberFromDate(val[i][j].value));
+                            val[i][j].value = Math.atan(Util.getNumberFromDate(val[i][j].value));
                             val[i][j].type = XTypes.Number;
 
                         }
@@ -1007,7 +1013,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                                     break;
                                 case XTypes.Date:
                                 {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Parser.getNumberFromDate(r[i][j].value));
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
 
                                 }
                                     break;
@@ -1041,27 +1047,27 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             switch (r[i][j].type) {
                                 case XTypes.Number:
                                 {
-                                    l[i][j].value = Formula.ATAN2(Parser.getNumberFromDate(l[i][j].value), r[i][j].value);
+                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), r[i][j].value);
                                     l[i][j].type = XTypes.Number;
                                 }
                                     break;
                                 case XTypes.Date:
                                 {
-                                    l[i][j].value = Formula.ATAN2(Parser.getNumberFromDate(l[i][j].value), Parser.getNumberFromDate(r[i][j].value));
+                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), Util.getNumberFromDate(r[i][j].value));
                                     l[i][j].type = XTypes.Number;
 
                                 }
                                     break;
                                 case XTypes.Boolean:
                                 {
-                                    l[i][j].value = Formula.ATAN2(Parser.getNumberFromDate(l[i][j].value), r[i][j].value);
+                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), r[i][j].value);
                                     l[i][j].type = XTypes.Number;
                                 }
                                     break;
                                 case XTypes.String:
                                 {
                                     if (isFinite(r[i][j].value)) {
-                                        l[i][j].value = Formula.ATAN2(Parser.getNumberFromDate(l[i][j].value), +r[i][j].value);
+                                        l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), +r[i][j].value);
                                         l[i][j].type = XTypes.Number;
                                     } else {
                                         l[i][j].value = "#VALUE!";
@@ -1090,7 +1096,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                                     break;
                                 case XTypes.Date:
                                 {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Parser.getNumberFromDate(r[i][j].value));
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
                                     l[i][j].type = XTypes.Number;
 
                                 }
@@ -1135,7 +1141,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                                         break;
                                     case XTypes.Date:
                                     {
-                                        l[i][j].value = Formula.ATAN2(l[i][j].value, Parser.getNumberFromDate(r[i][j].value));
+                                        l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
                                         l[i][j].type = XTypes.Number;
 
                                     }
@@ -1214,7 +1220,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Date:
                         {
-                            aux = Parser.getNumberFromDate(val[i][j].value);
+                            aux = Util.getNumberFromDate(val[i][j].value);
                             if (aux < -1 || aux > 1) {
                                 val[i][j].value = "#NUM!";
                                 val[i][j].type = XTypes.Error;
@@ -1308,7 +1314,6 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
         }
     };
 
-    //TODO You are here
     /**
      * @returns {*}
      * @constructor
@@ -1324,7 +1329,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                     switch (product[i][j].type) {
                         case XTypes.Date:
                         {
-                            product[i][j].value = Parser.getNumberFromDate(product[i][j].value);
+                            product[i][j].value = Util.getNumberFromDate(product[i][j].value);
                             product[i][j].type = XTypes.Number;
                         }
                             break;
@@ -1364,7 +1369,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                                             break;
                                         case XTypes.Date:
                                         {
-                                            product[i][j].value *= Parser.getNumberFromDate(val[i][j].value);
+                                            product[i][j].value *= Util.getNumberFromDate(val[i][j].value);
                                         }
                                             break;
                                         case XTypes.Boolean:
@@ -1426,17 +1431,42 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
     /**
      * @returns {*}
      * @constructor
-     * TODO
+     */
+    func.ImportRange = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        "use strict";
+        var val;
+        if (args.length !== 2) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else if (args[0].Ref instanceof ConstantString && args[1].Ref instanceof ConstantString) {
+            try {
+                val = app.getExternalRange(args[0].Ref._value, args[1].Ref._value);
+                if (array || range || full_range) {
+                    return val;
+                } else {
+                    return val[0][0];
+                }
+            } catch (e) {
+                XLogger.log("ImportRange error " + e);
+                return func._returnError(new XTypedValue("#REF!", XTypes.Error), array);
+            }
+        } else {
+            return func._returnError(new XTypedValue("#REF!", XTypes.Error), array);
+        }
+    };
+
+
+    /**
+     * @returns {*}
+     * @constructor
      */
     func.RANK = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var value, data, type, arr = [], i, j, maxRows, maxCols, rangeArgument;
-        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+        var value, data, type, arr = [], i, j, maxRows, maxCols, detected_error = null;
         if (args.length < 2 || args.length > 3) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         } else {
             if (args.length === 2) {
                 type = [
-                    [0]
+                    [new XTypedValue(0, XTypes.Number)]
                 ];
             } else {
                 type = args[2].compute(app, source, array, false, full_range);
@@ -1446,7 +1476,6 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                     [type]
                 ];
             }
-            console.log(full_range);
 
             value = args[0].compute(app, source, array, true, full_range);
             data = args[1].compute(app, source, array, true, full_range);
@@ -1462,51 +1491,169 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
             }
             for (i = 0; i < data.length; i++) {
                 for (j = 0; j < data[i].length; j++) {
-                    if (typeof data[i][j] == "number")
-                        arr.push(data[i][j]);
+                    switch (data[i][j].type) {
+                        case XTypes.Number:
+                        {
+                            arr.push(data[i][j].value);
+                        }
+                            break;
+                        case XTypes.Date:
+                        {
+                            arr.push(Util.getNumberFromDate(data[i][j].value));
+                        }
+                            break;
+                        case XTypes.Error:
+                        {
+                            detected_error = data[i][j];
+                        }
+                    }
                 }
             }
             arr.sort();
-            console.log(value);
-            console.log(type);
             maxRows = value.length > type.length ? value.length : type.length;
             maxCols = (value[0].length > type[0].length) ? value[0].length : type[0].length;
             Util.adjustMatrix(value, maxRows, maxCols);
             Util.adjustMatrix(type, maxRows, maxCols);
             for (i = 0; i < maxRows; i++) {
                 for (j = 0; j < maxCols; j++) {
-                    if (!err.test(value[i][j])) {
-                        if (!err.test(type[i][j])) {
-                            if (typeof type[i][j] == "number" && isFinite(type[i][j])) {
-                                if (type[i][j]) {
-                                    var aux = value[i][j];
-                                    value[i][j] = arr.indexOf(value[i][j]) + 1;
-                                    if (value[i][j] == 0) {
-                                        value[i][j] = "#VALUE!";
-                                    }
-                                } else {
-                                    value[i][j] = arr.lastIndexOf(value[i][j]) + 1;
-                                    if (value[i][j] == 0) {
-                                        value[i][j] = "#VALUE!";
+                    switch (type[i][j].type) {
+                        case XTypes.Date:
+                        {
+                            type[i][j].value = Util.getNumberFromDate(type[i][j].value);
+                            type[i][j].type = XTypes.Number;
+                        }
+                            break;
+                        case XTypes.String:
+                        {
+                            type[i][j].value = "#VALUE!";
+                            type[i][j].type = XTypes.Error;
+                        }
+                            break;
+                        case XTypes.Boolean:
+                        {
+                            type[i][j].value = +type[i][j].value;
+                            type[i][j].type = XTypes.Number;
+                        }
+                            break;
+                    }
+
+                    if (type[i][j].type = XTypes.Number) {
+                        if (type[i][j].value) {
+                            switch (value[i][j].type) {
+                                case XTypes.Number:
+                                {
+                                    value[i][j].value = arr.indexOf(value[i][j].value) + 1;
+                                    value[i][j].type = XTypes.Number;
+                                    if (value[i][j].value == 0) {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
                                     }
                                 }
-                            } else {
-                                value[i][j] = "#VALUE!";
+                                    break;
+                                case XTypes.Date:
+                                {
+                                    value[i][j].value = arr.indexOf(Util.getNumberFromDate(value[i][j].value)) + 1;
+                                    value[i][j].type = XTypes.Number;
+                                    if (value[i][j].value == 0) {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.Boolean:
+                                {
+                                    value[i][j].value = arr.indexOf(value[i][j].value) + 1;
+                                    value[i][j].type = XTypes.Number;
+                                    if (value[i][j].value == 0) {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.String:
+                                {
+                                    if (isFinite(value[i][j].value)) {
+                                        value[i][j].value = +value[i][j].value;
+                                        value[i][j].value = arr.indexOf(value[i][j].value) + 1;
+                                        value[i][j].type = XTypes.Number;
+                                        if (value[i][j].value == 0) {
+                                            value[i][j].value = "#VALUE!";
+                                            value[i][j].type = XTypes.Error;
+                                        }
+                                    } else {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
                             }
                         } else {
-
-                            value[i][j] = err[i][j];
+                            switch (value[i][j].type) {
+                                case XTypes.Number:
+                                {
+                                    value[i][j].value = arr.lastIndexOf(value[i][j].value) + 1;
+                                    value[i][j].type = XTypes.Number;
+                                    if (value[i][j].value == 0) {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.Date:
+                                {
+                                    value[i][j].value = arr.lastIndexOf(Util.getNumberFromDate(value[i][j].value)) + 1;
+                                    value[i][j].type = XTypes.Number;
+                                    if (value[i][j].value == 0) {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.Boolean:
+                                {
+                                    value[i][j].value = arr.lastIndexOf(value[i][j].value) + 1;
+                                    value[i][j].type = XTypes.Number;
+                                    if (value[i][j].value == 0) {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.String:
+                                {
+                                    if (isFinite(value[i][j].value)) {
+                                        value[i][j].value = +value[i][j].value;
+                                        value[i][j].value = arr.lastIndexOf(value[i][j].value) + 1;
+                                        value[i][j].type = XTypes.Number;
+                                        if (value[i][j].value == 0) {
+                                            value[i][j].value = "#VALUE!";
+                                            value[i][j].type = XTypes.Error;
+                                        }
+                                    } else {
+                                        value[i][j].value = "#VALUE!";
+                                        value[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                            }
                         }
+
+
+                    }
+                    else {
+                        value[i][j].value = "#VALUE!";
+                        value[i][j].type = XTypes.Error;
                     }
                 }
 
-            }
-            if (full_range || array || range) {
-                return value;
-            } else {
-                return value[0][0];
+
             }
 
+        }
+        if (full_range || array || range) {
+            return value;
+        } else {
+            return value[0][0];
         }
 
     };
@@ -1518,163 +1665,150 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
      */
     func.AND = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var val, i, j, res = true, ok = false, k;
-        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
         if (args.length === 0) {
-            if (array) {
-                return [
-                    ["#N/A"]
-                ];
-            } else {
-                return "#N/A";
-            }
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         } else {
             for (k = 0; k < this.args.length; k++) {
-                val = this.args[k].compute(app, source, array, true);
-                if (val instanceof Array) {
-                    for (i = 0; i < val.length; i++) {
-                        for (j = 0; j < val[i].length; j++) {
-                            if (err.test(val[i][j])) {
-                                if (array) {
-                                    return [
-                                        [val[i][j]]
-                                    ];
-                                } else {
-                                    return val[i][j];
-                                }
-
-                            } else {
-                                if (!(val[i][j] instanceof String)) {
-                                    ok = true;
-                                    res = res && val[i][j];
-                                }
+                val = this.args[k].compute(app, source, array, true, true);
+                if (!(val instanceof Array)) {
+                    val = [
+                        [val]
+                    ];
+                }
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        switch (val[i][j].type) {
+                            case XTypes.Number:
+                            {
+                                res = res && val[i][j].value;
+                                ok = true;
+                            }
+                                break;
+                            case XTypes.Date:
+                            {
+                                res = res && Util.getNumberFromDate(val[i][j].value);
+                                ok = true;
+                            }
+                                break;
+                            case XTypes.Boolean:
+                            {
+                                res = res && val[i][j].value;
+                                ok = true;
+                            }
+                                break;
+                            case XTypes.Error:
+                            {
+                                return func._returnError(val[i][j], array);
                             }
                         }
                     }
-                } else {
-                    if (!(val instanceof String)) {
-                        ok = true;
-                        res = res && val;
-                    }
                 }
             }
-        }
-        //If there has not been a value that is not a string, ok will be false
-        if (!ok) {
-            res = "#VALUE!";
-        }
-        if (array) {
-            return [
-                [res]
-            ];
-        } else {
-            return res;
-        }
-    };
-
-
-    /**
-     * @returns {*}
-     * @constructor
-     */
-    func.ImportRange = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        //TODO Rewrite
-        "use strict";
-        var val;
-        if (args.length !== 2) {
-            if (array) {
-                return [
-                    ["#N/A"]
-                ];
+            //We didn't have any valid values to compare
+            if (!ok) {
+                return func._returnError(new XTypedValue("#VALUE!", XTypes.Error), array);
             } else {
-                return "#N/A";
-            }
-        } else if (args[0].Ref instanceof ConstantString && args[1].Ref instanceof ConstantString) {
-            try {
-                val = app.getExternalRange(args[0].Ref._value, args[1].Ref._value);
-                if (array || range || full_range) {
-                    return val;
-                } else {
-                    return val[0][0];
-                }
-            } catch (e) {
-                XLogger.log("ImportRange error " + e);
+                res = new XTypedValue(res, XTypes.Boolean);
                 if (array) {
                     return [
-                        ["#REF!"]
+                        [res]
                     ];
                 } else {
-                    return "#REF!";
+                    return res;
                 }
             }
-        } else {
-            if (array) {
-                return [
-                    ["#REF!"]
-                ];
-            } else {
-                return  "#REF!";
-            }
         }
+
     };
+
 
     /**
      * @returns {*}
      * @constructor
-     * TODO
      */
     func.IF = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var err = RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
         var test, then_value, otherwise_value, maxRows, maxCols, i, j;
         if (args.length <= 1 || args.length > 3) {
             return func._returnError("#N/A", array);
         } else {
-            test = args[0].compute(app, source, array, false);
-            then_value = args[1].compute(app, source, array, false);
+            test = args[0].compute(app, source, array, true, true);
+            then_value = args[1].compute(app, source, array, true, true);
             if (args.length === 2) {
-                if (array) {
-                    otherwise_value = [
-                        [false]
-                    ];
-                } else {
-                    otherwise_value = false;
-                }
+                otherwise_value = [
+                    [false]
+                ];
             } else {
-                otherwise_value = args[2].compute(app, source, array, false);
+                otherwise_value = args[2].compute(app, source, array, true, true);
             }
-            if (array) {
-                maxRows = (test.length > then_value.length) ? (test.length > otherwise_value.length ? test.length : otherwise_value.length) : (then_value.length > otherwise_value.length ? then_value.length : otherwise_value.length);
-                maxCols = (test[0].length > then_value[0].length) ? (test[0].length > otherwise_value[0].length ? test[0].length : otherwise_value[0].length) : (then_value[0].length > otherwise_value[0].length ? then_value[0].length : otherwise_value[0].length);
-                Util.adjustMatrix(test, maxRows, maxCols);
-                Util.adjustMatrix(then_value, maxRows, maxCols);
-                Util.adjustMatrix(otherwise_value, maxRows, maxCols);
-                for (i = 0; i < maxRows; i++) {
-                    for (j = 0; j < maxCols; j++) {
-                        if ((typeof(test[i][j]) === "number" && test[i][j]) || test[i][j] === true || (test[i][j] == "TRUE")) {
-                            test[i][j] = then_value[i][j];
-                        } else if ((typeof(test[i][j]) === "number" && !test[i][j]) || test[i][j] === false || (test[i][j] == "FALSE")) {
-                            test[i][j] = otherwise_value[i][j];
-                        } else {
-                            if (!err.test(test[i][j])) {
-                                test[i][j] = "#VALUE!";
+            if (!(test instanceof Array)) {
+                test = [
+                    [test]
+                ];
+            }
+            if (!(then_value instanceof Array)) {
+                then_value = [
+                    [then_value]
+                ];
+            }
+            if (!(otherwise_value instanceof Array)) {
+                otherwise_value = [
+                    [otherwise_value]
+                ];
+            }
+            maxRows = (test.length > then_value.length) ? (test.length > otherwise_value.length ? test.length : otherwise_value.length) : (then_value.length > otherwise_value.length ? then_value.length : otherwise_value.length);
+            maxCols = (test[0].length > then_value[0].length) ? (test[0].length > otherwise_value[0].length ? test[0].length : otherwise_value[0].length) : (then_value[0].length > otherwise_value[0].length ? then_value[0].length : otherwise_value[0].length);
+            Util.adjustMatrix(test, maxRows, maxCols);
+            Util.adjustMatrix(then_value, maxRows, maxCols);
+            Util.adjustMatrix(otherwise_value, maxRows, maxCols);
+            for (i = 0; i < maxRows; i++) {
+                for (j = 0; j < maxCols; j++) {
+                    switch (test[i][j].type) {
+                        case XTypes.Number:
+                        {
+                            if (test[i][j].value) {
+                                test[i][j] = then_value[i][j];
+                            } else {
+                                test[i][j] = otherwise_value[i][j];
+                            }
+                        }
+                            break;
+                        case XTypes.Date:
+                        {
+                            if (Util.getNumberFromDate(test[i][j].value)) {
+                                test[i][j] = then_value[i][j];
+                            } else {
+                                test[i][j] = otherwise_value[i][j];
+                            }
+                        }
+                            break;
+                        case XTypes.Boolean:
+                        {
+                            if (test[i][j].value) {
+                                test[i][j] = then_value[i][j];
+                            } else {
+                                test[i][j] = otherwise_value[i][j];
+                            }
+                        }
+                            break;
+                        case XTypes.String:
+                        {
+                            if (test[i][j].value === "") {
+                                test[i][j] = otherwise_value[i][j];
+                            } else {
+                                test[i][j] = new XTypedValue("#VALUE!", XTypes.Boolean);
                             }
                         }
                     }
                 }
-
-            } else {
-                if ((typeof(test) === "number" && test) || test === true || (test == "TRUE")) {
-                    test = then_value;
-                } else if ((typeof(test) === "number" && !test) || test === false || (test == "FALSE")) {
-                    test = otherwise_value;
-                } else {
-                    if (!err.test(test)) {
-                        test = "#VALUE!";
-                    }
-                }
             }
         }
-        return test;
+        if (array || full_range || range) {
+            return test;
+        } else {
+            return test[0][0];
+        }
     };
 
     return func;
-});
+})
+;

@@ -1,3 +1,4 @@
+/*
 define(["XClasses/XApplication", "Parser/AST/AST", "Utilities/Profiler", "DataDebugMethods/ConstructTree", "DataDebugMethods/AnalysisData", "DataDebugMethods/Analysis", "DataDebugMethods/InputSample", "DataDebugMethods/FunctionOutput", "Utilities/HashMap"], function (XApplication, AST, Profiler, ConstructTree, AnalysisData, Analysis, InputSample, FunctionOutput, HashMap) {
     "use strict";
     xdescribe('BootTest', function () {
@@ -160,4 +161,4 @@ define(["XClasses/XApplication", "Parser/AST/AST", "Utilities/Profiler", "DataDe
 
     });
 
-});
+});*/

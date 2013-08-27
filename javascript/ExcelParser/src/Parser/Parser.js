@@ -192,7 +192,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
 
     Parser.parseDate = function (/*string*/value, /*locale*/locale) {
         if (locale == "en_US") {
-
+            return new Date(value);
         }
         return false;
 
@@ -209,7 +209,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
             ret = new XTypedValue(false, XTypes.Boolean);
         } else if (value === "TRUE") {
             ret = new XTypedValue(true, XTypes.Boolean);
-        } else if (ret == Parser.parseDate(value, locale)) {
+        } else if (ret = Parser.parseDate(value, locale) && !isFinite(value)) {
             ret = new XTypedValue(ret, XTypes.Date);
         } else {
             //Just a string
@@ -217,22 +217,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         }
         return ret;
     };
-    Parser.getNumberFromDate = function (/*Date*/date) {
-        if (date instanceof Date) {
-            return 0;
-        } else {
-            throw new Error("This is not a date" + date);
-        }
 
-    };
-
-    Parser.getStringFromDate = function (/*Date*/date) {
-
-    };
-
-    Parser.getDateFromNumber = function (/*Number*/nr) {
-        return new Date();
-    };
 
     return Parser;
 

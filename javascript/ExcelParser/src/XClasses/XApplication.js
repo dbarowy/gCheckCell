@@ -12,7 +12,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         _workbooks: [],
         //Active workbook
         _active: null,
-        locale:null,//TODO
+        locale: null,//TODO
         // Keep a simple mapping between addresses and a binary value that determines
         // whether the formula has already been computed for the respective cell.
         // It must be reset after each recompute call.
@@ -71,18 +71,18 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
 
         },
 
-        compute: function (/*Address*/source:Address, /*Boolean*/array:Boolean, /*Boolean*/full_range:Boolean, b, b2) {
+        compute: function (/*Address*/source, /*Boolean*/array, /*Boolean*/full_range) {
             var formula = this.formulaMap.get(source);
             if (formula) {
                 if (this._computed[source]) {
-                    return source.GetCOMObject(this).getValue();
+                    return source.GetCOMObject(this).getTypedValue();
                 } else {
                     this._computed[source] = 1;
                     return formula.compute(this, source, array, false, full_range);
                 }
             }
             else {
-                return source.GetCOMObject(this).getValue();
+                return source.GetCOMObject(this).getTypedValue();
             }
         },
 
@@ -107,9 +107,9 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 val = "#UNKNOWN?"
             }
             if (val instanceof Array) {
-                source.GetCOMObject(this).setValue(val[0][0]);
+                source.GetCOMObject(this).setTypedValue(val[0][0]);
             } else {
-                source.GetCOMObject(this).setValue(val);
+                source.GetCOMObject(this).setTypedValue(val);
             }
         },
         /**
@@ -197,6 +197,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         },
         getExternalRange: function (bookId, range) {
             var res;
+            //rewrite, to return typed values
             if (this.external_ranges[bookId] && (res = this.external_ranges[bookId][range])) {
                 return res;
             }
