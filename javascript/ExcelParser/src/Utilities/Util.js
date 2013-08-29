@@ -55,6 +55,7 @@ define("Utilities/Util", function () {
             return "FALSE";
         }
     };
+    //TODO Unimplemented
     Util.getNumberFromDate = function (/*Date*/date) {
         if (date instanceof Date) {
             return 0;
@@ -64,8 +65,7 @@ define("Utilities/Util", function () {
 
     };
     Util.getStringFromDate = function (/*Date*/date) {
-
-
+       return date.toLocaleString();
     };
 
     Util.getDateFromNumber = function (/*Number*/nr) {

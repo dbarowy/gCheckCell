@@ -191,10 +191,11 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
     };
 
     Parser.parseDate = function (/*string*/value, /*locale*/locale) {
-        if (locale == "en_US") {
+        try {
             return new Date(value);
+        } catch (e) {
+            return false;
         }
-        return false;
 
     };
 

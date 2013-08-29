@@ -1,7 +1,6 @@
 /**
  * This file contains the ReferenceNamed class.
  * This class is used to represent named references in the sheet.
- * TODO Implement named references
  */
 define("Parser/AST/ReferenceNamed", ["Parser/AST/Reference", "FSharp/FSharp", "Parser/AST/ConstantError"], function (Reference, FSharp, ConstantError) {
     "use strict";

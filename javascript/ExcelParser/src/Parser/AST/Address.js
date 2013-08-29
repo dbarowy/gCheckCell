@@ -204,7 +204,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
 
         //If the cell contains a formula, we have to compute the result before returning it
         if (this._com.hasFormula()) {
-            return app.compute(this, array, false, false, false);
+            return app.compute(this, array, false);
             //otherwise, return the value
         } else {
             //If this is an array formula, return a 1x1 matrix
