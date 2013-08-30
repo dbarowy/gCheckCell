@@ -45,11 +45,41 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
         return res;
     };
 
-    XRange.prototype.setTypedValue = function () {
+    XRange.prototype.setTypedValue = function (value) {
+        //TODO Improved this
+        var i, j, k, hash, node, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
+        for (i = this.startRow - 1; i < this.endRow; i++) {
+            for (j = this.startCol - 1; j < this.endCol; j++) {
+                this.Worksheet._values[i][j] = value.value;
+                hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
+                if (node = this.Workbook.Application.leaves[hash]) {
+                    for(k=0; k<node.length;k++){
+                        node[k].enableCompute(false);
+                    }
+                }
+            }
+        }
 
     };
-    XRange.prototype.setTypedValues = function () {
+    XRange.prototype.setTypedValues = function (values) {
+        var i, j, k, l;
+        var node, hash, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
+        if (values.length !== this.endRow - this.startRow + 1 || values[0].length !== this.endCol - this.startCol + 1) {
+            throw new Error("Values matrix must have the same size as the range.");
+        } else {
+            for (i = this.startRow - 1, k = 0; i < this.endRow; i++, k++) {
+                for (j = this.startCol - 1, l = 0; j < this.endCol; j++, l++) {
+                    this.Worksheet._values[i][j] = values[k][l].value;
+                    hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
+                    if (node = this.Workbook.Application.leaves[hash]) {
+                        for(k=0; k<node.length;k++){
+                            node[k].enableCompute(false);
+                        }
+                    }
 
+                }
+            }
+        }
     };
     /**
      * Return the values in this range as a matrix
@@ -71,22 +101,36 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
      * @param value
      */
     XRange.prototype.setValue = function (value) {
-        var i, j;
+        var i, j, k, hash, node, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
         for (i = this.startRow - 1; i < this.endRow; i++) {
             for (j = this.startCol - 1; j < this.endCol; j++) {
                 this.Worksheet._values[i][j] = value;
+                hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
+                if (node = this.Workbook.Application.leaves[hash]) {
+                    for(k=0; k<node.length;k++){
+                        node[k].enableCompute(false);
+                    }
+                }
             }
         }
     };
 
     XRange.prototype.setValues = function (values) {
-        var i, j, k, l;
+        var i, j, k, l, m;
+        var node, hash, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
         if (values.length !== this.endRow - this.startRow + 1 || values[0].length !== this.endCol - this.startCol + 1) {
             throw new Error("Values matrix must have the same size as the range.");
         } else {
             for (i = this.startRow - 1, k = 0; i < this.endRow; i++, k++) {
                 for (j = this.startCol - 1, l = 0; j < this.endCol; j++, l++) {
                     this.Worksheet._values[i][j] = values[k][l];
+                    hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
+                    if (node = this.Workbook.Application.leaves[hash]) {
+                        for(m=0; m<node.length;m++){
+                            node[m].enableCompute();
+                        }
+                    }
+
                 }
             }
         }

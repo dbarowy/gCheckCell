@@ -19,7 +19,7 @@ function _getSheetData(sheet) {
  * Get the data needed to recompute the workbook from the given book
  * See docs/sheet_export_format.txt for an explanation on the format
  * @param book
- * @returns {{name: *, sheets: Array, n_ranges: *, e_ranges: *}}
+ * @returns {{name: *, sheets: Array, named_ranges: *, external_ranges: *}}
  * @private
  */
 function _getBookData(book) {
@@ -40,7 +40,7 @@ function _getBookData(book) {
  */
 function getENRanges(named, external) {
     "use strict";
-    var i, j, len, named_ranges = {}, external_ranges = {}, rng, aux;
+    var i, j, len, named_ranges = {}, external_ranges = {}, rng, sh;
     var books = {};
     for (i = 0, len = named.length; i < len; i++) {
         if (typeof books[named[i].book_name] === "undefined") {
@@ -52,7 +52,8 @@ function getENRanges(named, external) {
             if (!named_ranges[named[i].book_name]) {
                 named_ranges[named[i].book_name] = {};
             }
-            named_ranges[named[i].book_name][named[i].range_name] = rng.getA1Notation();
+            sh = rng.getSheet().getName();
+            named_ranges[named[i].book_name][named[i].range_name] = sh+"!"+rng.getA1Notation();
 
         }
     }
@@ -120,7 +121,9 @@ function _getColorBook(book) {
  * @param outliers
  */
 function colorCells(outliers) {
+
     "use strict";
+    Logger.log(outliers);
     var colors = _getColorData();
     for (var i = 0; i < outliers.length; i++) {
         var range = outliers[i];
@@ -157,7 +160,7 @@ function _updateColors(colors) {
 function compare(data) {
     "use strict";
     var k, j;
-    Logger.log("Result of comparison");
+    Logger.log("Result of comparison "+SpreadsheetApp.getActiveSheet().getName());
     var orig, calc;
     orig = Utilities.jsonParse(getData());
     calc = Utilities.jsonParse(data);
@@ -167,7 +170,7 @@ function compare(data) {
         for (k = 0; k < sheetOrig.values.length; k++) {
             for (j = 0; j < sheetOrig.values[k].length; j++) {
                 if (sheetCalc.values[k][j] !== sheetOrig.values[k][j]) {
-                    Logger.log(k + " " + j + " " + sheetCalc.values[k][j] + "!=" + sheetOrig.values[k][j] + " " + sheetOrig.formulas[k][j]);
+                    Logger.log((k+1) + " " + (j+1) + " " + sheetCalc.values[k][j] + "!=" + sheetOrig.values[k][j] + " " + sheetOrig.formulas[k][j]);
                 }
             }
         }

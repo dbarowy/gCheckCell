@@ -114,7 +114,6 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 }
             }
             BootMemo.replaceExcelRange(com, initial_inputs.get(t));
-            progressBar(50*i/input_arr.length+30);
         }
         return bootstraps;
 
@@ -181,19 +180,19 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
     };
 
     Analysis.BootstrapFrequency = function (/*FunctionOutput<string>[]*/ boots) {
-        var counts = new HashMap(), i, key, count;
+        var counts = {}, i, key, count, p_values={};
         for (i = 0; i < boots.length; i++) {
             key = boots[i].value;
-            if ((count = counts.get(key))) {
-                counts.put(key, count + 1);
+            if ((count = counts[key] )) {
+                counts[key]=count+1;
             } else {
-                counts.put(key, 1);
+                counts[key]=1;
             }
         }
-        var p_values = new HashMap();
-        var entry = counts.getEntrySet();
-        for (i = 0; i < entry.length; i++) {
-            p_values.put(entry[i].key, entry[i].value / boots.length);
+        for(var k in counts){
+            if (counts.hasOwnProperty(k)){
+                p_values[k]=counts[k]/boots.length;
+            }
         }
         return p_values;
     };
@@ -210,7 +209,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 }
             }
             var freq = this.BootstrapFrequency(boots_exc);
-            if ((p_val = freq.get(original_output))) {
+            if ((p_val = freq[original_output])) {
                 p_val = 0.0;
             }
             return p_val < 0.05;
@@ -267,13 +266,13 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 if (this.functionOutputsAreNumeric(boots[f][i])) {
                     s = this.numericHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
                 } else {
+                    console.log("string");
                     s = this.stringHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
                 }
                 iexc_scores = this.dictAdd(iexc_scores, s);
             }
         }
-        progressBar(100);
-        //   console.log(iexc_scores.toString());
+         // console.log(iexc_scores.toString());
         return iexc_scores;
     };
 
@@ -340,7 +339,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
     };
 
     Analysis.convertToNumericOutput = function (/*FunctionOutput<string>[]*/boots) {
-        var b, fi_boots = new Array(boots.length), value, boot;
+        var b;
         for (b = 0; b < boots.length; b++) {
             boots[b].value = +boots[b].value;
         }
@@ -427,24 +426,12 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             resamples[i] = this.resample(num_bootstraps, initial_inputs.get(input_rngs[i]))
         }
         Profiler.end('resample');
-        progressBar(20);
         //first index: the fth function output
         //second index: the ith input
         //third index: the bth bootstrap
         Profiler.start('computeBoots');
         var boots = this.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
         Profiler.end('computeBoots');
-        //restore formulas
-        //TODO DO we really need to do this?
-        //Why would we restore formulas. The formulas have never been modified
-        formula_nodes = data.formula_nodes.getEntrySet();
-        for (i = 0; i < formula_nodes.length; i++) {
-            node = formula_nodes[i].value;
-            if (node.is_formula) {
-                node.com.setFormula(node.formula);
-            }
-        }
-
         return this.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted);
 
     };

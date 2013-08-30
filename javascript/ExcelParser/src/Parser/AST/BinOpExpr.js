@@ -86,6 +86,8 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                 r = [
                     [r]
                 ];
+                maxRows=1;
+                maxCols=1;
             }
             switch (this.Operator) {
                 case "+":

@@ -23,6 +23,8 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         e_ranges: [],
         named_ranges: {},
         external_ranges: {},
+        leaves: {},
+        _terminal_formulas: null,
         /**
          * Parse the formulas in the workbook add the pair Address->Formula to the formulaMap
          * This will help to determine if a cell has to be computed or the we have to retrieve the value
@@ -87,11 +89,25 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         },
 
         recompute_book: function () {
-            counter++;
-            var i, set = this.formulaMap.getEntrySet();
+            var i, cell, formula, key;
+            var  set = this.formulaMap.getEntrySet();
             for (i = 0; i < set.length; i++) {
                 this.recompute(set[i].key);
             }
+          /*  for (i = 0; i < this._terminal_formulas.length; i++) {
+                if (this._terminal_formulas[i].computed == false) {
+                    cell = this._terminal_formulas[i].com;
+                    key = new AST.Address(cell.startRow, cell.startCol, cell.Worksheet.Name, cell.Workbook.Name);
+                    if (cell.startRow === 17 && cell.startCol === 5) {
+                        console.log(key.GetCOMObject(this).getValue());
+                    }
+                    if (formula = this.formulaMap.get(key)) {
+                        this.recompute(key);
+
+                    }
+                }
+            }*/
+
             for (var a in this._computed) {
                 if (this._computed.hasOwnProperty(a)) {
                     this._computed[a] = 0;
@@ -101,13 +117,14 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         recompute: function (/*Address*/source) {
             var val;
             try {
-                val = this.compute(source, false, true, false, false);
+                val = this.compute(source, false, true);
             } catch (err) {
                 console.log(err);
                 val = "#UNKNOWN?"
             }
             if (val instanceof Array) {
                 source.GetCOMObject(this).setTypedValue(val[0][0]);
+
             } else {
                 source.GetCOMObject(this).setTypedValue(val);
             }
@@ -202,6 +219,29 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 return res;
             }
             throw new Error("Could not find the given range");
+        },
+        setMonitoredRanges: function (analysis) {
+            var input_ranges = analysis.input_ranges;
+            this._terminal_formulas = analysis.getTerminalFormulaNodes();
+            var i, j, k, cellMatrix, ranges, hash;
+            for (k = 0; k < input_ranges.length; k++) {
+                if (input_ranges[k].dont_perturb == false) {
+                    cellMatrix = input_ranges[k].com.getCellMatrix();
+                    var bookName = input_ranges[k].workbook.Name;
+                    var sheetName = input_ranges[k].worksheet.Name;
+
+                    for (i = 0; i < cellMatrix.length; i++) {
+                        for (j = 0; j < cellMatrix[i].length; j++) {
+                            hash = "" + bookName + "_" + sheetName + "_" + cellMatrix[i][j].startRow + "_" + cellMatrix[i][j].startCol;
+                            if (ranges = this.leaves[hash]) {
+                                ranges.push(input_ranges[k]);
+                            } else {
+                                this.leaves[hash] = [input_ranges[k]];
+                            }
+                        }
+                    }
+                }
+            }
         }
     };
 

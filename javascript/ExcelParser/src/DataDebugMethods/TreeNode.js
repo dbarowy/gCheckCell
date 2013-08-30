@@ -38,7 +38,30 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
         }
         this.weight = 0.0;
         this.dont_perturb = true;
+        this.computed = true;
     }
+
+    TreeNode.prototype.enableCompute = function () {
+        var i;
+        this.computed = false;
+        for (i = 0; i < this.parents.length; i++) {
+            if (this.parents[i].computed !== false) {
+                this.parents[i].enableCompute();
+            }
+        }
+
+    };
+
+    TreeNode.prototype.disableCompute = function () {
+        var i;
+        this.computed = true;
+        for (i = 0; i < this.children.length; i++) {
+            if (this.children[i].computed !== true) {
+                this.children[i].disableCompute();
+            }
+        }
+
+    };
 
     TreeNode.prototype.toString = function () {
         var parents_string = "", children_string = "";

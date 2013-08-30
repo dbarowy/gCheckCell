@@ -47,7 +47,7 @@
 <?!= include('InputSample'); ?>
 <?!= include('NodeTypes'); ?>
 <?!= include('TreeNode'); ?>
-<?!= include('JQueryCSS); ?>
+<?!= include('JQueryCSS'); ?>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 <script>
@@ -58,7 +58,7 @@
     function startInit(books) {
         console.log("success");
         require(["XClasses/XApplication", "Utilities/Profiler"], function (XApplication, Profiler) {
-            //console.log(books);
+            console.log(books);
             Profiler.start("startInit");
             XApplication.setBookData(JSON.parse(books));
             Profiler.end("startInit");
@@ -73,7 +73,7 @@
             Profiler.start("setRangeData");
             XApplication.setRangeData(data.named, data.external);
             Profiler.end("setRangeData");
-            //onsole.log(XApplication.compute(new AST.Address(13,2,"Pre-Teen (10-12)","tIDPDVTGEFYrRcu2Knp4H5w")));
+            console.log("result"+XApplication.compute(new AST.Address(8,"B","Sheet1","tIDPDVTGEFYrRcu2Knp4H5w")));
 
             var dat, NBOOTS, scores;
             dat = new AnalysisData();
@@ -81,52 +81,23 @@
             Profiler.start("constructTree");
             ConstructTree.constructTree(dat, XApplication);
             Profiler.end("constructTree");
+            XApplication.setMonitoredRanges(dat.input_ranges);
             Profiler.start("Bootstrap");
             scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
             Profiler.end("Bootstrap");
             Profiler.report();
             console.log("Number of recomputes " + counter);
             google.script.run.colorCells(Analysis.ColorOutliers(scores));
-            //  google.script.run.compare(JSON.stringify(XApplication.exportData()));
+            google.script.run.compare(JSON.stringify(XApplication.exportData()));
         });
     }
 
     function runCheckCell() {
-        var progressbar = $("#progressbar");
-        progressbar.show();
-        progressbar.progressbar("value", 0);
         google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
                 .getData();
     }
 
 
 </script>
-<script>
-    $(function () {
-        var progressbar = $("#progressbar"),
-                progressLabel = $(".progress-label");
-
-        progressbar.progressbar({
-            value: false,
-            change: function () {
-                console.log("changed" + progressbar.progressbar("value"));
-                progressLabel.text(progressbar.progressbar("value") + "%");
-            },
-            complete: function () {
-                progressLabel.text("Complete!");
-            }
-        });
-        progressbar.hide();
-    });
-
-    function progressBar(value) {
-        var progressbar = $("#progressbar");
-        progressbar.progressbar("value", value);
-    }
-</script>
 <h1> First Google CheckCell Demo </h1>
-
-<div id="progressbar">
-    <div class="progress-label"></div>
-</div>
 <button onclick="runCheckCell()">Run CheckCell</button>

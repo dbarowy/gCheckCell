@@ -1,6 +1,6 @@
 //TODO Cells that contain a formula and are part of a range and are not used directly anywhere else, are considered terminal outputs
 
-define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser"], function (ParserUtility, HashMap, TreeNode, Parser) {
+define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser", "Parser/AST/AST"], function (ParserUtility, HashMap, TreeNode, Parser, AST) {
     "use strict";
     var ConstructTree = {};
     /**
@@ -19,7 +19,7 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         analysisData.formula_nodes = ConstructTree.createFormulaNodes(formulaRanges, app);
         //Now we parse the formulas in nodes to extract any range and cell references
         nodes = analysisData.formula_nodes.getEntrySet();
-        var r= 0, a=0;
+        var r = 0, a = 0;
 
         for (i = 0; i < nodes.length; i++) {
             formula_node = nodes[i].value;
@@ -29,7 +29,7 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             addresses = [];
             ParserUtility.getAllReferencesFromFormula(formula_node.formula, formula_node.workbook, formula_node.worksheet, addresses, ranges);
             for (j = 0; j < ranges.length; j++) {
-                range_node = ConstructTree.makeRangeTreeNode(analysisData.input_ranges, ranges[j], formula_node);
+                range_node = ConstructTree.makeRangeTreeNode(analysisData, ranges[j], formula_node);
                 range_node.addParent(formula_node);
                 formula_node.addChild(range_node);
                 //I don't create nodes from the ranges. We don't need the children of the range
@@ -143,11 +143,13 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         return treeDict;
     };
 
-    ConstructTree.makeRangeTreeNode = function (/*TreeNode[]*/range_nodes, /*XRange*/range, /*TreeNode*/formula_node) {
-        var range_node = null;
-        var i, len, range_name = range.Workbook.Name + "_" + range.Worksheet.Name + "_" + range.getA1Address();
+    ConstructTree.makeRangeTreeNode = function (/*AnalysisData*/analysis, /*XRange*/range, /*TreeNode*/formula_node) {
+        var range_nodes = analysis.input_ranges, tn;
+        var range_node = null, found = false, bookName, sheetName, addr, cell;
+        var i, j, len, cellMatrix, range_name = range.Workbook.Name + "_" + range.Worksheet.Name + "_" + range.getA1Address();
         for (i = 0, len = range_nodes.length; i < len; i++) {
             if (range_nodes[i].name === range_name) {
+                found = true;
                 range_node = range_nodes[i];
                 break;
             }
@@ -157,7 +159,23 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             range_nodes.push(range_node);
         }
         range_node.dont_perturb = range_node.com.containsFormula();
-
+       /* if (range_node.dont_perturb) {
+            bookName = range.Workbook.Name;
+            sheetName = range.Worksheet.Name;
+            cellMatrix = range_node.com.getCellMatrix();
+            for (i = 0; i < cellMatrix.length; i++) {
+                for (j = 0; j < cellMatrix[i].length; j++) {
+                    cell = cellMatrix[i][j];
+                    if (cell.hasFormula()) {
+                        addr = new AST.Address(cell.startRow, cell.startCol, sheetName, bookName);
+                        if (tn = analysis.formula_nodes.get(addr)) {
+                            range_node.addChild(tn);
+                            tn.addParent(range_node);
+                        }
+                    }
+                }
+            }
+        }*/
         return range_node;
     };
     return ConstructTree;

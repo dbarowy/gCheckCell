@@ -3,6 +3,7 @@ define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap
     function AnalysisData() {
         this.input_ranges = [];//holds all the input ranges of TreeNodes in the Excel file.
         this.formula_nodes = new HashMap();
+
     }
 
     AnalysisData.prototype.getTerminalFormulaNodes = function () {

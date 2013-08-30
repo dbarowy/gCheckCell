@@ -1,6 +1,6 @@
 define(["Utilities/Function", "Parser/Parser", "XClasses/XTypes"], function (Function, Parser, XTypes) {
     describe('Functions test', function () {
-        it("SUM tests", function () {
+        xit("SUM tests", function () {
             wb = {Name: "book"};
             ws = {Name: "sheet"};
             expect(Parser.parseFormula("=SUM({1})", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});

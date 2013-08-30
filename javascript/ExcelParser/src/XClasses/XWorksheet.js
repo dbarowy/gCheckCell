@@ -12,7 +12,7 @@
 
 define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function (XRange, PEGParser) {
     "use strict";
-    function XWorksheet(/*Worksheet*/ws, /*XWorkbook*/wb) {s
+    function XWorksheet(/*Worksheet*/ws, /*XWorkbook*/wb) {
         this.Workbook = wb;
         this.Name = ws.name;
         this._values = ws.values;
