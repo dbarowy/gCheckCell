@@ -40,7 +40,7 @@ define(["Parser/Parser", "FSharp/FSharp", "Parser/AST/AST"], function (Parser, F
         expect(Parser.parseFormula("=+A4%%%", wb, ws)).not.toEqual(new FSharp.None());
         expect(Parser.parseFormula("=D6 - D15", wb, ws)).not.toEqual(new FSharp.None());
 
-
+        console.log(Parser.parseFormula("=AVERAGE(Grades !A1:AT22,Grades !AL9:AM14)", wb,ws).toString());
       var start = new Date();
         for (var i = 0; i < 40; i++) {
             Parser.parseFormula("=+AF3+AG3 ", wb, ws);

@@ -31,8 +31,8 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
          * @param xBook
          * @private
          */
-        _extractFormulas: function (/*XWorkbook*/ xBook) {
-            var i, j, k, address, formula, res = [];
+        _extractFormulas: function (/*XWorkbook*/ xBook, /*AnalysisData*/analysis) {
+            var i, j, k, address, formula, res = [], node;
             var xSheets = xBook.getWorksheets();
             for (k = 0; k < xSheets.length; k++) {
                 for (i = 0; i < xSheets[k]._formulas.length; i++) {
@@ -43,10 +43,14 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                             //Get all the functions used in this document
                             res = res.concat(Parser.extractFunctionName(formula));
                             if (formula instanceof FSharp.None) {
-                                XLogger.log("Something went wrong" + xSheets[k]._formulas[i][j]);
+                                XLogger.log("Cannot parse formula" + xSheets[k]._formulas[i][j]);
                             } else {
-                                this.formulaMap.put(address, formula);
-                                this._computed[address] = 0;
+                                node = analysis.formula_nodes.get(address);
+                                if (node) {
+                                    this.formulaMap.put(address, {node: node, formula: formula});
+                                } else {
+                                    XLogger.log("The formula node for the formula " + formula.toString() + "was not found.")
+                                }
                                 this.n_ranges = this.n_ranges.concat(Parser.extractNamedRanges(formula));
                                 this.e_ranges = this.e_ranges.concat(Parser.extractImportRange(formula));
                             }
@@ -69,57 +73,46 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 funcs.push(aux);
             }
 
-            console.log(res.toString());
+            console.log("Required functions " + funcs.toString());
 
-        },
-
-        compute: function (/*Address*/source, /*Boolean*/array, /*Boolean*/full_range) {
-            var formula = this.formulaMap.get(source);
-            if (formula) {
-                if (this._computed[source]) {
-                    return source.GetCOMObject(this).getTypedValue();
-                } else {
-                    this._computed[source] = 1;
-                    return formula.compute(this, source, array, false, full_range);
-                }
-            }
-            else {
-                return source.GetCOMObject(this).getTypedValue();
-            }
         },
 
         recompute_book: function () {
             var i, cell, formula, key;
-            var  set = this.formulaMap.getEntrySet();
-            for (i = 0; i < set.length; i++) {
-                this.recompute(set[i].key);
-            }
-          /*  for (i = 0; i < this._terminal_formulas.length; i++) {
+            for (i = 0; i < this._terminal_formulas.length; i++) {
                 if (this._terminal_formulas[i].computed == false) {
                     cell = this._terminal_formulas[i].com;
                     key = new AST.Address(cell.startRow, cell.startCol, cell.Worksheet.Name, cell.Workbook.Name);
-                    if (cell.startRow === 17 && cell.startCol === 5) {
-                        console.log(key.GetCOMObject(this).getValue());
-                    }
                     if (formula = this.formulaMap.get(key)) {
                         this.recompute(key);
-
                     }
-                }
-            }*/
-
-            for (var a in this._computed) {
-                if (this._computed.hasOwnProperty(a)) {
-                    this._computed[a] = 0;
                 }
             }
         },
+
+        compute: function (/*Address*/source, /*Boolean*/array, /*Boolean*/full_range) {
+            //Get the TreeNode and parsed formula associated with this address
+            var val = this.formulaMap.get(source);
+            if (val) {
+                if (val.node.computed === false) {
+                    //if the node has not been computed, compute it and disable the computation for this subtree
+                    var ret = val.formula.compute(this, source, array, false, full_range);
+                    val.node.disableCompute();
+                    return ret;
+                } else {
+                    return source.GetCOMObject(this).getTypedValue();
+                }
+            } else {
+                return source.GetCOMObject(this).getTypedValue();
+            }
+        },
+
         recompute: function (/*Address*/source) {
             var val;
             try {
                 val = this.compute(source, false, true);
             } catch (err) {
-                console.log(err);
+                XLogger.log(err);
                 val = "#UNKNOWN?"
             }
             if (val instanceof Array) {
@@ -141,10 +134,6 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             for (i = 0, len = data.external_books.length; i < len; i++) {
                 this._workbooks.push(new XWorkbook(data.external_books[i], this));
             }
-            for (i = 0, len = this._workbooks.length; i < len; i++) {
-                this._extractFormulas(this._workbooks[i]);
-            }
-
         },
         setRangeData: function (named, external) {
             var bk, res, rng, wb;
@@ -220,16 +209,21 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             }
             throw new Error("Could not find the given range");
         },
-        setMonitoredRanges: function (analysis) {
+        startEngine: function (analysis) {
+            var i, j, k, cellMatrix, ranges, hash, len;
             var input_ranges = analysis.input_ranges;
             this._terminal_formulas = analysis.getTerminalFormulaNodes();
-            var i, j, k, cellMatrix, ranges, hash;
+            //Extract the formulas
+            for (i = 0, len = this._workbooks.length; i < len; i++) {
+                this._extractFormulas(this._workbooks[i], analysis);
+            }
+
+
             for (k = 0; k < input_ranges.length; k++) {
                 if (input_ranges[k].dont_perturb == false) {
                     cellMatrix = input_ranges[k].com.getCellMatrix();
                     var bookName = input_ranges[k].workbook.Name;
                     var sheetName = input_ranges[k].worksheet.Name;
-
                     for (i = 0; i < cellMatrix.length; i++) {
                         for (j = 0; j < cellMatrix[i].length; j++) {
                             hash = "" + bookName + "_" + sheetName + "_" + cellMatrix[i][j].startRow + "_" + cellMatrix[i][j].startCol;

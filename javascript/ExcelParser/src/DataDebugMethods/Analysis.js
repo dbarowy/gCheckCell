@@ -252,8 +252,6 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         var i, f, functionNode, rangeNode, s;
         //dict of exclusion scores for each input CELL TreeNode
         var iexc_scores = new HashMap();
-
-
         // convert bootstraps to numeric, if possible, sort in ascending order
         // then compute quantiles and test whether an input is an outlier
         // i is the index of the range in the input array; an ARRAY of CELLS
@@ -266,13 +264,11 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 if (this.functionOutputsAreNumeric(boots[f][i])) {
                     s = this.numericHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
                 } else {
-                    console.log("string");
                     s = this.stringHypothesisTest(rangeNode, functionNode, boots[f][i], initial_outputs.get(functionNode), weighted);
                 }
                 iexc_scores = this.dictAdd(iexc_scores, s);
             }
         }
-         // console.log(iexc_scores.toString());
         return iexc_scores;
     };
 
@@ -287,6 +283,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
         };
 
+
         entrySet = input_exclusion_scores.getEntrySet();
         if (entrySet.length > 0) {
             max_score = entrySet[0].value;
@@ -300,6 +297,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 min_score = entrySet[i].value;
             }
         }
+
         if (min_score == max_score) {
             min_score = 0;
         }
@@ -312,7 +310,6 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             } else {
                 if (entrySet[i].value != 0) {
                     cval = Math.round(255 * (entrySet[i].value - min_score) / (max_score - min_score));
-                    // outlierValue += cell.com.getA1Address() + ":" + entrySet[i].value + ";\t" + cval + "\n";
                 }
             }
             if (cval != 0) {
@@ -393,7 +390,6 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             }
 
         }
-        //console.log(input_exclusion_scores.toString());
         return input_exclusion_scores;
     };
 
@@ -417,7 +413,6 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         //we save initial inputs here
         initial_inputs = this.storeInputs(input_rngs);
         initial_outputs = this.storeOutputs(output_fns);
-
         resamples = new Array(input_rngs.length);
         // populate bootstrap array
         // for each input range (a TreeNode)

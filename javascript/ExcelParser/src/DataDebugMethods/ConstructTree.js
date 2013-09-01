@@ -20,7 +20,6 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         //Now we parse the formulas in nodes to extract any range and cell references
         nodes = analysisData.formula_nodes.getEntrySet();
         var r = 0, a = 0;
-
         for (i = 0; i < nodes.length; i++) {
             formula_node = nodes[i].value;
             //For each of the ranges found in the formula by the parser
@@ -127,16 +126,13 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             for (j = 0; j < formulaRanges[i].length; j++) {
                 cell = formulaRanges[i][j];
                 //The cell has to have content in order for it to influence the output
-                if (cell.getValue()) {
-                    addr = Parser.getAddress(cell.getR1C1Address(), wb, ws);
-                    n = new TreeNode(cell, ws, wb);
-                    if ((formula = cell.getFormula())) {
-                        n.is_formula = true;
-                        n.dont_perturb = true;
-                        n.formula = formula;
-                        treeDict.put(addr, n);
-                    }
-
+                addr = Parser.getAddress(cell.getR1C1Address(), wb, ws);
+                n = new TreeNode(cell, ws, wb);
+                if ((formula = cell.getFormula())) {
+                    n.is_formula = true;
+                    n.dont_perturb = true;
+                    n.formula = formula;
+                    treeDict.put(addr, n);
                 }
             }
         }
@@ -159,7 +155,7 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             range_nodes.push(range_node);
         }
         range_node.dont_perturb = range_node.com.containsFormula();
-       /* if (range_node.dont_perturb) {
+        if (range_node.dont_perturb) {
             bookName = range.Workbook.Name;
             sheetName = range.Worksheet.Name;
             cellMatrix = range_node.com.getCellMatrix();
@@ -175,7 +171,7 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
                     }
                 }
             }
-        }*/
+        }
         return range_node;
     };
     return ConstructTree;

@@ -26,7 +26,7 @@ define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap
         // 2. the range is actually a formula cell
         var i, len, res = [];
         for (i = 0, len = this.input_ranges.length; i < len; i++) {
-            if (this.input_ranges[i].dont_perturb === false) {
+            if (this.input_ranges[i].dont_perturb === false && this.input_ranges[i].children.length===0) {
                 res.push(this.input_ranges[i]);
             }
         }

@@ -1,3 +1,36 @@
+function _getChartData() {
+    var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+    var formulas = [
+        []
+    ];
+    var sheetName = "";
+    for (i = 0; i < sheets.length; i++) {
+        sheetName += sheets[i].getName();
+        var charts = sheets[i].getCharts();
+        for (j = 0; j < charts.length; j++) {
+            var ranges = charts[j].getRanges();
+            var formula = "=AVERAGE(";
+            for (k = 0; k < ranges.length; k++) {
+                formula += "'" + ranges[k].getSheet().getName() + "'" + "!" + ranges[k].getA1Notation() + ",";
+            }
+            formulas[0].push(formula.substring(0, formula.length - 1) + ")");
+        }
+    }
+    var chartSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
+    chartSheet.getRange(1, 1, 1, formulas[0].length).setFormulas(formulas);
+    var values = chartSheet.getDataRange().getValues();
+    SpreadsheetApp.getActive().deleteSheet(chartSheet);
+    if (formulas[0].length) {
+        return {
+            name: sheetName,
+            values: values,
+            formulas: formulas
+        };
+    } else {
+        return null;
+    }
+}
+
 /**
  * Get the data we need to compute the results from the given sheet
  * See docs/sheet_export_format.txt for an explanation on the format
@@ -29,6 +62,11 @@ function _getBookData(book) {
     for (var i = 0; i < sheets.length; i++) {
         sheetsdata.push(_getSheetData(sheets[i]));
     }
+    var charts = _getChartData();
+    if (charts) {
+        sheetsdata.push((charts));
+    }
+
     return {
         name: book.getId(),
         sheets: sheetsdata
@@ -53,7 +91,7 @@ function getENRanges(named, external) {
                 named_ranges[named[i].book_name] = {};
             }
             sh = rng.getSheet().getName();
-            named_ranges[named[i].book_name][named[i].range_name] = sh+"!"+rng.getA1Notation();
+            named_ranges[named[i].book_name][named[i].range_name] = sh + "!" + rng.getA1Notation();
 
         }
     }
@@ -121,9 +159,9 @@ function _getColorBook(book) {
  * @param outliers
  */
 function colorCells(outliers) {
-
     "use strict";
-    Logger.log(outliers);
+    Logger.log("here");
+//Logger.log(outliers);  
     var colors = _getColorData();
     for (var i = 0; i < outliers.length; i++) {
         var range = outliers[i];
@@ -160,7 +198,7 @@ function _updateColors(colors) {
 function compare(data) {
     "use strict";
     var k, j;
-    Logger.log("Result of comparison "+SpreadsheetApp.getActiveSheet().getName());
+    Logger.log("Result of comparison " + SpreadsheetApp.getActiveSheet().getName());
     var orig, calc;
     orig = Utilities.jsonParse(getData());
     calc = Utilities.jsonParse(data);
@@ -170,7 +208,7 @@ function compare(data) {
         for (k = 0; k < sheetOrig.values.length; k++) {
             for (j = 0; j < sheetOrig.values[k].length; j++) {
                 if (sheetCalc.values[k][j] !== sheetOrig.values[k][j]) {
-                    Logger.log((k+1) + " " + (j+1) + " " + sheetCalc.values[k][j] + "!=" + sheetOrig.values[k][j] + " " + sheetOrig.formulas[k][j]);
+                    Logger.log((k + 1) + " " + (j + 1) + " " + sheetCalc.values[k][j] + "!=" + sheetOrig.values[k][j] + " " + sheetOrig.formulas[k][j]);
                 }
             }
         }
@@ -183,6 +221,7 @@ var ss = SpreadsheetApp.getActive();
 
 function onOpen() {
     "use strict";
+
     var menu = [
         {name: 'Run', functionName: 'openDialog'},
         {name: 'Aux', functionName: 'aux'}
@@ -190,7 +229,12 @@ function onOpen() {
     ss.addMenu('CheckCell', menu);
 }
 
-
+function aux() {
+    var sheets = SpreadsheetApp.getActive().getSheets();
+    for (i = 0; i < sheets.length; i++) {
+        sheets[i].getDataRange().setBackground("#FFFFFF");
+    }
+}
 function openDialog() {
     "use strict";
     var html = HtmlService.createTemplateFromFile('index')

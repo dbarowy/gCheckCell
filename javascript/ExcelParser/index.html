@@ -81,7 +81,7 @@
             Profiler.start("constructTree");
             ConstructTree.constructTree(dat, XApplication);
             Profiler.end("constructTree");
-            XApplication.setMonitoredRanges(dat.input_ranges);
+            XApplication.startEngine(dat.input_ranges);
             Profiler.start("Bootstrap");
             scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
             Profiler.end("Bootstrap");
