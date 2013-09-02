@@ -1,5 +1,5 @@
 /**
- * This file contains a simple interface for the PEGParser.
+ * This file contains a simple interface for the PEGParser and functions that relate to parsing values, dates, strings
  *
  */
 
@@ -14,6 +14,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
     Parser.no_ws = function (/*string*/str) {
         return str.replace(/\s+/g, "");
     };
+
     /**
      * Parse the given string and see if it is an R1C1 Address
      * @param str String representing a R1C1 address
@@ -46,12 +47,18 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         }
     };
 
-
+    /**
+     * Get any type of reference from the given string and resolve the reference to the given book and sheet
+     * @param str
+     * @param wb
+     * @param ws
+     * @returns {*}
+     */
     Parser.getAddressReference = function (/*string*/str, /*XWorkbook*/wb, /*XWorksheet*/ws) {
         var reference;
         try {
             reference = PEGParser.parse(this.no_ws(str), "ReferenceKinds");
-            reference.Resolve(wb, ws);
+            reference.resolve(wb, ws);
             return reference
         } catch (e) {
             XLogger.log("getAddressReference\n" + e);
@@ -70,7 +77,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         var reference;
         try {
             reference = PEGParser.parse(this.no_ws(str), "Reference");
-            reference.Resolve(wb, ws);
+            reference.resolve(wb, ws);
             return reference;
         } catch (e) {
             return new FSharp.None();
@@ -90,7 +97,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         try {
 
             formula = PEGParser.parse(this.no_ws(str), "Formula");
-            formula.Resolve(wb, ws);
+            formula.resolve(wb, ws);
             formula.fixAssoc();
             return formula;
         } catch (e) {
@@ -103,6 +110,11 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         return (!isNaN(parseFloat(number)) && isFinite(number));
     };
 
+    /**
+     * Extracts function names, so that we know what functions we need to implement for a specific sheet
+     * @param expr ReferenceExpr
+     * @returns {*}
+     */
     Parser.extractFunctionName = function (expr) {
         if (expr instanceof AST.ReferenceRange || expr instanceof FSharp.None || expr instanceof AST.ReferenceNamed || expr instanceof AST.ReferenceAddress || expr instanceof AST.Address || expr instanceof AST.ConstantArray || expr instanceof AST.ConstantError || expr instanceof AST.ConstantLogical || expr instanceof AST.ConstantNumber || expr instanceof AST.ConstantString || expr instanceof AST.Range) {
             return [];
@@ -123,11 +135,18 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         } else if (expr instanceof AST.UnaryOpExpr) {
             return this.extractFunctionName(expr.Expr);
         } else {
-            XLogger.log(expr.toString());
+            XLogger.log("Could not extract function name " + expr.toString());
             return [];
         }
     };
 
+    /**
+     * Parses the formula and extracts Named References(Ranges).
+     * This is used to make a hashmap from Names to Cells, so that we use the actual values in the computation
+     * In order to get the range for a named range, we need the name, and the workbook name
+     * @param formula
+     * @returns {*}
+     */
     Parser.extractNamedRanges = function (formula) {
         var res = [], i;
         if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceRange) {
@@ -152,11 +171,17 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         } else if (formula instanceof AST.UnaryOpExpr) {
             return this.extractNamedRanges(formula.Expr);
         } else {
-            XLogger.log(formula.toString());
+            XLogger.log("Could not extract namde range " + formula.toString());
             throw Error("Unsupported type");
         }
     };
 
+    /**
+     * Extract ImportRange formulas in order to use external ranges in the spreadsheet computations.
+     * To import the external range we need the id of the workbook and the name of the sheet
+     * @param formula
+     * @returns {*}
+     */
     Parser.extractImportRange = function (formula) {
         var res = [], i;
         if (formula instanceof AST.Address || formula instanceof AST.ConstantArray || formula instanceof AST.ConstantError || formula instanceof AST.ConstantLogical || formula instanceof AST.ConstantNumber || formula instanceof AST.ConstantString || formula instanceof AST.Range || formula instanceof AST.ReferenceAddress || formula instanceof AST.ReferenceNamed || formula instanceof AST.ReferenceRange) {
@@ -185,20 +210,32 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         } else if (formula instanceof AST.UnaryOpExpr) {
             return this.extractImportRange(formula.Expr);
         } else {
-            XLogger.log(formula.toString());
+            XLogger.log("Could not extract import range " + formula.toString());
             throw Error("Unsupported type");
         }
     };
-
+    /**
+     * Parse the given string into a date. If the parsing fails, return null;
+     * @param value  The string to parse into a date
+     * @param locale The locale used in the workbook. This can be used to work with different date formats
+     * @returns {*}
+     */
     Parser.parseDate = function (/*string*/value, /*locale*/locale) {
-        try {
-            return new Date(value);
-        } catch (e) {
-            return false;
+        var date = Date.parse(value);
+        if (!isNaN(date)) {
+            return new Date(date);
+        } else {
+            return null;
         }
 
     };
 
+    /**
+     * Parse the string and return a typed value;
+     * @param value The string to parse
+     * @param locale Locale that influences how dates are parsed
+     * @returns {*} XTypedValue object representing the value and its type
+     */
     Parser.parseValue = function (/*any*/value, /*string*/locale) {
         var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
         var ret;
@@ -210,6 +247,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
             ret = new XTypedValue(false, XTypes.Boolean);
         } else if (value === "TRUE") {
             ret = new XTypedValue(true, XTypes.Boolean);
+            //try to get the date from the string
         } else if (ret = Parser.parseDate(value, locale) && !isFinite(value)) {
             ret = new XTypedValue(ret, XTypes.Date);
         } else {

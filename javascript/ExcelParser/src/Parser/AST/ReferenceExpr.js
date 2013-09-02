@@ -1,6 +1,5 @@
 /**
- * Thic class contains the ReferenceExpr class.
- * This is used to wrap every Expression type.
+ * This class contains the ReferenceExpr class. It is used to wrap every Expression object.
  */
 define("Parser/AST/ReferenceExpr", ["Parser/AST/ReferenceFunction"], function (ReferenceFunction) {
     "use strict";
@@ -12,8 +11,8 @@ define("Parser/AST/ReferenceExpr", ["Parser/AST/ReferenceFunction"], function (R
         return "ReferenceExpr." + this.Ref.toString();
     };
 
-    ReferenceExpr.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
-        this.Ref.Resolve(wb, ws);
+    ReferenceExpr.prototype.resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
+        this.Ref.resolve(wb, ws);
     };
     /**
      * Only the ReferenceFunction has arguments that can be fixed.

@@ -2,21 +2,13 @@
  * This object provide a global access point to Application services.
  * It is designed to be a scaled down equivalent of the SpreadsheetApp object in Google Spreadsheets
  * and Excel.Application in Microsoft Office.
- * @type {{_GDocs: boolean, getWorksheets: Function, getActiveWorkbook: Function}}
  */
-var counter = 0;
 define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp) {
     "use strict";
     var XApplication = {
-        //All the known workbooks
-        _workbooks: [],
-        //Active workbook
-        _active: null,
-        locale: null,//TODO
-        // Keep a simple mapping between addresses and a binary value that determines
-        // whether the formula has already been computed for the respective cell.
-        // It must be reset after each recompute call.
-        _computed: {},
+        _workbooks: [],//All the known workbooks
+        _active: null, //Active workbook
+        locale: null, //The locale of the book
         // Mapping between Addresses and the parsed formula contained in the cell.
         formulaMap: new HashMap(),
         n_ranges: [],
@@ -25,6 +17,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         external_ranges: {},
         leaves: {},
         _terminal_formulas: null,
+
         /**
          * Parse the formulas in the workbook add the pair Address->Formula to the formulaMap
          * This will help to determine if a cell has to be computed or the we have to retrieve the value
@@ -72,11 +65,13 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 }
                 funcs.push(aux);
             }
-
-            console.log("Required functions " + funcs.toString());
-
+            XLogger.log("Required functions " + funcs.toString());
         },
 
+        /**
+         * Recompute the book.
+         * This will recompute only the formula trees that have had at least a leaf changed.
+         */
         recompute_book: function () {
             var i, cell, formula, key;
             for (i = 0; i < this._terminal_formulas.length; i++) {
@@ -90,6 +85,34 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             }
         },
 
+        /**
+         * Recompute the subtree with the root at the given address
+         * @param source Address that represents the root of the dependence tree.
+         */
+        recompute: function (/*Address*/source) {
+            var val;
+            try {
+                val = this.compute(source, false, true);
+            } catch (err) {
+                XLogger.log("Error recomputing " + err);
+                val = "#UNKNOWN?"
+            }
+            if (val instanceof Array) {
+                source.getCOMObject(this).setTypedValue(val[0][0]);
+
+            } else {
+                source.getCOMObject(this).setTypedValue(val);
+            }
+        },
+
+        /**
+         * Compute the formula at the given address and return the formula.
+         * If the formula has already been computed, it just returns the value from the cell.
+         * @param source Address that contains the formula that we want to compute
+         * @param array True if we are computing an array formula, false otherwise
+         * @param full_range True if this is a terminal formula
+         * @returns {*}
+         */
         compute: function (/*Address*/source, /*Boolean*/array, /*Boolean*/full_range) {
             //Get the TreeNode and parsed formula associated with this address
             var val = this.formulaMap.get(source);
@@ -100,28 +123,14 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                     val.node.disableCompute();
                     return ret;
                 } else {
-                    return source.GetCOMObject(this).getTypedValue();
+                    return source.getCOMObject(this).getTypedValue();
                 }
             } else {
-                return source.GetCOMObject(this).getTypedValue();
+                return source.getCOMObject(this).getTypedValue();
             }
         },
 
-        recompute: function (/*Address*/source) {
-            var val;
-            try {
-                val = this.compute(source, false, true);
-            } catch (err) {
-                XLogger.log(err);
-                val = "#UNKNOWN?"
-            }
-            if (val instanceof Array) {
-                source.GetCOMObject(this).setTypedValue(val[0][0]);
 
-            } else {
-                source.GetCOMObject(this).setTypedValue(val);
-            }
-        },
         /**
          * Initialize the XApplication data.
          * XApplication is designed as a global entry point to the information of the sheet.
@@ -135,6 +144,12 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 this._workbooks.push(new XWorkbook(data.external_books[i], this));
             }
         },
+
+        /**
+         * Add information about named and external ranges
+         * @param named Object containing named ranges
+         * @param external Object containing information about the external ranges
+         */
         setRangeData: function (named, external) {
             var bk, res, rng, wb;
             for (bk in named) {
@@ -158,6 +173,10 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 }
             }
         },
+        /**
+         * Export the data contained in this context.
+         * @returns {{active_book: *, external_books: Array}}
+         */
         exportData: function () {
             var ext = [], j;
             for (j = 1; j < this._workbooks.length; j++) {
@@ -178,12 +197,17 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         },
         /**
          * Return the active workbook.
-         * @returns {XWorkbook}
+         * @returns XWorkbook object
          */
         getActiveWorkbook: function () {
             return this._active;
         },
 
+        /**
+         * Return the book with the given name. If the book doesn't exist, throw an error
+         * @param name
+         * @returns {*}
+         */
         getWorkbookByName: function (name) {
             var i, len;
             for (i = 0, len = this._workbooks.length; i < len; i++) {
@@ -194,6 +218,11 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             //If we don't have the workbook, we have a big problem.
             throw new Error("Workbook with name " + name + " cannot be found");
         },
+        /**
+         * Return the AST.Address or AST.Range associated with the given named reference
+         * @param referenceNamed
+         * @returns {*}
+         */
         getNamedRange: function (referenceNamed) {
             var res;
             if (this.named_ranges[referenceNamed.WorkbookName] && (res = this.named_ranges[referenceNamed.WorkbookName][referenceNamed._varname])) {
@@ -201,6 +230,12 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             }
             throw new Error("Could not find the given range");
         },
+        /**
+         * Return the external range associated with the given bookId and range
+         * @param bookId
+         * @param range
+         * @returns {*}
+         */
         getExternalRange: function (bookId, range) {
             var res;
             //rewrite, to return typed values
@@ -209,6 +244,11 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             }
             throw new Error("Could not find the given range");
         },
+        /**
+         * TODO Comment some more
+         * Finish the initialization of the environment and start the computation engine.
+         * @param analysis
+         */
         startEngine: function (analysis) {
             var i, j, k, cellMatrix, ranges, hash, len;
             var input_ranges = analysis.input_ranges;
@@ -217,8 +257,6 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             for (i = 0, len = this._workbooks.length; i < len; i++) {
                 this._extractFormulas(this._workbooks[i], analysis);
             }
-
-
             for (k = 0; k < input_ranges.length; k++) {
                 if (input_ranges[k].dont_perturb == false) {
                     cellMatrix = input_ranges[k].com.getCellMatrix();

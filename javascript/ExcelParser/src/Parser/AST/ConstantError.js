@@ -1,5 +1,5 @@
 /**
- * This class contains the ReferenceError class.
+ * This class contains the ConstantError class.
  * This is used to represents error values in the formulas.
  * For the full list of possible errors, check the Excel documentation
  */

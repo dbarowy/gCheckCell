@@ -1,5 +1,6 @@
 /**
- * This file contains the class ParensExpr which is used to represent expressions inside parentheses
+ * This file contains the ParensExpr class.
+ * This class is used to represent expressions inside parentheses
  */
 define("Parser/AST/ParensExpr", function () {
     "use strict";
@@ -10,8 +11,8 @@ define("Parser/AST/ParensExpr", function () {
     ParensExpr.prototype.toString = function () {
         return "ParensExpr(" + this.Expr + ")";
     };
-    ParensExpr.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
-        this.Expr.Resolve(wb, ws);
+    ParensExpr.prototype.resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
+        this.Expr.resolve(wb, ws);
     };
     ParensExpr.prototype.fixAssoc = function () {
         this.Expr.fixAssoc();

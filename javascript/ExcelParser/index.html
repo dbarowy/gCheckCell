@@ -48,6 +48,9 @@
 <?!= include('NodeTypes'); ?>
 <?!= include('TreeNode'); ?>
 <?!= include('JQueryCSS'); ?>
+<?!= include('Util'); ?>
+<?!= include('XTypedValue'); ?>
+<?!= include('XTypes'); ?>
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
 <script>
@@ -56,9 +59,8 @@
     }
 
     function startInit(books) {
-        console.log("success");
         require(["XClasses/XApplication", "Utilities/Profiler"], function (XApplication, Profiler) {
-            console.log(books);
+            // console.log(books);
             Profiler.start("startInit");
             XApplication.setBookData(JSON.parse(books));
             Profiler.end("startInit");
@@ -67,35 +69,34 @@
     }
 
     function finishInit(data) {
-
         require(["XClasses/XApplication", "Utilities/Profiler", "DataDebugMethods/AnalysisData", "DataDebugMethods/ConstructTree", "DataDebugMethods/Analysis", "Parser/AST/AST"], function (XApplication, Profiler, AnalysisData, ConstructTree, Analysis, AST) {
-
-            Profiler.start("setRangeData");
-            XApplication.setRangeData(data.named, data.external);
-            Profiler.end("setRangeData");
-            console.log("result"+XApplication.compute(new AST.Address(8,"B","Sheet1","tIDPDVTGEFYrRcu2Knp4H5w")));
-
             var dat, NBOOTS, scores;
+            Profiler.start("Analysis");
+            XApplication.setRangeData(data.named, data.external);
             dat = new AnalysisData();
             NBOOTS = Math.ceil(1000 * Math.exp(1.0));
-            Profiler.start("constructTree");
             ConstructTree.constructTree(dat, XApplication);
-            Profiler.end("constructTree");
-            XApplication.startEngine(dat.input_ranges);
-            Profiler.start("Bootstrap");
+            if (dat.getTerminalInputNodes().length == 0) {
+                alert("No ranges to analyze");
+                return;
+            }
+            XApplication.startEngine(dat);
             scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
-            Profiler.end("Bootstrap");
-            Profiler.report();
-            console.log("Number of recomputes " + counter);
             google.script.run.colorCells(Analysis.ColorOutliers(scores));
-            google.script.run.compare(JSON.stringify(XApplication.exportData()));
+            Profiler.end("Analysis");
+            Profiler.report();
+            //       console.log("result"+XApplication.compute(new AST.Address(24,"B","Grades ","tIDPDVTGEFYrRcu2Knp4H5w"),false,false).value);
+//            XApplication.recompute_book();
+            //   google.script.run.compare(JSON.stringify(XApplication.exportData()));
+
+//                     
+
         });
     }
 
-    function runCheckCell() {
-        google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
-                .getData();
-    }
+
+    google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
+            .getData();
 
 
 </script>

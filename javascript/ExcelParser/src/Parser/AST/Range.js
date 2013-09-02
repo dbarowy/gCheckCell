@@ -30,7 +30,7 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
      * @param rng
      * @returns {boolean} true if this object is inside the range, false otherwise
      */
-    Range.prototype.InsideRange = function (/*Range*/ rng) {
+    Range.prototype.insideRange = function (/*Range*/ rng) {
         return !(this.getXLeft() < rng.getXLeft() || this.getYTop() < rng.getYTop() || this.getXRight() > rng.getXRight() || this.getYBottom() > rng.getYBottom());
     };
     /**
@@ -39,15 +39,15 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
      * @returns {boolean}
      * @constructor
      */
-    Range.prototype.InsideAddr = function (/*Address*/ addr) {
+    Range.prototype.insideAddr = function (/*Address*/ addr) {
         return !(this.getXLeft() < addr.X || this.getYTop() < addr.Y || this.getXRight() > addr.X || this.getYBottom() > addr.Y);
     };
 
-    Range.prototype.SetWorksheetName = function (/*string*/ wsname) {
+    Range.prototype.setWorksheetName = function (/*string*/ wsname) {
         this._tl.WorksheetName = wsname;
         this._br.WorksheetName = wsname;
     };
-    Range.prototype.SetWorkbookName = function (/*string*/ wbname) {
+    Range.prototype.setWorkbookName = function (/*string*/ wbname) {
         this._tl.WorkbookName = wbname;
         this._br.WorkbookName = wbname;
     };
@@ -56,10 +56,10 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
      * @param app XApplication object that represents an entry point to the Spreadsheet methods and values
      * @returns {XRange|*}
      */
-    Range.prototype.GetCOMObject = function (/*XApplication*/app) {
+    Range.prototype.getCOMObject = function (/*XApplication*/app) {
         // tl and br must share workbook and worksheet
         if (this._com === null) {
-            this._com = app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
+            this._com = app.getWorkbookByName(this._tl.getA1Workbook()).getWorksheetByName(this._tl.getA1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
         }
         return this._com;
     };
@@ -78,7 +78,7 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
         var i, j, sheetName, wbName;
         var res = [], row;
         if (this._com === null) {
-            this._com = app.getWorkbookByName(this._tl.A1Workbook()).getWorksheetByName(this._tl.A1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
+            this._com = app.getWorkbookByName(this._tl.getA1Workbook()).getWorksheetByName(this._tl.getA1Worksheet()).getRange(this._tl.Y, this._tl.X, this._br.Y, this._br.X);
         }
 
         if (range || array) {

@@ -9,17 +9,7 @@ define("Parser/AST/Reference", ["FSharp/FSharp"], function (FSharp) {
         this.WorksheetName = wsname;
     }
 
-    /**
-     *
-     * @param ref
-     * @returns {boolean}
-     * @constructor
-     */
-    Reference.prototype.InsideRef = function (/*Reference*/ ref) {
-        return false;
-    };
-
-    Reference.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
+    Reference.prototype.resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
         // we assume that missing workbook and worksheet
         // names mean that the address is local to the current
         // workbook and worksheet

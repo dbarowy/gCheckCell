@@ -1,5 +1,5 @@
 /**
- * This file contains the ReferenceString class.
+ * This file contains the ConstantString class.
  * This class is used to represent string constants in the formulas
  */
 define("Parser/AST/ConstantString", ["Parser/AST/Reference", "XClasses/XTypedValue", "XClasses/XTypes"], function (Reference, XTypedValue, XTypes) {
@@ -33,7 +33,6 @@ define("Parser/AST/ConstantString", ["Parser/AST/Reference", "XClasses/XTypedVal
      */
     ConstantString.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         var val = new XTypedValue(this._value, XTypes.String);
-        //TODO Constant strings are sometimes converted to the dates they represent or numbers
         if (array) {
             return [
                 [val]

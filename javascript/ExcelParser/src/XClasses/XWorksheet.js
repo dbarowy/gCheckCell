@@ -9,7 +9,6 @@
  * @param wb
  * @constructor
  */
-
 define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function (XRange, PEGParser) {
     "use strict";
     function XWorksheet(/*Worksheet*/ws, /*XWorkbook*/wb) {
@@ -22,6 +21,10 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
 
     }
 
+    /**
+     * Export the data in this book, to compare it with the Google Spreadsheet data.
+     * @returns {{name: *, values: *, formulas: *}}
+     */
     XWorksheet.prototype.exportData = function () {
         return{
             name: this.Name,
@@ -31,7 +34,6 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
     };
 
 
-    //  throw new Error("Office methods not implemented.");
     /**
      * Get a matrix of Cells (XRange) representing the range in the sheet that has data.
      * @returns {Array}
@@ -73,25 +75,6 @@ define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function 
             }
         }
     };
-    /**
-     * Return the range given by the R1C1 or A1 notation. Works for both addresses and ranges.
-     * @param range
-     * @returns {*}
-     */
-    XWorksheet.prototype.get_Range = function (/*string*/range) {
-        var res;
-        try {
-            //Try to see if we have an address
-            res = PEGParser.parse(range, "AnyAddr");
-            return this.getRange(res.Y, res.X, res.Y, res.X);
-        } catch (err) {
-            //TODO I don't know if it is better to throw the error or to catch it,
-            // log it and return null which will throw another error for sure
-            res = PEGParser.parse(range, "RangeAny");
-            return this.getRange(res.getYTop(), res.getXLeft(), res.getYBottom(), res.getXRight());
-        }
-    };
-
 
     return XWorksheet;
 });

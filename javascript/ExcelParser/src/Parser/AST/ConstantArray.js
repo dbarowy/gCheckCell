@@ -1,3 +1,8 @@
+/**
+ * This file contains the ConstantArray module.
+ * This class is used to represent Array constants.
+ * An array constant represents a bidimensional matrix of other constants excepting array constants
+ */
 define("Parser/AST/ConstantArray", ["Parser/AST/Reference"], function (Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

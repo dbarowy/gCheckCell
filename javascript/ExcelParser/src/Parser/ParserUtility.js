@@ -1,11 +1,10 @@
 /**
  * Author: Alexandru Toader
  */
-define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (AST, Parser, FSharp) {
+define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FSharp", "XClasses/XLogger"], function (AST, Parser, FSharp, XLogger) {
     "use strict";
     var ParserUtility = {};
     /**
-     * TODO What does this do?
      * @param fnname
      * @returns {boolean}
      */
@@ -88,19 +87,19 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
         else {
             refs = ParserUtility.getExprRanges(tree);
             for (i = 0, len = refs.length; i < len; i++) {
-                res.push(refs[i].GetCOMObject(wb.Application));
+                res.push(refs[i].getCOMObject(wb.Application));
             }
         }
         return res;
     };
     /**
      * Get single cell and range references from the sheet while parsing the formulas only once.
-     * @param formula
-     * @param wb
-     * @param ws
-     * @param addresses
-     * @param ranges
-     * @returns {Array}
+     * @param formula The formula to parse
+     * @param wb The workbook to which we resolve the formulas
+     * @param ws The worksheet to which we resolve the formulas
+     * @param addresses An empty array into which we push the values
+     * @param ranges An empty array into which we push the values
+     * @returns {*}
      */
     ParserUtility.getAllReferencesFromFormula = function (/*string*/ formula, /*XWorkbook*/wb, /*XWorksheet*/ws, /*Address[]*/addresses, /*XRanges[]*/ranges) {
         var tree = Parser.parseFormula(formula, wb, ws), res = [];
@@ -108,10 +107,10 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
         if (!(tree instanceof FSharp.None)) {
             refs = ParserUtility.getExprRanges(tree);
             for (i = 0, len = refs.length; i < len; i++) {
-                try{
-                ranges.push(refs[i].GetCOMObject(wb.Application));
-                } catch(e){
-                    console.log(e+"\n"+formula);
+                try {
+                    ranges.push(refs[i].getCOMObject(wb.Application));
+                } catch (e) {
+                    XLogger.log(e + "\n" + formula);
                 }
             }
             refs = ParserUtility.getSCExprRanges(tree);

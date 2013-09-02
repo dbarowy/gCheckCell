@@ -3,8 +3,7 @@
  * This class is used to represent expressions with prefix operators.
  * Example: -A2, +a5, -3
  */
-define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes", "XClasses/XTypedValue"], function (XTypes, XTypedValue) {
-
+define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes"], function (XTypes) {
     "use strict";
     function UnaryOpExpr(/*char*/op, /*Expression*/expr) {
         this.Expr = expr;
@@ -15,8 +14,8 @@ define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes", "XClasses/XTypedValue"], fu
         return "UnaryOpExpr('" + this.Operator + "'," + this.Expr + ")";
     };
 
-    UnaryOpExpr.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
-        this.Expr.Resolve(wb, ws);
+    UnaryOpExpr.prototype.resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
+        this.Expr.resolve(wb, ws);
     };
 
     UnaryOpExpr.prototype.fixAssoc = function () {
@@ -35,98 +34,63 @@ define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes", "XClasses/XTypedValue"], fu
      */
     UnaryOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         var val = this.Expr.compute(app, source, array, false, false), i, j;
-        if (array) {
-            switch (this.Operator) {
-                case "+":
-                    //do nothing
-                    break;
-                case "-":
-                {
-                    for (i = 0; i < val.length; i++) {
-                        for (j = 0; j < val[i].length; j++) {
-                            switch (val[i][j].type) {
-                                case XTypes.Date:
-                                {
-                                    val[i][j].value = -Parser.getNumberFromDate(val[i][j].value);
+        if (!(val instanceof Array)) {
+            val = [
+                [val]
+            ];
+        }
+        switch (this.Operator) {
+            case "+":
+                //do nothing
+                break;
+            case "-":
+            {
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        switch (val[i][j].type) {
+                            case XTypes.Date:
+                            {
+                                val[i][j].value = -Parser.getNumberFromDate(val[i][j].value);
+                                val[i][j].type = XTypes.Number;
+                            }
+                                break;
+                            case XTypes.Boolean:
+                            {
+                                val[i][j].value = -val[i][j].value;
+                                val[i][j].type = XTypes.Number;
+                            }
+                                break;
+                            case XTypes.Number:
+                            {
+                                val[i][j].value = -val[i][j].value;
+                            }
+                                break;
+                            case XTypes.String:
+                            {
+                                if (isFinite(val[i][j].value)) {
+                                    val[i][j].value = -val[i][j];
                                     val[i][j].type = XTypes.Number;
+                                } else {
+                                    val[i][j].value = "#VALUE!";
+                                    val[i][j].type = XTypes.Error;
                                 }
-                                    break;
-                                case XTypes.Boolean:
-                                {
-                                    val[i][j].value = -val[i][j].value;
-                                    val[i][j].type = XTypes.Number;
-                                }
-                                    break;
-                                case XTypes.Number:
-                                {
-                                    val[i][j].value = -val[i][j].value;
-                                }
-                                    break;
-                                case XTypes.String:
-                                {
-                                    if (isFinite(val[i][j].value)) {
-                                        val[i][j].value = -val[i][j];
-                                        val[i][j].type = XTypes.Number;
-                                    } else {
-                                        val[i][j].value = "#VALUE!";
-                                        val[i][j].type = XTypes.Error;
-                                    }
-
-                                }
-                                    break;
 
                             }
+                                break;
+
                         }
                     }
                 }
-                    break;
-                default:
-                    throw new Error("Unknown operator");
             }
-        } else {
-            switch (this.Operator) {
-                case "+":
-                    //do nothing
-                    break;
-                case "-":
-                    switch (val.type) {
-                        case XTypes.Date:
-                        {
-                            val.value = -Parser.getNumberFromDate(val.value);
-                            val.type = XTypes.Number;
-                        }
-                            break;
-                        case XTypes.Boolean:
-                        {
-                            val.value = -val.value;
-                            val.type = XTypes.Number;
-                        }
-                            break;
-                        case XTypes.Number:
-                        {
-                            val.value = -val.value;
-                        }
-                            break;
-                        case XTypes.String:
-                        {
-                            if (isFinite(val.value)) {
-                                val.value = -val;
-                                val.type = XTypes.Number;
-                            } else {
-                                val.value = "#VALUE!";
-                                val.type = XTypes.Error;
-                            }
-
-                        }
-                            break;
-                    }
-                    break;
-                default:
-                    throw new Error("Unknown operator");
-            }
+                break;
+            default:
+                throw new Error("Unknown operator");
         }
-        return val;
-
+        if (array) {
+            return val;
+        } else {
+            return val[0][0];
+        }
     };
     return UnaryOpExpr;
 

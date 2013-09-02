@@ -21,10 +21,10 @@ define("Parser/AST/ReferenceFunction", ["Parser/AST/Reference", "Utilities/Funct
     ReferenceFunction.prototype.toString = function () {
         return this.FunctionName + "(" + this.ArgumentList.join(",") + ")";
     };
-    ReferenceFunction.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
+    ReferenceFunction.prototype.resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
         var i, len;
         for (i = 0, len = this.ArgumentList.length; i < len; i++) {
-            this.ArgumentList[i].Resolve(wb, ws);
+            this.ArgumentList[i].resolve(wb, ws);
         }
     };
     ReferenceFunction.prototype.fixAssoc = function () {

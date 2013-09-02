@@ -24,17 +24,7 @@ define("Parser/AST/ReferenceAddress", ["FSharp/FSharp", "Parser/AST/Reference", 
         }
     };
 
-    ReferenceAddress.prototype.InsideRef = function (/*Reference*/ref) {
-        if (ref instanceof ReferenceAddress) {
-            return this.Address.InsideAddr(ref.Address);
-        } else if (ref instanceof  ReferenceRange) {
-            return this.Address.InsideRange(ref.Range);
-        } else {
-            throw new Error("Invalid Reference subclass.");
-        }
-    };
-
-    ReferenceAddress.prototype.Resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
+    ReferenceAddress.prototype.resolve = function (/*Workbook*/ wb, /*Worksheet*/ ws) {
         // always resolve the workbook name when it is missing
         // but only resolve the worksheet name when the
         // workbook name is not set

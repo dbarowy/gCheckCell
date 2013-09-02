@@ -216,7 +216,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
      * @constructor
      */
     func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var k, val, sum = 0, final_type = XTypes.Number, i, j;
+        var k, val, sum = 0, final_type = XTypes.Number, i, j, rng=false;
         if (args.length === 0) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         }
@@ -252,8 +252,10 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                         {
                             if (isFinite(val[i][j].value) && val[i][j].value != "") {
                                 sum += (+val[i][j].value);
+
                             } else {
-                                return func._returnError(new XTypedValue("#VALUE!", XTypes.Error), array);
+                                //TODO Temp fix:
+                                //return func._returnError(new XTypedValue("#VALUE!", XTypes.Error), array);
                             }
                         }
                             break;

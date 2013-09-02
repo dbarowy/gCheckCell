@@ -34,9 +34,15 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
             return "BinOpExpr(\"" + this.Operator + "\",\n\t" + this.Left.toString() + ",\n\t" + this.Right.toString() + ")";
         };
 
-        BinOpExpr.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
-            this.Left.Resolve(wb, ws);
-            this.Right.Resolve(wb, ws);
+        /**
+         * resolve the two terms that make up the binary operator expression
+         * @param wb
+         * @param ws
+         * @constructor
+         */
+        BinOpExpr.prototype.resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
+            this.Left.resolve(wb, ws);
+            this.Right.resolve(wb, ws);
         };
         /**
          * This method is used to transform the right associativity to left associativity
@@ -47,6 +53,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
             this.Left.fixAssoc();
             this.Right.fixAssoc();
             if (this.Right instanceof BinOpExpr) {
+                //use the precedence of the operators to enforce the desired associativity
                 if (this._precedence[this.Operator] >= this._precedence[this.Right.Operator]) {
                     this.Left = new BinOpExpr(this.Operator, this.Left, this.Right.Left);
                     this.Operator = this.Right.Operator;
@@ -70,10 +77,12 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
          * @returns {*}
          */
         BinOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
-            var l, r, isnan, maxRows, maxCols, i, j;
-            var err = new RegExp("(#DIV/0|#N/A|#NAME\?|#NULL!|#NUM!|#REF!|#VALUE!|#GETTING_DATA)");
+            var l, r, maxRows, maxCols, i, j;
+            //As this is a binary operator, we don't need the entire range or the full range returned by the
+            //two terms
             l = this.Left.compute(app, source, array, false, false);
             r = this.Right.compute(app, source, array, false, false);
+            //the code is more compact if we just work with arrays;
             if (array) {
                 maxRows = l.length > r.length ? l.length : r.length;
                 maxCols = l[0].length > r[0].length ? l[0].length : r[0].length;
@@ -89,6 +98,9 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                 maxRows=1;
                 maxCols=1;
             }
+            //consider the types of the two operators
+            //and perform the needed operation
+            //return the result of the operation in the left hand side operand
             switch (this.Operator) {
                 case "+":
                 {
@@ -2150,8 +2162,10 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                 }
                     break;
             }
+            //If we have an array formula, return the full array
             if (array) {
                 return l;
+                //otherwise, return the first element
             } else {
                 return l[0][0];
             }

@@ -1,5 +1,6 @@
 /**
- * This file contains the Address module. This class is used to represent addresses(individual cells) in the worksheet.
+ * This file contains the Address module.
+ * This class is used to represent addresses(individual cells) in the worksheet.
  */
 define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
     "use strict";
@@ -16,7 +17,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
         this.WorkbookName = wbname;
         //If the column is given as a string convert it to the number
         if (isNaN(C)) {
-            this.X = Address.CharColToInt(C);
+            this.X = Address.charColToInt(C);
         }
         else {
             this.X = C;
@@ -32,7 +33,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @param col String representing the column. It must be of the form [A-Z a-z]+
      * @returns {number} Column number
      */
-    Address.CharColToInt = function (/*string */ col) {
+    Address.charColToInt = function (/*string */ col) {
         var idx, num = 0, reg, ltr = 0;
         idx = col.length - 1;
         col = col.toUpperCase();
@@ -54,7 +55,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @param dividend Integer representing the column number. If an integer is not supplied, an error is thrown
      * @returns {string} String representing the column
      */
-    Address.IntToColChars = function (/*int*/dividend) {
+    Address.intToColChars = function (/*int*/dividend) {
         var quot, rem, ltr = "";
         if (Math.floor(dividend) !== dividend || dividend <= 0) {
             throw new Error("This works only for integers");
@@ -81,8 +82,8 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @returns {string}
      * @constructor
      */
-    Address.prototype.A1Local = function () {
-        return "" + Address.IntToColChars(this.X) + this.Y;
+    Address.prototype.getA1Local = function () {
+        return "" + Address.intToColChars(this.X) + this.Y;
     };
 
     /**
@@ -91,7 +92,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * If the Worksheet name is not set, it throws an error.
      * To avoid this error, all Addresses should be resolved before use.
      */
-    Address.prototype.A1Worksheet = function () {
+    Address.prototype.getA1Worksheet = function () {
         if (typeof(this.WorksheetName) !== "undefined" && this.WorksheetName !== null && !(this.WorksheetName instanceof  FSharp.None)) {
             return this.WorksheetName;
         }
@@ -105,7 +106,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * If the Workbook name is not set, it throws an error.
      * To avoid this error, all Addresses should be resolved before use.
      */
-    Address.prototype.A1Workbook = function () {
+    Address.prototype.getA1Workbook = function () {
         if (typeof(this.WorkbookName) !== "undefined" && this.WorkbookName !== null && !(this.WorkbookName instanceof  FSharp.None)) {
             return this.WorkbookName;
         }
@@ -118,15 +119,15 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @returns {string}
      * @constructor
      */
-    Address.prototype.A1FullyQualified = function () {
-        return "[" + this.A1Workbook() + "]" + this.A1Worksheet() + "!" + this.A1Local();
+    Address.prototype.getA1FullyQualified = function () {
+        return "[" + this.getA1Workbook() + "]" + this.getA1Worksheet() + "!" + this.getA1Local();
     };
     /**
      * Return the R1C1 string representation of the address
      * @returns {string}
      * @constructor
      */
-    Address.prototype.R1C1 = function () {
+    Address.prototype.getR1C1 = function () {
         var wsstr, wbstr;
         if (typeof(this.WorksheetName) !== "undefined" && this.WorksheetName !== null && !(this.WorksheetName instanceof  FSharp.None)) {
             wsstr = this.WorksheetName + "!";
@@ -149,7 +150,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      */
     Address.prototype.getHashCode = function () {
         if (this._hash === null) {
-            this._hash = ("" + this.A1Workbook() + "_" + this.A1Worksheet() + "_" + this.X + "_" + this.Y);
+            this._hash = ("" + this.getA1Workbook() + "_" + this.getA1Worksheet() + "_" + this.X + "_" + this.Y);
         }
         return this._hash;
     };
@@ -160,7 +161,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @returns {boolean} True if the address is inside the range, false otherwise
      * @constructor
      */
-    Address.prototype.InsideRange = function (/*Range*/ rng) {
+    Address.prototype.insideRange = function (/*Range*/ rng) {
         return !(this.X < rng.getXLeft() || this.Y < rng.getYTop() || this.X > rng.getXRight() || this.Y > rng.getYBottom());
     };
     /**
@@ -168,7 +169,7 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @param addr
      * @returns {boolean}
      */
-    Address.prototype.InsideAddr = function (/*Address*/addr) {
+    Address.prototype.insideAddr = function (/*Address*/addr) {
         return this.X === addr.X && this.Y === addr.Y;
     };
     /**
@@ -176,9 +177,9 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      * @param app XApplication object that represents an entry point to the Spreadsheet methods and values
      * @returns {XRange|*}
      */
-    Address.prototype.GetCOMObject = function (/*XApplication*/app) {
+    Address.prototype.getCOMObject = function (/*XApplication*/app) {
         if (this._com === null) {
-            this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
+            this._com = app.getWorkbookByName(this.getA1Workbook()).getWorksheetByName(this.getA1Worksheet()).getRange(this.Y, this.X);
         }
         return this._com;
     };
@@ -199,11 +200,13 @@ define("Parser/AST/Address", ["FSharp/FSharp"], function (FSharp) {
      */
     Address.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array,  /*Boolean*/range,/*Boolean*/full_range) {
         if (this._com === null) {
-            this._com = app.getWorkbookByName(this.A1Workbook()).getWorksheetByName(this.A1Worksheet()).getRange(this.Y, this.X);
+            this._com = app.getWorkbookByName(this.getA1Workbook()).getWorksheetByName(this.getA1Worksheet()).getRange(this.Y, this.X);
         }
 
         //If the cell contains a formula, we have to compute the result before returning it
         if (this._com.hasFormula()) {
+            //set full_range to false, because we are calling this from inside another computation
+            // and we don't want the full array
             return app.compute(this, array, false);
             //otherwise, return the value
         } else {

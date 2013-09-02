@@ -1,6 +1,6 @@
 /**
  * This file contains the class PostfixOpExpr used to represent expressions that involve a postfix operator
- * Example: A3%
+ * Example: A3%, A2:A3%%%
  */
 define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], function (XTypedValue, XTypes) {
     "use strict";
@@ -13,8 +13,8 @@ define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], 
         return "PostfixOpExpr(\"" + this.Operator + "\"," + this.Expr.toString() + ")";
     };
 
-    PostfixOpExpr.prototype.Resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
-        this.Expr.Resolve(wb, ws);
+    PostfixOpExpr.prototype.resolve = function (/*XWorkbook*/ wb, /*XWorksheet*/ ws) {
+        this.Expr.resolve(wb, ws);
     };
     PostfixOpExpr.prototype.fixAssoc = function () {
         this.Expr.fixAssoc();
@@ -31,9 +31,9 @@ define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], 
      * @returns {*}
      */
     PostfixOpExpr.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
-        var val = this.Expr.compute(app, source, array, false, false), i, j;
-
+        var val = this.Expr.compute(app, source, array, false, full_range), i, j;
         if (array) {
+            //We have a matrix of values and we apply the operation over each value
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
                     switch (val[i][j].type) {
@@ -53,19 +53,25 @@ define("Parser/AST/PostfixOpExpr", ["XClasses/XTypedValue", "XClasses/XTypes"], 
                 }
             }
         } else {
-            switch (val.type) {
-                case XTypes.Number:
-                {
-                    val.value = val.value / 100;
+            //If this is not an array formula, but we have an array value, return the unmodified array
+            //this is a strange behaviour of Google Spreadsheets
+            if (val instanceof Array) {
+                return val;
+            } else {
+                switch (val.type) {
+                    case XTypes.Number:
+                    {
+                        val.value = val.value / 100;
+                    }
+                        break;
+                    case XTypes.Date:
+                    {
+                        val.value = Parser.getNumberFromDate(val.value) / 100;
+                        val.type = XTypes.Number;
+                    }
+                        break;
+                    //For the rest of the types we don't do anything
                 }
-                    break;
-                case XTypes.Date:
-                {
-                    val.value = Parser.getNumberFromDate(val.value) / 100;
-                    val.type = XTypes.Number;
-                }
-                    break;
-                //For the rest of the types we don't do anything
             }
         }
         return val;

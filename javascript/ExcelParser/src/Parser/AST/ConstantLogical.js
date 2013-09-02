@@ -1,5 +1,5 @@
 /**
- * This file contains the ReferenceLogical class.
+ * This file contains the ConstantLogical class.
  * This class is used to represent logical constants in the formulas: TRUE/FALSE
  */
 define("Parser/AST/ConstantLogical", ["Parser/AST/Reference", "XClasses/XTypedValue", "XClasses/XTypes"], function (Reference, XTypedValue, XTypes) {

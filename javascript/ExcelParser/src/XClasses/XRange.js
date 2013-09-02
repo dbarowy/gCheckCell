@@ -1,3 +1,6 @@
+/**
+ * Contains the implementation of a generic range object.
+ */
 define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Parser) {
     "use strict";
 
@@ -27,11 +30,17 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
     XRange.prototype.getValue = function () {
         return this.Worksheet._values[this.startRow - 1][this.startCol - 1];
     };
-
+    /**
+     * Return the typed value in the upper left corner of the range
+     * @returns {*}
+     */
     XRange.prototype.getTypedValue = function () {
         return Parser.parseValue(this.Worksheet._values[this.startRow - 1][this.startCol - 1], this.Workbook.Application.locale);
     };
-
+    /**
+     * Return a bi-dimensional array of typed values representing the values in the range.
+     * @returns {Array}
+     */
     XRange.prototype.getTypedValues = function () {
         var i, j, row, res = [];
         var locale = this.Workbook.Application.locale;
@@ -45,24 +54,32 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
         return res;
     };
 
+    /**
+     * Sets all the values in the range to the value passed as a parameter
+     * @param value an XTypedValue
+     */
     XRange.prototype.setTypedValue = function (value) {
-        //TODO Improved this
         var i, j, k, hash, node, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
         for (i = this.startRow - 1; i < this.endRow; i++) {
             for (j = this.startCol - 1; j < this.endCol; j++) {
                 this.Worksheet._values[i][j] = value.value;
                 hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
                 if (node = this.Workbook.Application.leaves[hash]) {
-                    for(k=0; k<node.length;k++){
-                        node[k].enableCompute(false);
+                    for (k = 0; k < node.length; k++) {
+                        node[k].enableCompute();
                     }
                 }
             }
         }
 
     };
+
+    /**
+     * Set the values in the range to the values passed as a parameter
+     * @param values Matrix of XTypedValues
+     */
     XRange.prototype.setTypedValues = function (values) {
-        var i, j, k, l;
+        var i, j, k, l, m;
         var node, hash, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
         if (values.length !== this.endRow - this.startRow + 1 || values[0].length !== this.endCol - this.startCol + 1) {
             throw new Error("Values matrix must have the same size as the range.");
@@ -72,8 +89,8 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
                     this.Worksheet._values[i][j] = values[k][l].value;
                     hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
                     if (node = this.Workbook.Application.leaves[hash]) {
-                        for(k=0; k<node.length;k++){
-                            node[k].enableCompute(false);
+                        for (m = 0; m < node.length; m++) {
+                            node[m].enableCompute();
                         }
                     }
 
@@ -97,8 +114,8 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
         return res;
     };
     /**
-     *
-     * @param value
+     * Set all the values in the range to the value passed as a parameter
+     * @param value primitive value: number, string
      */
     XRange.prototype.setValue = function (value) {
         var i, j, k, hash, node, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
@@ -107,14 +124,18 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
                 this.Worksheet._values[i][j] = value;
                 hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
                 if (node = this.Workbook.Application.leaves[hash]) {
-                    for(k=0; k<node.length;k++){
-                        node[k].enableCompute(false);
+                    for (k = 0; k < node.length; k++) {
+                        node[k].enableCompute();
                     }
                 }
             }
         }
     };
 
+    /**
+     * Set the values in the range to the values passed as a parameter
+     * @param values
+     */
     XRange.prototype.setValues = function (values) {
         var i, j, k, l, m;
         var node, hash, bookName = this.Workbook.Name, sheetName = this.Worksheet.Name;
@@ -126,7 +147,7 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
                     this.Worksheet._values[i][j] = values[k][l];
                     hash = "" + bookName + "_" + sheetName + "_" + (i + 1) + "_" + (j + 1);
                     if (node = this.Workbook.Application.leaves[hash]) {
-                        for(m=0; m<node.length;m++){
+                        for (m = 0; m < node.length; m++) {
                             node[m].enableCompute();
                         }
                     }
@@ -137,6 +158,10 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
 
     };
 
+    /**
+     * Set all the formulas in the range to the formula passed as a parameter
+     * @param formula
+     */
     XRange.prototype.setFormula = function (formula) {
         var i, j;
         for (i = this.startRow - 1; i < this.endRow; i++) {
@@ -211,7 +236,10 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
         return this.endCol - this.startCol + 1;
 
     };
-
+    /**
+     * Get the R1C1 string representation of the address.
+     * @returns {string}
+     */
     XRange.prototype.getR1C1Address = function () {
         if (this.startRow === this.endRow && this.startCol === this.endCol) {
             return "R" + this.startRow + "C" + this.startCol;
@@ -220,12 +248,15 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
         }
 
     };
-
+    /**
+     * Get the A1 string representation of the address.
+     * @returns {string}
+     */
     XRange.prototype.getA1Address = function () {
         if (this.startRow === this.endRow && this.startCol === this.endCol) {
-            return AST.Address.IntToColChars(this.startCol) + this.startRow;
+            return AST.Address.intToColChars(this.startCol) + this.startRow;
         } else {
-            return AST.Address.IntToColChars(this.startCol) + this.startRow + ":" + AST.Address.IntToColChars(this.endCol) + this.endRow;
+            return AST.Address.intToColChars(this.startCol) + this.startRow + ":" + AST.Address.intToColChars(this.endCol) + this.endRow;
         }
     };
 

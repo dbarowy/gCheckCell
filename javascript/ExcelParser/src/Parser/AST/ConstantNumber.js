@@ -1,5 +1,5 @@
 /**
- * This file contains the ReferenceConstant class.
+ * This file contains the ConstantNumber class.
  * This represents numerical constants in the formulas.
  * The value is a double number.
  */
