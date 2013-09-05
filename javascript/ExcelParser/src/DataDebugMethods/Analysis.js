@@ -32,7 +32,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         }
     };
     /**
-     *
+     * Store the initial inputs.
      * @param inputs
      * @returns <TreeNode, InputSample>
      */
@@ -44,12 +44,16 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             com = inputs[i].com;
             s.addArray(com.getValues());
             d.put(inputs[i], s);
-            //TODO WHY?
-            //BootMemo.ReplaceExcelRange(com,s)
+            BootMemo.ReplaceExcelRange(com, s)
         }
         return d;
     };
 
+    /**
+     * Store the given output values and return a mapping from TreeNodes to the values of the range associated with it
+     * @param outputs
+     * @returns {*}
+     */
     Analysis.storeOutputs = function (/*TreeNode[]*/outputs) {
         var i, len;
         var /*HashMap<TreeNode, string>*/ d = new HashMap();
@@ -59,6 +63,12 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return d;
     };
 
+    /**
+     * Create the given number of resamples from the given InputSample
+     * @param num_bootstraps
+     * @param orig_vals
+     * @returns {Array}
+     */
     Analysis.resample = function (/*int*/num_bootstraps, /*InputSample*/orig_vals) {
         var ss = new Array(num_bootstraps), j, i, s, inc_count, input_idx, size;
         // sample with replacement to get num_bootstraps
@@ -83,6 +93,13 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         }
         return ss;
     };
+    /**
+     * Helper method to initialize a 3D Array
+     * @param fn_idx_sz
+     * @param o_idx_sz
+     * @param b_idx_sz
+     * @returns {Array}
+     */
     Analysis.init3DArray = function (/*int*/fn_idx_sz, /*int*/o_idx_sz, /*int*/b_idx_sz) {
         var bs = new Array(fn_idx_sz), i, j;
         for (i = 0; i < fn_idx_sz; i++) {
@@ -94,6 +111,16 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return bs;
     };
 
+    /**
+     * Compute the results of the bootstraps
+     * @param num_bootstraps
+     * @param initial_inputs
+     * @param resamples
+     * @param input_arr
+     * @param output_arr
+     * @param data
+     * @returns {Array}
+     */
     Analysis.computeBootstraps = function (/*int*/num_bootstraps, /*HashMap<TreeNode, InputSample>*/initial_inputs, /*InputSample[][]*/resamples, /*TreeNode[]*/input_arr, /*TreeNode[]*/output_arr, /*AnalysisData*/data) {
         var i, com, fos, b, t;
         var /*BootMemo[]*/bootsaver = new Array(input_arr.length);
@@ -118,6 +145,13 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return bootstraps;
 
     };
+    /**
+     * Merge the two dictionaries/hashmaps.
+     * If the same key is present in both dictionaries, sum their values and put it in the final dictionary.
+     * @param d1
+     * @param d2
+     * @returns {*}
+     */
     Analysis.dictAdd = function (/*<TreeNode, int>*/d1, /*<TreeNode, int>*/d2) {
         var d3 = new HashMap(), set, i, score;
         if (d1 !== null) {
@@ -140,6 +174,15 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return d3;
     };
 
+    /**
+     * Check the string hypothesis for the given context
+     * @param rangeNode The range node that we are modifying
+     * @param functionNode
+     * @param boots The values that might be affected by the perturbation analysis of the given rangeNode
+     * @param initial_output
+     * @param weighted If the nodes should be weighted or not
+     * @returns {*}
+     */
     Analysis.stringHypothesisTest = function (/*TreeNode*/ rangeNode, /*TreeNode*/ functionNode, /*FunctionOutput[]*/ boots, /*string*/ initial_output, /*bool*/ weighted) {
         var i, j, weight, xtree, score;
         //this range's input cells
@@ -179,26 +222,40 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
 
     };
 
-    Analysis.BootstrapFrequency = function (/*FunctionOutput<string>[]*/ boots) {
-        var counts = {}, i, key, count, p_values={};
+    /**
+     * Analyze the frequency of each string in the FunctionOutputs.
+     * @param boots
+     * @returns {{}} Returns an object with the string outputs as keys and their frequencies as values
+     * @constructor
+     */
+    Analysis.bootstrapFrequency = function (/*FunctionOutput<string>[]*/ boots) {
+        var counts = {}, i, key, count, p_values = {};
         for (i = 0; i < boots.length; i++) {
             key = boots[i].value;
             if ((count = counts[key] )) {
-                counts[key]=count+1;
+                counts[key] = count + 1;
             } else {
-                counts[key]=1;
+                counts[key] = 1;
             }
         }
-        for(var k in counts){
-            if (counts.hasOwnProperty(k)){
-                p_values[k]=counts[k]/boots.length;
+        for (var k in counts) {
+            if (counts.hasOwnProperty(k)) {
+                p_values[k] = counts[k] / boots.length;
             }
         }
         return p_values;
     };
 
+    /**
+     * Try to reject the null hypothesis string and number FunctionOutputs
+     * @param boots The function outputs to test
+     * @param original_output The original output we are comparing to
+     * @param exclude_index The index of the element of the input range that was excluded
+     * @returns {*}
+     */
     Analysis.rejectNullHypothesis = function (/*FunctionOutput[]*/ boots, /* string*/ original_output, /*int*/ exclude_index) {
         var boots_exc = [], i, j, p_val;
+        //For string outputs, reject if the originial_output appears in less than 5% of the cases
         if (typeof boots[0].value === "string") {
             // filter bootstraps which include exclude_index
             for (i = 0; i < boots.length; i++) {
@@ -208,12 +265,13 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                     }
                 }
             }
-            var freq = this.BootstrapFrequency(boots_exc);
+            var freq = this.bootstrapFrequency(boots_exc);
             if ((p_val = freq[original_output])) {
                 p_val = 0.0;
             }
             return p_val < 0.05;
         }
+        //For numeric outputs, reject if the original output is under the 2.5 quantile or above the 97.5 quantile
         else {
             for (i = 0; i < boots.length; i++) {
                 if (boots[i].excludes[exclude_index] != null) {
@@ -248,6 +306,15 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
 
     };
 
+    /**
+     * Perform the hypothesis tests and assign scores to the influence of each tree node's value
+     * @param input_rngs
+     * @param output_fns
+     * @param initial_outputs
+     * @param boots
+     * @param weighted
+     * @returns {*}
+     */
     Analysis.scoreInputs = function (/*TreeNode[]*/ input_rngs, /*TreeNode[]*/output_fns, /*<TreeNode, string>*/initial_outputs, /*FunctionOutput<string>[][][]*/ boots, /*bool*/ weighted) {
         var i, f, functionNode, rangeNode, s;
         //dict of exclusion scores for each input CELL TreeNode
@@ -272,6 +339,13 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return iexc_scores;
     };
 
+    /**
+     * Convert the <TreeNode, int> map to a <CellAddress, color> map.
+     * Assign a color to each score and cell by taking into account the scores of the other nodes in the map.
+     * @param input_exclusion_scores
+     * @returns {Array}
+     * @constructor
+     */
     Analysis.ColorOutliers = function (/*HashMap<TreeNode, int>*/input_exclusion_scores) {
         //find value of the max element. we use this to calibrate our scale
         var len, max_score, min_score, i, entrySet, outlierValue = "", color, outliers = [];
@@ -335,6 +409,11 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return true;
     };
 
+    /**
+     * Convert all the function outputs values to numbers
+     * @param boots
+     * @returns {*}
+     */
     Analysis.convertToNumericOutput = function (/*FunctionOutput<string>[]*/boots) {
         var b;
         for (b = 0; b < boots.length; b++) {
@@ -343,6 +422,15 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         return boots;
     };
 
+    /**
+     * Perform the numeric hypothesis test.
+     * @param rangeNode
+     * @param functionNode
+     * @param boots
+     * @param initial_output
+     * @param weighted
+     * @returns {*}
+     */
     Analysis.numericHypothesisTest = function (/*TreeNode*/ rangeNode, /*TreeNode*/ functionNode, /* FunctionOutput[]*/ boots, /*string*/ initial_output, /*bool*/ weighted) {
         var i, j, weight, outlieriness, score, xtree;
         var input_range = rangeNode.com.getCellMatrix();

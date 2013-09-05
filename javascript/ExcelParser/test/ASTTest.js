@@ -5,37 +5,37 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
         beforeEach(function () {
             address = new AST.Address(2, 3, "sheetName", "workbookName");
         });
-        it("CharColToInt", function () {
-            expect(AST.Address.CharColToInt("A")).toEqual(1);
-            expect(AST.Address.CharColToInt("z")).toEqual(26);
-            expect(AST.Address.CharColToInt("Aa")).toEqual(27);
-            expect(AST.Address.CharColToInt("AB")).toEqual(28);
+        it("charColToInt", function () {
+            expect(AST.Address.charColToInt("A")).toEqual(1);
+            expect(AST.Address.charColToInt("z")).toEqual(26);
+            expect(AST.Address.charColToInt("Aa")).toEqual(27);
+            expect(AST.Address.charColToInt("AB")).toEqual(28);
             expect(function () {
-                AST.Address.CharColToInt("A4");
+                AST.Address.charColToInt("A4");
             }).toThrow();
             expect(function () {
-                AST.Address.CharColToInt("");
+                AST.Address.charColToInt("");
             }).toThrow();
             expect(function () {
-                AST.Address.CharColToInt("%");
+                AST.Address.charColToInt("%");
             }).toThrow();
         });
         it("IntToCharCol", function () {
-            expect(AST.Address.IntToColChars(1)).toEqual("A");
-            expect(AST.Address.IntToColChars(26)).toEqual("Z");
-            expect(AST.Address.IntToColChars(27)).toEqual("AA");
-            expect(AST.Address.IntToColChars(28)).toEqual("AB");
+            expect(AST.Address.intToColChars(1)).toEqual("A");
+            expect(AST.Address.intToColChars(26)).toEqual("Z");
+            expect(AST.Address.intToColChars(27)).toEqual("AA");
+            expect(AST.Address.intToColChars(28)).toEqual("AB");
             expect(function () {
-                AST.Address.IntToColChars(-23);
+                AST.Address.intToColChars(-23);
             }).toThrow();
             expect(function () {
-                AST.Address.IntToColChars(0);
+                AST.Address.intToColChars(0);
             }).toThrow();
             expect(function () {
-                AST.Address.IntToColChars();
+                AST.Address.intToColChars();
             }).toThrow();
             expect(function () {
-                AST.Address.IntToColChars("as");
+                AST.Address.intToColChars("as");
             }).toThrow();
         });
 
@@ -52,33 +52,33 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
             expect(b.WorkbookName).toEqual("workbookName");
         });
 
-        it("A1Local", function () {
-            expect(address.A1Local()).toEqual("C2");
+        it("getA1Local", function () {
+            expect(address.getA1Local()).toEqual("C2");
         });
 
-        it("A1Worksheet", function () {
+        it("getA1Worksheet", function () {
             var a = new AST.Address(2, 3, null, "book");
             expect(function () {
-                a.A1Worksheet();
+                a.getA1Worksheet();
             }).toThrow();
-            expect(address.A1Worksheet()).toEqual("sheetName");
+            expect(address.getA1Worksheet()).toEqual("sheetName");
         });
-        it("A1Workbook", function () {
+        it("getA1Workbook", function () {
             var a = new AST.Address(2, 3, "sheet", null);
             expect(function () {
-                a.A1Workbook();
+                a.getA1Workbook();
             }).toThrow();
-            expect(address.A1Workbook()).toEqual("workbookName");
+            expect(address.getA1Workbook()).toEqual("workbookName");
         });
-        it("A1FullyQualified", function () {
-            expect(address.A1FullyQualified()).toEqual("[workbookName]sheetName!C2");
+        it("getA1FullyQualified", function () {
+            expect(address.getA1FullyQualified()).toEqual("[workbookName]sheetName!C2");
         });
-        it("R1C1", function () {
+        it("getR1C1", function () {
             var a = new AST.Address(2, 3, "sheet", null);
             var b = new AST.Address(2, 3, null, "book");
-            expect(address.R1C1()).toEqual("[workbookName]sheetName!R2C3");
-            expect(a.R1C1()).toEqual("sheet!R2C3");
-            expect(b.R1C1()).toEqual("[book]R2C3");
+            expect(address.getR1C1()).toEqual("[workbookName]sheetName!R2C3");
+            expect(a.getR1C1()).toEqual("sheet!R2C3");
+            expect(b.getR1C1()).toEqual("[book]R2C3");
         });
         it("getHashCode", function () {
             var a = new AST.Address(2, 3, "sheet", null);
@@ -92,23 +92,23 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
             }).toThrow();
         });
 
-        it("InsideRange", function () {
+        it("insideRange", function () {
             var rng = new AST.Range(new AST.Address(1, 1, "sheet", "book"), new AST.Address(5, 5, "sheet", "book"));
             var rng2 = new AST.Range(new AST.Address(4, 4, "sheet", "book"), new AST.Address(5, 5, "sheet", "book"));
-            expect(address.InsideRange(rng)).toEqual(true);
-            expect(address.InsideRange(rng2)).toEqual(false);
+            expect(address.insideRange(rng)).toEqual(true);
+            expect(address.insideRange(rng2)).toEqual(false);
         });
         it("InsideAddress", function () {
             var a = new AST.Address(1, 1, "sheet", "book");
             var b = new AST.Address(2, 3, "sheet", "book");
-            expect(address.InsideAddr(a)).toEqual(false);
-            expect(address.InsideAddr(b)).toEqual(true);
+            expect(address.insideAddr(a)).toEqual(false);
+            expect(address.insideAddr(b)).toEqual(true);
         });
         it("toString", function () {
             expect(address.toString()).toEqual("(2,3)");
         });
         //TODO
-        xit("GetCOMObject", function () {
+        xit("getCOMObject", function () {
 
         });
         //TODO
@@ -181,16 +181,16 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
         var parens;
         var parexpr;
         beforeEach(function () {
-            var expr = jasmine.createSpyObj('expr', ['Resolve', 'fixAssoc', 'compute']);
+            var expr = jasmine.createSpyObj('expr', ['resolve', 'fixAssoc', 'compute']);
             parens = new AST.ParensExpr("test");
             parexpr = new AST.ParensExpr(expr);
         });
         it("toString", function () {
             expect(parens.toString()).toEqual("ParensExpr(test)")
         });
-        it("Resolve", function () {
-            parexpr.Resolve({Name: "book"}, {Name: "sheet"});
-            expect(parexpr.Expr.Resolve).toHaveBeenCalled();
+        it("resolve", function () {
+            parexpr.resolve({Name: "book"}, {Name: "sheet"});
+            expect(parexpr.Expr.resolve).toHaveBeenCalled();
         });
         it("fixAssoc", function () {
             parexpr.fixAssoc();
@@ -206,16 +206,16 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
         var postfix;
         var postfix2;
         beforeEach(function () {
-            var expr = jasmine.createSpyObj('expr', ['Resolve', 'fixAssoc', 'compute']);
+            var expr = jasmine.createSpyObj('expr', ['resolve', 'fixAssoc', 'compute']);
             postfix = new AST.PostfixOpExpr("%", new AST.ConstantNumber(null, 123));
             postfix2 = new AST.PostfixOpExpr("%", expr);
         });
         it("toString", function () {
             expect(postfix.toString()).toEqual("PostfixOpExpr(\"%\",Constant(123))");
         });
-        it("Resolve", function () {
-            postfix2.Resolve({Name: "book"}, {Name: "sheet"});
-            expect(postfix2.Expr.Resolve).toHaveBeenCalled();
+        it("resolve", function () {
+            postfix2.resolve({Name: "book"}, {Name: "sheet"});
+            expect(postfix2.Expr.resolve).toHaveBeenCalled();
         });
         it("fixAssoc", function () {
             postfix2.fixAssoc();
@@ -234,27 +234,27 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
         it("toString", function () {
             expect(range.toString()).toEqual((new AST.Address(1, 1, "sheet", "book")).toString() + "," + (new AST.Address(5, 5, "sheet", "book")).toString());
         });
-        it("InsideRange", function () {
+        it("insideRange", function () {
             "use strict";
             var aux = new AST.Range(new AST.Address(2, 2, "sheet", "book"), new AST.Address(3, 3, "sheet", "book"));
-            expect(range.InsideRange(aux)).toEqual(false);
-            expect(aux.InsideRange(range)).toEqual(true);
+            expect(range.insideRange(aux)).toEqual(false);
+            expect(aux.insideRange(range)).toEqual(true);
         });
         //TODO
-        xit("InsideAddr", function () {
+        xit("insideAddr", function () {
 
         });
 
     });
 
     describe("Reference", function () {
-        it("Resolve", function () {
+        it("resolve", function () {
             var wb = {};
             wb.Name = "WbName";
             var ws = {};
             ws.Name = "WsName";
             var ref = new AST.Reference(null, null);
-            ref.Resolve(wb, ws);
+            ref.resolve(wb, ws);
             expect(ref.WorksheetName).toEqual("WsName");
             expect(ref.WorkbookName).toEqual("WbName");
         });

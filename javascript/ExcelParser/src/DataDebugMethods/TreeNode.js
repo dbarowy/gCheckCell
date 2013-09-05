@@ -8,7 +8,6 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
      * @param wb Workbook object associated with the node
      * @constructor
      */
-//TODO add functionality for charts
     function TreeNode(/*XRange*/com, /*XWorksheet*/ws, /*XWorkbook*/wb) {
         this.parents = []; //these are the TreeNodes that feed into the current cell
         this.children = []; //these are the TreeNodes that the current cell feeds into
@@ -37,10 +36,14 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
             this.is_formula = false;
         }
         this.weight = 0.0;
-        this.dont_perturb = true;
-        this.computed = true;
+        this.dont_perturb = true;  //True if we do not want to perform perturbation analysis
+        this.computed = true; //This is true if the value for the formula associated with this node has already been computed
+        //if a root node has computed set to a value, then all its children have the same value for computed
     }
 
+    /**
+     * Mark this node as computable i.e. it and all its parents have to be recomputed
+     */
     TreeNode.prototype.enableCompute = function () {
         var i;
         this.computed = false;
@@ -51,7 +54,9 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
         }
 
     };
-
+    /**
+     * Mark this node as computed.
+     */
     TreeNode.prototype.disableCompute = function () {
         var i;
         this.computed = true;

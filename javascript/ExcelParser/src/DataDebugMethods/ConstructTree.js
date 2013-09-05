@@ -1,12 +1,9 @@
-//TODO Cells that contain a formula and are part of a range and are not used directly anywhere else, are considered terminal outputs
-
 define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/HashMap", "DataDebugMethods/TreeNode", "Parser/Parser", "Parser/AST/AST"], function (ParserUtility, HashMap, TreeNode, Parser, AST) {
     "use strict";
     var ConstructTree = {};
     /**
      * This method constructs the dependency from from the workbook.
      * It analyzes formulas and looks for references to cells or ranges of cells.
-     *
      * @param analysisData
      * @param app
      */
@@ -46,7 +43,6 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
                 }
             }
         }
-        //ConstructTree.storeOutputs(analysisData);
     };
 
 
@@ -66,16 +62,6 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         return "digraph g{" + tree + "}";
 
     };
-    ConstructTree.generateGraphVizTree = function (/*HashMap*/nodes) {
-
-        var tree = "";
-        var i, entrySet = nodes.getEntrySet();
-        for (i = 0; i < entrySet.length; i++) {
-            tree += entrySet[i].value.toGVString() + "\n";
-        }
-        return "digraph g{" + tree + "}";
-    };
-
     /**
      * Return a bidimensional array of cells with formulas.
      * Each item in the array represents an array of cells with formulas from the same sheet.
@@ -105,15 +91,13 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         return analysisRanges;
     };
 
-    ConstructTree.countFormulaCells = function (/*XCell[][]*/ rs) {
-
-        var count = 0, i, len;
-        for (i = 0, len = rs.length; i < len; i++) {
-            count += rs[i].length;
-        }
-        return count;
-    };
 //Go through every sheet and create a node for every cell that contains a formula
+    /**
+     * Go through the array with formulas and create a node for every cell that contains a formula
+     * @param formulaRanges An array of arrays. Each second level array contains XRanges with formulas from the same sheet
+     * @param app Application context
+     * @returns {*}
+     */
     ConstructTree.createFormulaNodes = function (/*XRange[][]*/formulaRanges, /*XApplication*/app) {
         var wb = app.getActiveWorkbook();
         var treeDict = new HashMap();
@@ -139,10 +123,18 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
         return treeDict;
     };
 
+    /**
+     * Make a TreeNode from a range.
+     * @param analysis
+     * @param range The range to process
+     * @param formula_node The formula node that references this range
+     * @returns {null}
+     */
     ConstructTree.makeRangeTreeNode = function (/*AnalysisData*/analysis, /*XRange*/range, /*TreeNode*/formula_node) {
         var range_nodes = analysis.input_ranges, tn;
         var range_node = null, found = false, bookName, sheetName, addr, cell;
         var i, j, len, cellMatrix, range_name = range.Workbook.Name + "_" + range.Worksheet.Name + "_" + range.getA1Address();
+        //search for the node in the nodes that have been already created
         for (i = 0, len = range_nodes.length; i < len; i++) {
             if (range_nodes[i].name === range_name) {
                 found = true;
@@ -155,7 +147,8 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             range_nodes.push(range_node);
         }
         range_node.dont_perturb = range_node.com.containsFormula();
-        if (range_node.dont_perturb) {
+        //if the range contains formulas, get the cell with formulas and set them as children of this range node
+        if (range_node.dont_perturb && !found) {
             bookName = range.Workbook.Name;
             sheetName = range.Worksheet.Name;
             cellMatrix = range_node.com.getCellMatrix();

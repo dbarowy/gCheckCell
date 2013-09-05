@@ -1,4 +1,3 @@
-
 Int32 = s:[+-]?number:digit_sequence {return parseInt(s+number);} ;
 AsciiUpper = [A-Z];
 character = [^\ufffe-\uffff] ;
@@ -93,7 +92,7 @@ StringConstant = double_quote str:StringChars ? double_quote {return new AST.Con
 StringChars = res:(StringChar +){return res.join("");};
 StringChar=! double_quote c:character{return c;} / '""' {return '"';}; 
 /*
-TODO Maybe I can optimize this when I have time
+TODO Maybe I can optimize this
 */
 NumericalConstant = num:numerical_constant {return new AST.ConstantNumber(null, num);};
 numerical_constant = whole:digit_sequence st:full_stop frac:digit_sequence exp:(exponent_part ?) {return parseFloat(whole+st+frac+exp);}

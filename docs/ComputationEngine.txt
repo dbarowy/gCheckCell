@@ -1,0 +1,106 @@
+This document explains how the computation engine is implemented and how it should be used.
+
+Excel uses the following datatypes in its computations:
+- "String"
+- "Number"
+- "Date"
+- "Error"
+- "Boolean"
+
+Adding these datatypes helps keep track of the final result of the computation and the way it must by displayed. When the value of a cell is retrieved from the workbook representation, it is parsed and we try to determine it's type. Due to the different date formats that Google Spreadsheets offers for each country, I will provide support for en_US locale until I find a more general solution.
+
+How to implement an Excel function:
+1. Find the Excel specification for the formula in the Ecma Office Open XML Part 1 - Fundamentals and Markup Language Reference
+
+2. Create test cases for all the posssible combinations of input parameter types if possible, to determine the actual implementation Google Spreadsheets uses.
+Example: 
+SUM() = "#N/A"	//we have to have at least one parameter
+SUM(2,1)=3	//numbers are summed up
+SUM(NOW(),1)= NOW()+1 // dates are converted to numbers, summed and then converted back to a date
+SUM("2",1)=3	//strings that are representation of numbers are converted to numbers
+SUM(TRUE())=1	//True means 1 and false means 0 when summing up
+SUM(FALSE())=0
+SUM("dsad")="#VALUE!" //summing a string, returns #VALUE!
+
+3. Write the tests to test what you have found
+4. Write the code to comply with the tests
+
+Let's take a look at the code:
+app - Entry point to the application data
+source - the cell that contains the formula that we are computing
+array - whether this is an array formula or not
+range - this parameter is used when we need to get the full range of a reference, it is
+full_range - Some formulas return a range even when it is not an array formula: Ex RANK({1,2,3}, {1,2,3}) will return a range when it is the only formula in the range or when it is the parameter of a formula that accepts ranges. 
+    func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        var k, val, sum = 0, final_type = XTypes.Number, i, j, rng=false;
+        // If we don't have any parameters, return an error
+        if (args.length === 0) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        }
+        //otherwise, go through the parameter list and compute each parameter
+        for (k = 0; k < args.length; k++) {
+        //this function accepts ranges as parameters so we set full_range and range to true
+            val = args[k].compute(app, source, array, true, true);
+            //make everything into a matrix, to make the code more concise
+            if (!(val instanceof Array)) {
+                val = [
+                    [val]
+                ];
+            }
+            //iterate through the matrix and perform the neccessary conversions taking into account the type of the parameter
+            for (i = 0; i < val.length; i++) {
+                for (j = 0; j < val[i].length; j++) {
+                    switch (val[i][j].type) {
+                        case XTypes.Number:
+                        {
+                            sum += val[i][j].value;
+                        }
+                            break;
+                        case XTypes.Boolean:
+                        {
+                            sum += val[i][j].value;
+
+                        }
+                            break;
+                        case XTypes.Date:
+                        {
+                            sum += Util.getNumberFromDate(val[i][j].value);
+                            final_type = XTypes.Date;
+                        }
+                            break;
+
+                        case XTypes.String:
+                        {
+                            if (isFinite(val[i][j].value) && val[i][j].value != "") {
+                                sum += (+val[i][j].value);
+
+                            } else {
+                                return func._returnError(new XTypedValue("#VALUE!", XTypes.Error), array);
+                            }
+                        }
+                            break;
+                        case XTypes.Error:
+                        {
+                            return func._returnError(val[i][j], array);
+
+                        }
+                    }
+                }
+            }
+        }
+        //if we encounter a date, we must return a date
+         if(final_type == XTypes.Date){
+            sum = Util.getDateFromNumber(sum);
+        }
+        sum = new XTypedValue(sum, final_type);
+        if (array) {
+            return [
+                [sum]
+            ];
+        } else {
+            return sum;
+        }
+    };
+
+Now the bad news:
+This type system is a very basic implementation because I did not have any knowledge of how to implement a real one. I know it is not as elegant as it could have been, but it works.

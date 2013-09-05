@@ -1,0 +1,6 @@
+This document contains information about the PEGParser implementation and the grammar.
+
+The implementation of the PEGParser can be found in oldExcelGrammar.pegjs .
+The grammar is based on the Formula grammar from section 18.17 specified in Ecma Office Open XML Part 1 - Fundamentals and Markup Language Reference 4th edition, found at http://www.ecma-international.org/publications/standards/Ecma-376.htm .
+The current implementation doesn't provide support for the space and comma operators, for spaces in between expressions and full row and column references.
+

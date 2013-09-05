@@ -137,9 +137,9 @@ define(["XClasses/XApplication", "Parser/AST/AST", "Utilities/Profiler", "DataDe
         expect(d3.get(new AST.Address(25, 6, "sheet1", "book1"))).toBeUndefined();
     });
 
-    describe("BootstrapFrequency", function () {
+    describe("bootstrapFrequency", function () {
         var boots = [new FunctionOutput("aa", {}), new FunctionOutput("cd", {}), new FunctionOutput("ab", {}), new FunctionOutput("aa", {})];
-        var res = Analysis.BootstrapFrequency(boots);
+        var res = Analysis.bootstrapFrequency(boots);
         expect(res["aa"]).toEqual(0.5);
         expect(res["cd"]).toEqual(0.25);
         expect(res["ab"]).toEqual(0.25);

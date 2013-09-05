@@ -1,0 +1,11 @@
+This document contains information about the implementation of the tree construction.
+
+Algorithm:
+	1. Scan every sheet in the active workbook
+	2. F each cell containing a formula create a TreeNode.
+	3. Parse the formula to find references to other cells or ranges of cells.
+	4. For each reference:
+		a) If the references referes to a range, create (or retrieve) a data range node and make it the child of the formula node. If the range contains cells with formulas, mark it as dont_perturb and add the range node as a parent of the cell node containing the formula. 
+		b) If the reference refers to a single cell that doesn't contain a formula, do not do anything
+		c) If the references refers to a formula, create (or retrieve) a formula node and make it the child of the formula node
+	

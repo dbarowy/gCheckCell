@@ -1,5 +1,5 @@
 /**
- * Represent a range that is used as an input sample.
+ * Represents a range that is used as an input sample.
  */
 define("DataDebugMethods/InputSample", function () {
     "use strict";

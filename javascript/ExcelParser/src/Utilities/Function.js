@@ -216,7 +216,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
      * @constructor
      */
     func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var k, val, sum = 0, final_type = XTypes.Number, i, j, rng=false;
+        var k, val, sum = 0, final_type = XTypes.Number, i, j, rng = false;
         if (args.length === 0) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         }
@@ -267,6 +267,9 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                     }
                 }
             }
+        }
+        if (final_type == XTypes.Date) {
+            sum = Util.getDateFromNumber(sum);
         }
         sum = new XTypedValue(sum, final_type);
         if (array) {
