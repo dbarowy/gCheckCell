@@ -59,22 +59,23 @@ define("Utilities/Util", ["XClasses/XTypedValue", "XClasses/XTypes"], function (
             return "FALSE";
         }
     };
-    //TODO Unimplemented
+
     Util.getNumberFromDate = function (/*Date*/date) {
         if (date instanceof Date) {
-            return 0;
+            return (date - (new Date(1899,11,30)))/86400000;
         } else {
             throw new Error("This is not a date" + date);
         }
 
     };
-    //TODO
+
     Util.getStringFromDate = function (/*Date*/date) {
         return date.toLocaleString();
     };
-    //TODO
+
+
     Util.getDateFromNumber = function (/*Number*/nr) {
-        return new Date();
+        return new Date((nr*86400000)+(+new Date(1899,11,30)));
     };
     return Util;
 })

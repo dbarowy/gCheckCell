@@ -3,7 +3,7 @@
  * This class is used to represent expressions with prefix operators.
  * Example: -A2, +a5, -3
  */
-define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes"], function (XTypes) {
+define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes", "Utilities/Util"], function (XTypes,Util) {
     "use strict";
     function UnaryOpExpr(/*char*/op, /*Expression*/expr) {
         this.Expr = expr;
@@ -50,7 +50,7 @@ define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes"], function (XTypes) {
                         switch (val[i][j].type) {
                             case XTypes.Date:
                             {
-                                val[i][j].value = -Parser.getNumberFromDate(val[i][j].value);
+                                val[i][j].value = -Util.getNumberFromDate(val[i][j].value);
                                 val[i][j].type = XTypes.Number;
                             }
                                 break;
@@ -63,12 +63,13 @@ define("Parser/AST/UnaryOpExpr", ["XClasses/XTypes"], function (XTypes) {
                             case XTypes.Number:
                             {
                                 val[i][j].value = -val[i][j].value;
+                                val[i][j].type = XTypes.Number;
                             }
                                 break;
                             case XTypes.String:
                             {
                                 if (isFinite(val[i][j].value)) {
-                                    val[i][j].value = -val[i][j];
+                                    val[i][j].value = -(+val[i][j].value);
                                     val[i][j].type = XTypes.Number;
                                 } else {
                                     val[i][j].value = "#VALUE!";

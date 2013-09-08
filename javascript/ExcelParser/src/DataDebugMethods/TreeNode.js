@@ -81,7 +81,6 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
     };
     /**
      * Get the GraphViz representation of this node.
-     * TODO Some characters are illegal in this representation. Determine which characters are illegal and remove them.
      * @returns {string}
      */
     TreeNode.prototype.toGVString = function () {

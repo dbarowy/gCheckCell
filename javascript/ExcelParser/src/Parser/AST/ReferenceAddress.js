@@ -1,4 +1,3 @@
-//TODO Circular dependency
 define("Parser/AST/ReferenceAddress", ["FSharp/FSharp", "Parser/AST/Reference", "Parser/AST/ReferenceRange"], function (FSharp, Reference, ReferenceRange) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {

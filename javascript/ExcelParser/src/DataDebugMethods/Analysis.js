@@ -44,7 +44,8 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             com = inputs[i].com;
             s.addArray(com.getValues());
             d.put(inputs[i], s);
-            BootMemo.ReplaceExcelRange(com, s)
+            //TODO
+           // BootMemo.replaceExcelRange(com, s)
         }
         return d;
     };

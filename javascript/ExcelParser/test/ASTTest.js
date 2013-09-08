@@ -1,4 +1,4 @@
-define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, FSharp, XTypes) {
+define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" , "Parser/Parser", "XClasses/XTypedValue"], function (AST, FSharp, XTypes, Parser, XTypedValue) {
 
     describe('Address test', function () {
         var address;
@@ -107,25 +107,8 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
         it("toString", function () {
             expect(address.toString()).toEqual("(2,3)");
         });
-        //TODO
-        xit("getCOMObject", function () {
-
-        });
-        //TODO
-        xit("compute", function () {
-
-        });
     });
 
-    //TODO
-    xdescribe("ConstantArray", function () {
-        it("Constructor", function () {
-            var a = new AST.ConstantArray("sheet", [
-                [new AST.ConstantNumber("sheet", 123)]
-            ]);
-
-        });
-    });
     describe("ConstantError", function () {
         var err;
         beforeEach(function () {
@@ -240,10 +223,6 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
             expect(range.insideRange(aux)).toEqual(false);
             expect(aux.insideRange(range)).toEqual(true);
         });
-        //TODO
-        xit("insideAddr", function () {
-
-        });
 
     });
 
@@ -277,8 +256,543 @@ define(["Parser/AST/AST", "FSharp/FSharp", "XClasses/XTypes" ], function (AST, F
         });
     });
 
-    //TODO
-    xdescribe("BinOpExpr", function () {
+
+    describe("BinOpExpr", function () {
+        it("Addition", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2+3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(5, XTypes.Number));
+            expect(Parser.parseFormula("=2+\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(5, XTypes.Number));
+            expect(Parser.parseFormula("=2+TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(3, XTypes.Number));
+            expect(Parser.parseFormula("=2+DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 2), XTypes.Date));
+            expect(Parser.parseFormula("=2+\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2+\"\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2+#N/A", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE+3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(4, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE+\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(4, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE+\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=TRUE+TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE+FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE+DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 1), XTypes.Date));
+            expect(Parser.parseFormula("=TRUE+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"+3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(5, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"+\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(5, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"+\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"2\"+DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 2), XTypes.Date));
+            expect(Parser.parseFormula("=\"2\"+TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(3, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"+3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(3, XTypes.Number));
+            expect(Parser.parseFormula("=\"das\"+3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"a\"+\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsa\"+\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"das\"+DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fasfa\"+TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsafsa\"+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)+1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 1), XTypes.Date));
+            expect(Parser.parseFormula("=DATE(1900,0,31)+TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 1), XTypes.Date));
+            expect(Parser.parseFormula("=DATE(1900,0,31)+\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 1), XTypes.Date));
+            expect(Parser.parseFormula("=DATE(1900,0,31)+\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)+DATE(1900,0,31)+DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 2), XTypes.Date));
+
+            expect(Parser.parseFormula("=#N/A+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+        });
+        it("Subtraction", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2-3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-1, XTypes.Number));
+            expect(Parser.parseFormula("=2-\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-1, XTypes.Number));
+            expect(Parser.parseFormula("=2-TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=2-DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=2-\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2-\"\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2-#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2-#N/A", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE-3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-2, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE-\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-2, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE-\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=TRUE-TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE-FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE-DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE-#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"-3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-1, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"-\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-1, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"-\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"2\"-DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"-TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"-#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"-3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-3, XTypes.Number));
+            expect(Parser.parseFormula("=\"das\"-3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"a\"-\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsa\"-\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"das\"-DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fasfa\"-TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsafsa\"-#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)-2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1899, 11, 29), XTypes.Date));
+            expect(Parser.parseFormula("=DATE(1900,0,31)-TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1899, 11, 30), XTypes.Date));
+            expect(Parser.parseFormula("=DATE(1900,0,31)-\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1899, 11, 30), XTypes.Date));
+            expect(Parser.parseFormula("=DATE(1900,0,31)-\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)-#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)-DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+
+            expect(Parser.parseFormula("=#N/A-#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+        });
+        it("Multiplication", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2*3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(6, XTypes.Number));
+            expect(Parser.parseFormula("=2*\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(6, XTypes.Number));
+            expect(Parser.parseFormula("=2*TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2*DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2*\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2*\"\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=2*#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2*#N/A", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+            expect(Parser.parseFormula("=TRUE*3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(3, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE*\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(3, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE*\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=TRUE*TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE*FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE*DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE*#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"*3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(6, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"*\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(6, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"*\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"2\"*DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"*TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"*#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"*3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=\"das\"*3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"a\"*\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsa\"*\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"das\"*DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fasfa\"*TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsafsa\"*#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)*1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)*TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)*\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)*\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)*#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)*DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+
+            expect(Parser.parseFormula("=#N/A+#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+        });
+
+        it("Division", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2/3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2 / 3, XTypes.Number));
+            expect(Parser.parseFormula("=2/\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2 / 3, XTypes.Number));
+            expect(Parser.parseFormula("=2/TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2/DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2/\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2/\"\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#DIV/0!", XTypes.Error));
+            expect(Parser.parseFormula("=2/#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2/#N/A", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+            expect(Parser.parseFormula("=TRUE/3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1 / 3, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE/\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1 / 3, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE/\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=TRUE/TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE/FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#DIV/0!", XTypes.Error));
+            expect(Parser.parseFormula("=TRUE/DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE/#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"/3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2 / 3, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"/\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2 / 3, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"/\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"2\"/DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"/TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"/#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"/3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=\"das\"/3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"a\"/\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsa\"/\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"das\"/DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fasfa\"/TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsafsa\"/#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)/1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)/TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)/\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)/\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)/#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)/DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+
+            expect(Parser.parseFormula("=#N/A/#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("Power", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2^3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(8, XTypes.Number));
+            expect(Parser.parseFormula("=2^\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(8, XTypes.Number));
+            expect(Parser.parseFormula("=2^TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2^DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=2^\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2^\"\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=2^#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2^#N/A", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+            expect(Parser.parseFormula("=TRUE^3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE^\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE^\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=TRUE^TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE^FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE^DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=TRUE^#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"^3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(8, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"^\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(8, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"^\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"2\"^DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"^TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=\"2\"^#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"^3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=\"das\"^3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"a\"^\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsa\"^\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"das\"^DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fasfa\"^TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"fsafsa\"^#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)^1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)^TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)^\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=DATE(1900,0,31)^\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)^#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)^DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+
+            expect(Parser.parseFormula("=#N/A^#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("Concatenation", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2&3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("23", XTypes.String));
+            expect(Parser.parseFormula("=2&\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("23", XTypes.String));
+            expect(Parser.parseFormula("=2&TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("2TRUE", XTypes.String));
+            expect(Parser.parseFormula("=2&DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2 + (new Date(1899, 11, 31)).toLocaleString(), XTypes.String));
+            expect(Parser.parseFormula("=2&\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("2dsa", XTypes.String));
+            expect(Parser.parseFormula("=2&\"\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("2", XTypes.String));
+            expect(Parser.parseFormula("=2&#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=2&#N/A", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+
+            expect(Parser.parseFormula("=TRUE&3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("TRUE3", XTypes.String));
+            expect(Parser.parseFormula("=TRUE&\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("TRUE3", XTypes.String));
+            expect(Parser.parseFormula("=TRUE&\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("TRUEdsa", XTypes.String));
+            expect(Parser.parseFormula("=TRUE&TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("TRUETRUE", XTypes.String));
+            expect(Parser.parseFormula("=TRUE&FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("TRUEFALSE", XTypes.String));
+            expect(Parser.parseFormula("=TRUE&DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("TRUE" + (new Date(1899, 11, 31)).toLocaleString(), XTypes.String));
+            expect(Parser.parseFormula("=TRUE&#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"&3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("23", XTypes.String));
+            expect(Parser.parseFormula("=\"2\"&\"3\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("23", XTypes.String));
+            expect(Parser.parseFormula("=\"2\"&\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("2dsa", XTypes.String));
+            expect(Parser.parseFormula("=\"2\"&DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("2" + (new Date(1899, 11, 31)).toLocaleString(), XTypes.String));
+            expect(Parser.parseFormula("=\"2\"&TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("2TRUE", XTypes.String));
+            expect(Parser.parseFormula("=\"2\"&#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"&3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("3", XTypes.String));
+            expect(Parser.parseFormula("=\"das\"&3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("das3", XTypes.String));
+            expect(Parser.parseFormula("=\"a\"&\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("a2", XTypes.String));
+            expect(Parser.parseFormula("=\"fsa\"&\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("fsadsa", XTypes.String));
+            expect(Parser.parseFormula("=\"das\"&DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("das" + (new Date(1899, 11, 31)).toLocaleString(), XTypes.String));
+            expect(Parser.parseFormula("=\"fasfa\"&TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("fasfaTRUE", XTypes.String));
+            expect(Parser.parseFormula("=\"fsafsa\"&#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)&1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue((new Date(1899, 11, 31)).toLocaleString() + 1, XTypes.String));
+            expect(Parser.parseFormula("=DATE(1900,0,31)&TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue((new Date(1899, 11, 31)).toLocaleString() + "TRUE", XTypes.String));
+            expect(Parser.parseFormula("=DATE(1900,0,31)&\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue((new Date(1899, 11, 31)).toLocaleString() + "1", XTypes.String));
+            expect(Parser.parseFormula("=DATE(1900,0,31)&\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue((new Date(1899, 11, 31)).toLocaleString() + "dsa", XTypes.String));
+            expect(Parser.parseFormula("=DATE(1900,0,31)&#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)&DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue((new Date(1899, 11, 31)).toLocaleString() + (new Date(1899, 11, 31)).toLocaleString(), XTypes.String));
+
+            expect(Parser.parseFormula("=#N/A&#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("Equal", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2=2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=1=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=0=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2=\"sda\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=FALSE=0", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"=2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"das\"=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"a\"=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"fsa\"=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"das\"=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"fasfa\"=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"fsafsa\"=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=#N/A=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("Different", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2<>3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<>2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<>\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=1<>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=0<>FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<>\"sda\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE<>1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=FALSE<>0", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<>\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<>\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<>TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<>FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"<>2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<>\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<>\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"<>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"<>TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"\"<>3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"das\"<>3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"a\"<>\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"fsa\"<>\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"das\"<>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"fasfa\"<>TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"fsafsa\"<>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)<>1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<>TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<>\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<>\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=#N/A<>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("LessOrEqual", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2<=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<=2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=1<=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=3<=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=0<=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=1<=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<=\"sda\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE<=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=FALSE<=0", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"<=2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"3\"<=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"<=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"<=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"\"<=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)<=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=#N/A<=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("GreaterOrEqual", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2>=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>=2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=1>=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=3>=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=0>=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=1>=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>=\"sda\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE>=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=FALSE>=0", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>=FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\">=2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\">=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"3\">=\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\">=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\">=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\">=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\">=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"\">=3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)>=1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>=TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>=\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>=\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>=DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=#N/A<=#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("Less", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2<3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=0<DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=3<DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=0<FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=1<FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<\"sda\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2<#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE<1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=FALSE<0", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE<#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\"<2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"3\"<\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"<DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\"<TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\"<#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"\"<3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)<1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)<DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=#N/A<#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
+
+        it("Greater", function () {
+            var wb = {Name: "book"};
+            var ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=2>3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=0>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=3>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=0>FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=1>FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>\"sda\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=2>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=TRUE>1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=FALSE>0", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>FALSE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=TRUE>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=\"2\">2", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\">\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"3\">\"2\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\">\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\">DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"1\">TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=\"2\">#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=\"\">3", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(true, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=DATE(1900,0,31)>1", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>TRUE", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>\"1\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>\"dsa\"", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=DATE(1900,0,31)>DATE(1900,0,31)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(false, XTypes.Boolean));
+
+            expect(Parser.parseFormula("=#N/A>#VALUE!", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+        });
 
     });
 

@@ -534,9 +534,5 @@ define(["Parser/PEGParser", "Parser/AST/AST", "FSharp/FSharp"], function (PEGPar
             }).toThrow();
         });
     });
-    //TODO
-    xdescribe("Expression", function () {
-
-    });
 
 });

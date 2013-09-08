@@ -245,18 +245,21 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
             throw new Error("Could not find the given range");
         },
         /**
-         * TODO Comment some more
          * Finish the initialization of the environment and start the computation engine.
          * @param analysis
          */
         startEngine: function (analysis) {
             var i, j, k, cellMatrix, ranges, hash, len;
             var input_ranges = analysis.input_ranges;
+            //we monitor the terminal formula nodes
             this._terminal_formulas = analysis.getTerminalFormulaNodes();
-            //Extract the formulas
+            //Analyze the formulas in the workbooks and extract named and imported range functions
             for (i = 0, len = this._workbooks.length; i < len; i++) {
                 this._extractFormulas(this._workbooks[i], analysis);
             }
+            //Analyze the input ranges
+            //for each range that can be perturbed, create a leaf node for each cell
+            //Each time a leaf node is modified, we send the info up through the tree
             for (k = 0; k < input_ranges.length; k++) {
                 if (input_ranges[k].dont_perturb == false) {
                     cellMatrix = input_ranges[k].com.getCellMatrix();

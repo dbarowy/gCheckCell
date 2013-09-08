@@ -104,8 +104,10 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
             switch (this.Operator) {
                 case "+":
                 {
+
                     for (i = 0; i < maxRows; i++) {
                         for (j = 0; j < maxCols; j++) {
+
                             switch (l[i][j].type) {
                                 case XTypes.Number:
                                 {
@@ -127,7 +129,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(r[i][j].value) + l[i][j]);
+                                            l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(r[i][j].value) + l[i][j].value);
                                             l[i][j].type = XTypes.Date;
                                         }
                                             break;
@@ -147,6 +149,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                     break;
                                 case XTypes.Date:
                                 {
+
                                     switch (r[i][j].type) {
                                         case XTypes.Number:
                                         {
@@ -156,7 +159,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = Util.getDateFromNumber(Util.getNumberFromDate(l[i][j].value) + (+r[i][j].value));
+                                                l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(l[i][j].value) + (+r[i][j].value));
                                             } else {
                                                 l[i][j].value = "#VALUE!";
                                                 l[i][j].type = XTypes.Error;
@@ -193,7 +196,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = l[i][j].value + (+r[i][j].value);
+                                                l[i][j].value = l[i][j].value + (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -238,7 +241,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
-                                                l[i][j] = (+l[i][j].value) + (+r[i][j].value);
+                                                l[i][j].value = (+l[i][j].value) + (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -306,8 +309,8 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(r[i][j].value) - l[i][j]);
-                                            l[i][j].type = XTypes.Date;
+                                            l[i][j].value = l[i][j].value-Util.getNumberFromDate(r[i][j].value) ;
+                                            l[i][j].type = XTypes.Number;
                                         }
                                             break;
                                         case XTypes.Boolean:
@@ -330,12 +333,13 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Number:
                                         {
                                             l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(l[i][j].value) - r[i][j].value);
+
                                         }
                                             break;
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = Util.getDateFromNumber(Util.getNumberFromDate(l[i][j].value) - (+r[i][j].value));
+                                                l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(l[i][j].value) - (+r[i][j].value));
                                             } else {
                                                 l[i][j].value = "#VALUE!";
                                                 l[i][j].type = XTypes.Error;
@@ -373,7 +377,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = l[i][j].value - (+r[i][j].value);
+                                                l[i][j].value = l[i][j].value - (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -383,8 +387,8 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(r[i][j].value) - l[i][j].value);
-                                            l[i][j].type = XTypes.Date;
+                                            l[i][j].value = l[i][j].value-Util.getNumberFromDate(r[i][j].value);
+                                            l[i][j].type = XTypes.Number;
                                         }
                                             break;
                                         case XTypes.Boolean:
@@ -418,7 +422,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
-                                                l[i][j] = (+l[i][j].value) - (+r[i][j].value);
+                                                l[i][j].value = (+l[i][j].value) - (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -429,8 +433,8 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Date:
                                         {
                                             if (isFinite(l[i][j].value)) {
-                                                l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(r[i][j].value) - (+l[i][j].value));
-                                                l[i][j].type = XTypes.Date;
+                                                l[i][j].value = (+l[i][j].value)-Util.getNumberFromDate(r[i][j].value);
+                                                l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
                                                 l[i][j].type = XTypes.Error;
@@ -476,8 +480,9 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.String:
                                         {
+
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j].value *= (+r[i][j].value);
+                                                l[i][j].value =   l[i][j].value* (+r[i][j].value);
                                             } else {
                                                 l[i][j].value = "#VALUE!";
                                                 l[i][j].type = XTypes.Error;
@@ -486,7 +491,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            l[i][j].value = Util.getNumberFromDate(r[i][j].value) * l[i][j];
+                                            l[i][j].value = Util.getNumberFromDate(r[i][j].value) * l[i][j].value;
                                             l[i][j].type = XTypes.Number;
                                         }
                                             break;
@@ -516,7 +521,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = Util.getNumberFromDate(l[i][j].value) * (+r[i][j].value);
+                                                l[i][j].value = Util.getNumberFromDate(l[i][j].value) * (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -556,7 +561,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = l[i][j].value * (+r[i][j].value);
+                                                l[i][j].value = l[i][j].value * (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -601,7 +606,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
-                                                l[i][j] = (+l[i][j].value) * (+r[i][j].value);
+                                                l[i][j].value = (+l[i][j].value) * (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -678,7 +683,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            l[i][j].value = l[i][j] / Util.getNumberFromDate(r[i][j].value);
+                                            l[i][j].value = l[i][j].value / Util.getNumberFromDate(r[i][j].value);
                                             l[i][j].type = XTypes.Number;
                                             if (!isFinite(l[i][j].value)) {
                                                 l[i][j].value = "#DIV/0!";
@@ -720,7 +725,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = Util.getNumberFromDate(l[i][j].value) / (+r[i][j].value);
+                                                l[i][j].value = Util.getNumberFromDate(l[i][j].value) / (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                                 if (!isFinite(l[i][j].value)) {
                                                     l[i][j].value = "#DIV/0!";
@@ -776,7 +781,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = l[i][j].value / (+r[i][j].value);
+                                                l[i][j].value = l[i][j].value / (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                                 if (!isFinite(l[i][j].value)) {
                                                     l[i][j].value = "#DIV/0!";
@@ -838,7 +843,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
-                                                l[i][j] = (+l[i][j].value) / (+r[i][j].value);
+                                                l[i][j].value = (+l[i][j].value) / (+r[i][j].value);
                                                 l[i][j].type = XTypes.Number;
                                                 if (!isFinite(l[i][j].value)) {
                                                     l[i][j].value = "#DIV/0!";
@@ -948,7 +953,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = Math.pow(Util.getNumberFromDate(l[i][j].value), (+r[i][j].value));
+                                                l[i][j].value = Math.pow(Util.getNumberFromDate(l[i][j].value), (+r[i][j].value));
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -988,7 +993,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value)) {
-                                                l[i][j] = Math.pow(l[i][j].value, (+r[i][j].value));
+                                                l[i][j].value = Math.pow(l[i][j].value, (+r[i][j].value));
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -1033,7 +1038,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.String:
                                         {
                                             if (isFinite(r[i][j].value) && isFinite(l[i][j].value)) {
-                                                l[i][j] = Math.pow((+l[i][j].value), (+r[i][j].value));
+                                                l[i][j].value = Math.pow((+l[i][j].value), (+r[i][j].value));
                                                 l[i][j].type = XTypes.Number;
                                             } else {
                                                 l[i][j].value = "#VALUE!";
@@ -1142,7 +1147,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Boolean:
                                         {
                                             l[i][j].value = Util.getStringFromDate(l[i][j].value) + Util.boolToString(r[i][j].value);
-                                            l[i][j].type = XTypes.Number;
+                                            l[i][j].type = XTypes.String;
                                         }
                                             break;
                                         case XTypes.Error:
@@ -1283,7 +1288,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.String:
                                         {
-                                            //TODO Not really sure of this
                                             l[i][j].value = false;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -1360,7 +1364,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            //TODO
                                             l[i][j].value = false;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -1416,7 +1419,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Boolean:
                                         {
                                             l[i][j].value = true;
-                                            l[i][j].type = XTypes.String;
+                                            l[i][j].type = XTypes.Boolean;
 
                                         }
                                             break;
@@ -1439,7 +1442,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.String:
                                         {
-                                            //TODO Not really sure of this
                                             l[i][j].value = true;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -1516,7 +1518,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            //TODO
                                             l[i][j].value = true;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -1572,7 +1573,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Boolean:
                                         {
                                             l[i][j].value = true;
-                                            l[i][j].type = XTypes.String;
+                                            l[i][j].type = XTypes.Boolean;
 
                                         }
                                             break;
@@ -1671,7 +1672,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            //TODO
                                             l[i][j].value = false;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -1727,7 +1727,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Boolean:
                                         {
                                             l[i][j].value = false;
-                                            l[i][j].type = XTypes.String;
+                                            l[i][j].type = XTypes.Boolean;
 
                                         }
                                             break;
@@ -1826,7 +1826,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            //TODO
                                             l[i][j].value = true;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -1882,7 +1881,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Boolean:
                                         {
                                             l[i][j].value = false;
-                                            l[i][j].type = XTypes.String;
+                                            l[i][j].type = XTypes.Boolean;
 
                                         }
                                             break;
@@ -1981,7 +1980,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            //TODO
                                             l[i][j].value = true;
                                             l[i][j].type = XTypes.Boolean;
                                         }
@@ -2037,7 +2035,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                         case XTypes.Boolean:
                                         {
                                             l[i][j].value = true;
-                                            l[i][j].type = XTypes.String;
+                                            l[i][j].type = XTypes.Boolean;
 
                                         }
                                             break;
@@ -2136,7 +2134,6 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                             break;
                                         case XTypes.Date:
                                         {
-                                            //TODO
                                             l[i][j].value = false;
                                             l[i][j].type = XTypes.Boolean;
                                         }

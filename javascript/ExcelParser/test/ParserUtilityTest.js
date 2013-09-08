@@ -65,24 +65,13 @@ define(["Parser/ParserUtility", "Parser/AST/AST", "Parser/PEGParser"], function 
 
         it("GetSCRanges", function () {
             expect(ParserUtility.getSCRanges(PEGParser.parse("$A$2:$A3", "Reference"))).toEqual([]);
-            //TODO When  you implement support for named ranges do this
-            //  xexpect(ParserUtility.getSCRanges(PEGParser.parse("_dsadsa", "Reference"))).toEqual([]);
-            expect(ParserUtility.getSCRanges(PEGParser.parse("232", "Constant"))).toEqual([]);
+           expect(ParserUtility.getSCRanges(PEGParser.parse("232", "Constant"))).toEqual([]);
             expect(ParserUtility.getSCRanges(PEGParser.parse("\"asdsa\"", "Constant"))).toEqual([]);
             expect(ParserUtility.getSCRanges(PEGParser.parse("$A2", "Reference"))).toEqual([new AST.Address(2, 1, null, null)]);
             expect(function () {
                 ParserUtility.getSCRanges({});
             }).toThrow();
         });
-        //TODO
-        xit("GetSingleCellReferencesFromFormula", function () {
-
-        });
-
-        xit("GetReferencesFromFormula", function () {
-
-        });
-
 
     });
 });
