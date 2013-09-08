@@ -1,4 +1,4 @@
-define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", "XClasses/XLogger", "XClasses/XTypes", "XClasses/XTypedValue", "Utilities/Util"], function (Formula, ConstantString, XLogger, XTypes, XTypedValue, Util) {
+define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger", "XClasses/XTypes", "XClasses/XTypedValue", "Utilities/Util"], function (require, Formula, XLogger, XTypes, XTypedValue, Util) {
     "use strict";
     var func = {};
     func._isError = function (value) {
@@ -740,7 +740,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.String:
                         {
-                            if (isFinite(val[i][j].value) && val[i][j].value != "") {
+                            if (isFinite(val[i][j].value)) {
                                 val[i][j].value = Math.atan(+val[i][j].value);
                                 val[i][j].type = XTypes.Number;
                             }
@@ -761,218 +761,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
             }
         }
     };
-    /**
-     * @returns {*}
-     * @constructor
-     */
-    func.ATAN2 = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var l, r, i, j, maxRows, maxCols;
-        if (args.length !== 2) {
-            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else {
-            l = args[0].compute(app, source, array, false, false);
-            r = args[1].compute(app, source, array, false, false);
-            if (!array) {
-                l = [
-                    [l]
-                ];
-                r = [
-                    [r]
-                ];
-            }
-            maxRows = l.length > r.length ? l.length : r.length;
-            maxCols = l[0].length > r[0].length ? l[0].length : r[0].length;
-            Util.adjustMatrix(l, maxRows, maxCols);
-            Util.adjustMatrix(r, maxRows, maxCols);
-            for (i = 0; i < maxRows; i++) {
-                for (j = 0; j < maxCols; j++) {
-                    switch (l[i][j].type) {
-                        case XTypes.Number:
-                        {
-                            switch (r[i][j].type) {
-                                case XTypes.Number:
-                                {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
-                                }
-                                    break;
-                                case XTypes.Date:
-                                {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
 
-                                }
-                                    break;
-                                case XTypes.Boolean:
-                                {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
-                                }
-                                    break;
-                                case XTypes.String:
-                                {
-                                    if (isFinite(r[i][j].value) && r[i][j].value != "") {
-                                        l[i][j].value = Formula.ATAN2(l[i][j].value, +r[i][j].value);
-                                    } else {
-                                        l[i][j].value = "#VALUE!";
-                                        l[i][j].type = XTypes.Error;
-                                    }
-                                }
-                                    break;
-                                case XTypes.Error:
-                                {
-                                    l[i][j].value = r[i][j].value;
-                                    l[i][j].type = XTypes.Error;
-                                }
-                                    break;
-                            }
-
-                        }
-                            break;
-                        case XTypes.Date:
-                        {
-                            switch (r[i][j].type) {
-                                case XTypes.Number:
-                                {
-                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), r[i][j].value);
-                                    l[i][j].type = XTypes.Number;
-                                }
-                                    break;
-                                case XTypes.Date:
-                                {
-                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), Util.getNumberFromDate(r[i][j].value));
-                                    l[i][j].type = XTypes.Number;
-
-                                }
-                                    break;
-                                case XTypes.Boolean:
-                                {
-                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), r[i][j].value);
-                                    l[i][j].type = XTypes.Number;
-                                }
-                                    break;
-                                case XTypes.String:
-                                {
-                                    if (isFinite(r[i][j].value) && r[i][j].value != "") {
-                                        l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), +r[i][j].value);
-                                        l[i][j].type = XTypes.Number;
-                                    } else {
-                                        l[i][j].value = "#VALUE!";
-                                        l[i][j].type = XTypes.Error;
-                                    }
-                                }
-                                    break;
-                                case XTypes.Error:
-                                {
-                                    l[i][j].value = r[i][j].value;
-                                    l[i][j].type = XTypes.Error;
-                                }
-                                    break;
-                            }
-
-                        }
-                            break;
-                        case XTypes.Boolean:
-                        {
-                            switch (r[i][j].type) {
-                                case XTypes.Number:
-                                {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
-                                    l[i][j].type = XTypes.Number;
-                                }
-                                    break;
-                                case XTypes.Date:
-                                {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
-                                    l[i][j].type = XTypes.Number;
-
-                                }
-                                    break;
-                                case XTypes.Boolean:
-                                {
-                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
-                                    l[i][j].type = XTypes.Number;
-                                }
-                                    break;
-                                case XTypes.String:
-                                {
-                                    if (isFinite(r[i][j].value) && r[i][j].value != "") {
-                                        l[i][j].value = Formula.ATAN2(l[i][j].value, +r[i][j].value);
-                                        l[i][j].type = XTypes.Number;
-                                    } else {
-                                        l[i][j].value = "#VALUE!";
-                                        l[i][j].type = XTypes.Error;
-                                    }
-                                }
-                                    break;
-                                case XTypes.Error:
-                                {
-                                    l[i][j].value = r[i][j].value;
-                                    l[i][j].type = XTypes.Error;
-                                }
-                                    break;
-                            }
-
-                        }
-                            break;
-                        case XTypes.String:
-                        {
-                            if (isFinite(l[i][j].value) && l[i][j].value != "") {
-                                l[i][j].value = +l[i][j].value;
-                                switch (r[i][j].type) {
-                                    case XTypes.Number:
-                                    {
-                                        l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
-                                        l[i][j].type = XTypes.Number;
-                                    }
-                                        break;
-                                    case XTypes.Date:
-                                    {
-                                        l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
-                                        l[i][j].type = XTypes.Number;
-
-                                    }
-                                        break;
-                                    case XTypes.Boolean:
-                                    {
-                                        l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
-                                        l[i][j].type = XTypes.Number;
-                                    }
-                                        break;
-                                    case XTypes.String:
-                                    {
-                                        if (isFinite(r[i][j].value) && r[i][j].value != "") {
-                                            l[i][j].value = Formula.ATAN2(l[i][j].value, +r[i][j].value);
-                                            l[i][j].type = XTypes.Number;
-                                        } else {
-                                            l[i][j].value = "#VALUE!";
-                                            l[i][j].type = XTypes.Error;
-                                        }
-                                    }
-                                        break;
-                                    case XTypes.Error:
-                                    {
-                                        l[i][j].value = r[i][j].value;
-                                        l[i][j].type = XTypes.Error;
-                                    }
-                                        break;
-                                }
-                            } else {
-                                l[i][j].value = "#VALUE!";
-                                l[i][j].type = XTypes.Error;
-
-                            }
-
-                        }
-                            break;
-                        //Skip the error case
-                    }
-                }
-            }
-            if (array) {
-                return l;
-            } else {
-                return l[0][0];
-            }
-        }
-    };
     /**
      * @returns {*}
      * @constructor
@@ -993,7 +782,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                     switch (val[i][j].type) {
                         case XTypes.Number:
                         {
-                            if (val[i][j].value < -1 || val[i][j].value > 1) {
+                            if (val[i][j].value <= -1 || val[i][j].value >= 1) {
                                 val[i][j].value = "#NUM!";
                                 val[i][j].type = XTypes.Error;
                             } else {
@@ -1005,7 +794,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                         case XTypes.Date:
                         {
                             aux = Util.getNumberFromDate(val[i][j].value);
-                            if (aux < -1 || aux > 1) {
+                            if (aux <= -1 || aux >= 1) {
                                 val[i][j].value = "#NUM!";
                                 val[i][j].type = XTypes.Error;
                             } else {
@@ -1017,19 +806,25 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
                             break;
                         case XTypes.Boolean:
                         {
-                            val[i][j].value = Math.log((1 + val[i][j].value) / (1 - val[i][j].value)) / 2;
-                            val[i][j].type = XTypes.Number;
+                            if (val[i][j].value <= -1 || val[i][j].value >= 1) {
+                                val[i][j].value = "#NUM!";
+                                val[i][j].type = XTypes.Error;
+                            } else {
+                                val[i][j].value = Math.log((1 + val[i][j].value) / (1 - val[i][j].value)) / 2;
+                                val[i][j].type = XTypes.Number;
+                            }
+
                         }
                             break;
                         case XTypes.String:
                         {
-                            if (isFinite(val[i][j].value) && val[i][j].value != "") {
-                                if ((+val[i][j].value) < -1 || (+val[i][j].value) > 1) {
-                                    val[i][j].value = Math.log((1 + (+val[i][j].value)) / (1 - (+val[i][j].value))) / 2;
-                                    val[i][j].type = XTypes.Number;
-                                } else {
+                            if (isFinite(val[i][j].value)) {
+                                if ((+val[i][j].value) <= -1 || (+val[i][j].value) >= 1) {
                                     val[i][j].value = "#NUM!";
                                     val[i][j].type = XTypes.Error;
+                                } else {
+                                    val[i][j].value = Math.log((1 + (+val[i][j].value)) / (1 - (+val[i][j].value))) / 2;
+                                    val[i][j].type = XTypes.Number;
                                 }
                             }
                             else {
@@ -1094,15 +889,19 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
         if (args.length === 0) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         }
+        console.log(require);
         for (k = 0; k < args.length; k++) {
             val = args[k].compute(app, source, array, true, true);
+            //rng = args[k] instanceof ReferenceExpr && args[k].Ref instanceof ReferenceRange;
             if (!(val instanceof Array)) {
                 val = [
                     [val]
                 ];
             }
+
             for (i = 0; i < val.length; i++) {
                 for (j = 0; j < val[i].length; j++) {
+
                     switch (val[i][j].type) {
                         case XTypes.Number:
                         {
@@ -1124,7 +923,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
 
                         case XTypes.String:
                         {
-                            if (isFinite(val[i][j].value) && val[i][j].value != "") {
+                            if (isFinite(val[i][j].value)) {
                                 sum += (+val[i][j].value);
 
                             } else {
@@ -1454,7 +1253,7 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
         var val;
         if (args.length !== 2) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else if (args[0].Ref instanceof ConstantString && args[1].Ref instanceof ConstantString) {
+        } else if (args[0].Ref instanceof AST.ConstantString && args[1].Ref instanceof AST.ConstantString) {
             try {
                 val = app.getExternalRange(args[0].Ref._value, args[1].Ref._value);
                 if (array || range || full_range) {
@@ -2087,7 +1886,218 @@ define("Utilities/Function", ["Libraries/formula", "Parser/AST/ConstantString", 
     func.DATE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         return new XTypedValue(new Date(1899, 11, 31), XTypes.Date);
     };
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.ATAN2 = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        var l, r, i, j, maxRows, maxCols;
+        if (args.length !== 2) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else {
+            l = args[0].compute(app, source, array, false, false);
+            r = args[1].compute(app, source, array, false, false);
+            if (!array) {
+                l = [
+                    [l]
+                ];
+                r = [
+                    [r]
+                ];
+            }
+            maxRows = l.length > r.length ? l.length : r.length;
+            maxCols = l[0].length > r[0].length ? l[0].length : r[0].length;
+            Util.adjustMatrix(l, maxRows, maxCols);
+            Util.adjustMatrix(r, maxRows, maxCols);
+            for (i = 0; i < maxRows; i++) {
+                for (j = 0; j < maxCols; j++) {
+                    switch (l[i][j].type) {
+                        case XTypes.Number:
+                        {
+                            switch (r[i][j].type) {
+                                case XTypes.Number:
+                                {
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
+                                }
+                                    break;
+                                case XTypes.Date:
+                                {
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
 
+                                }
+                                    break;
+                                case XTypes.Boolean:
+                                {
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
+                                }
+                                    break;
+                                case XTypes.String:
+                                {
+                                    if (isFinite(r[i][j].value)) {
+                                        l[i][j].value = Formula.ATAN2(l[i][j].value, +r[i][j].value);
+                                    } else {
+                                        l[i][j].value = "#VALUE!";
+                                        l[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.Error:
+                                {
+                                    l[i][j].value = r[i][j].value;
+                                    l[i][j].type = XTypes.Error;
+                                }
+                                    break;
+                            }
+
+                        }
+                            break;
+                        case XTypes.Date:
+                        {
+                            switch (r[i][j].type) {
+                                case XTypes.Number:
+                                {
+                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), r[i][j].value);
+                                    l[i][j].type = XTypes.Number;
+                                }
+                                    break;
+                                case XTypes.Date:
+                                {
+                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), Util.getNumberFromDate(r[i][j].value));
+                                    l[i][j].type = XTypes.Number;
+
+                                }
+                                    break;
+                                case XTypes.Boolean:
+                                {
+                                    l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), r[i][j].value);
+                                    l[i][j].type = XTypes.Number;
+                                }
+                                    break;
+                                case XTypes.String:
+                                {
+                                    if (isFinite(r[i][j].value)) {
+                                        l[i][j].value = Formula.ATAN2(Util.getNumberFromDate(l[i][j].value), +r[i][j].value);
+                                        l[i][j].type = XTypes.Number;
+                                    } else {
+                                        l[i][j].value = "#VALUE!";
+                                        l[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.Error:
+                                {
+                                    l[i][j].value = r[i][j].value;
+                                    l[i][j].type = XTypes.Error;
+                                }
+                                    break;
+                            }
+
+                        }
+                            break;
+                        case XTypes.Boolean:
+                        {
+                            switch (r[i][j].type) {
+                                case XTypes.Number:
+                                {
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
+                                    l[i][j].type = XTypes.Number;
+                                }
+                                    break;
+                                case XTypes.Date:
+                                {
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
+                                    l[i][j].type = XTypes.Number;
+
+                                }
+                                    break;
+                                case XTypes.Boolean:
+                                {
+                                    l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
+                                    l[i][j].type = XTypes.Number;
+                                }
+                                    break;
+                                case XTypes.String:
+                                {
+                                    if (isFinite(r[i][j].value)) {
+                                        l[i][j].value = Formula.ATAN2(l[i][j].value, +r[i][j].value);
+                                        l[i][j].type = XTypes.Number;
+                                    } else {
+                                        l[i][j].value = "#VALUE!";
+                                        l[i][j].type = XTypes.Error;
+                                    }
+                                }
+                                    break;
+                                case XTypes.Error:
+                                {
+                                    l[i][j].value = r[i][j].value;
+                                    l[i][j].type = XTypes.Error;
+                                }
+                                    break;
+                            }
+
+                        }
+                            break;
+                        case XTypes.String:
+                        {
+                            if (isFinite(l[i][j].value)) {
+                                l[i][j].value = +l[i][j].value;
+                                switch (r[i][j].type) {
+                                    case XTypes.Number:
+                                    {
+                                        l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
+                                        l[i][j].type = XTypes.Number;
+                                    }
+                                        break;
+                                    case XTypes.Date:
+                                    {
+                                        l[i][j].value = Formula.ATAN2(l[i][j].value, Util.getNumberFromDate(r[i][j].value));
+                                        l[i][j].type = XTypes.Number;
+
+                                    }
+                                        break;
+                                    case XTypes.Boolean:
+                                    {
+                                        l[i][j].value = Formula.ATAN2(l[i][j].value, r[i][j].value);
+                                        l[i][j].type = XTypes.Number;
+                                    }
+                                        break;
+                                    case XTypes.String:
+                                    {
+                                        if (isFinite(r[i][j].value)) {
+                                            l[i][j].value = Formula.ATAN2(l[i][j].value, +r[i][j].value);
+                                            l[i][j].type = XTypes.Number;
+                                        } else {
+                                            l[i][j].value = "#VALUE!";
+                                            l[i][j].type = XTypes.Error;
+                                        }
+                                    }
+                                        break;
+                                    case XTypes.Error:
+                                    {
+                                        l[i][j].value = r[i][j].value;
+                                        l[i][j].type = XTypes.Error;
+                                    }
+                                        break;
+                                }
+                            } else {
+                                l[i][j].value = "#VALUE!";
+                                l[i][j].type = XTypes.Error;
+
+                            }
+
+                        }
+                            break;
+                        //Skip the error case
+                    }
+                }
+            }
+            if (array) {
+                return l;
+            } else {
+                return l[0][0];
+            }
+        }
+    };
 
     return func;
 })

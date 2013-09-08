@@ -188,7 +188,7 @@ define(["Utilities/Function", "Parser/Parser", "XClasses/XTypes", "XClasses/XTyp
             expect(Parser.parseFormula("=ACOSH()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
             expect(Parser.parseFormula("=ACOSH(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
             expect(Parser.parseFormula("=ACOSH({1,TRUE,FALSE,\"4\",\"\"})", wb, ws).compute({}, {}, true, false, false)).toEqual([
-                [new XTypedValue(0, XTypes.Number), new XTypedValue(0, XTypes.Number),  new XTypedValue("#NUM!", XTypes.Error), new XTypedValue(2.0634370688955608, XTypes.Number),new XTypedValue("#NUM!", XTypes.Error)]
+                [new XTypedValue(0, XTypes.Number), new XTypedValue(0, XTypes.Number), new XTypedValue("#NUM!", XTypes.Error), new XTypedValue(2.0634370688955608, XTypes.Number), new XTypedValue("#NUM!", XTypes.Error)]
             ]);
 
         });
@@ -229,25 +229,88 @@ define(["Utilities/Function", "Parser/Parser", "XClasses/XTypes", "XClasses/XTyp
             expect(Parser.parseFormula("=ASINH()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
             expect(Parser.parseFormula("=ASINH(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
             expect(Parser.parseFormula("=ASINH({1,TRUE,FALSE,\"4\",\"\"})", wb, ws).compute({}, {}, true, false, false)).toEqual([
-                [new XTypedValue(0.8813735870195429, XTypes.Number), new XTypedValue(0.8813735870195429, XTypes.Number),  new XTypedValue(0, XTypes.Number), new XTypedValue(2.0947125472611012, XTypes.Number),new XTypedValue(0, XTypes.Number)]
+                [new XTypedValue(0.8813735870195429, XTypes.Number), new XTypedValue(0.8813735870195429, XTypes.Number), new XTypedValue(0, XTypes.Number), new XTypedValue(2.0947125472611012, XTypes.Number), new XTypedValue(0, XTypes.Number)]
             ]);
 
         });
 
-        xit("SUM tests", function () {
+        it("ATAN tests", function () {
             wb = {Name: "book"};
             ws = {Name: "sheet"};
-            expect(Parser.parseFormula("=SUM({1})", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM({TRUE})", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM({\"1\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM({#VALUE!})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUM(1,2)", wb, ws).compute({}, {}, false, false)).toEqual({value: 3, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(TRUE)", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(\"2\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 2, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(1,TRUE,\"2\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 4, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(\"2asd\")", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUM({3,\"2asd\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUM()", wb, ws).compute({}, {}, false, false)).toEqual({value: "#N/A", type: XTypes.Error});
+            expect(Parser.parseFormula("=ATAN(0)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=ATAN(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=ATAN(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0.7853981633974483, XTypes.Number));
+            expect(Parser.parseFormula("=ATAN(\"1\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0.7853981633974483, XTypes.Number));
+            expect(Parser.parseFormula("=ATAN(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=ATAN(\"dsa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=ATAN(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0.7853981633974483, XTypes.Number));
+            expect(Parser.parseFormula("=ATAN()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=ATAN(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=ATAN({1,TRUE,FALSE,\"1\",\"\"})", wb, ws).compute({}, {}, true, false, false)).toEqual([
+                [new XTypedValue(0.7853981633974483, XTypes.Number), new XTypedValue(0.7853981633974483, XTypes.Number), new XTypedValue(0, XTypes.Number), new XTypedValue(0.7853981633974483, XTypes.Number), new XTypedValue(0, XTypes.Number)]
+            ]);
+
+        });
+
+        it("ATANH tests", function () {
+            wb = {Name: "book"};
+            ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=ATANH(0)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=ATANH(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=ATANH(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=ATANH(\"1\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=ATANH(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=ATANH(\"dsa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=ATANH(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=ATANH()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=ATANH(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=ATANH({1,TRUE,FALSE,\"1\",\"\"})", wb, ws).compute({}, {}, true, false, false)).toEqual([
+                [new XTypedValue("#NUM!", XTypes.Error), new XTypedValue("#NUM!", XTypes.Error), new XTypedValue(0, XTypes.Number), new XTypedValue("#NUM!", XTypes.Error), new XTypedValue(0, XTypes.Number)]
+            ]);
+
+        });
+
+        it("BIN2DEC tests", function () {
+            wb = {Name: "book"};
+            ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=BIN2DEC(0)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=BIN2DEC(10)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=BIN2DEC(\"10\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=BIN2DEC(\"1000000000\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(-512, XTypes.Number));
+            expect(Parser.parseFormula("=BIN2DEC(\"100000000000\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC(\"dsa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#NUM!", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=BIN2DEC(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+
+        });
+
+        it("SUM tests", function () {
+            wb = {Name: "book"};
+            ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=SUM(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(\"2asda\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=SUM(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+
+
+            expect(Parser.parseFormula("=SUM({1})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM({TRUE})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM({\"1\"})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM({#VALUE!})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
+            expect(Parser.parseFormula("=SUM(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 3, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM(\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 2, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM(1,TRUE,\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 4, type: XTypes.Number});
+            expect(Parser.parseFormula("=SUM(\"2asd\")", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
+            expect(Parser.parseFormula("=SUM({3,\"2asd\"})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
+            expect(Parser.parseFormula("=SUM()", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#N/A", type: XTypes.Error});
 
         });
 

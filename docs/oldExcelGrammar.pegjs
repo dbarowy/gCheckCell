@@ -122,7 +122,7 @@ ReferenceKinds = RangeReference / AddressReference;
 Reference = (w:Workbook ref:ReferenceKinds {ref.WorkbookName = w; return ref;}) / NamedReference;
 ParensExpr = "(" exp:Expression ")" {return new AST.ParensExpr(exp);};
 
-FunctionName = r:((letter / ".") +) {return r.join("");};
+FunctionName = r:((letter / "."/ [0-9]) +) {return r.join("");};
 Function =  f:FunctionName "(" args:ArgumentList ")" {return new AST.ReferenceFunction(null, f, args);} ;
 /*The separator between arguments is different in excel and google sheets*/
 ArgumentList = res:((hd:Expression tl:((","/";") Expression) * {var a=[hd]; for(var i=0; i< tl.length; i++) a.push(tl[i][1]); return a; }) ?) {return res==""?[]:res;}

@@ -2903,6 +2903,17 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                                 matchFailed("\".\"");
                             }
                         }
+                        if (result1 === null) {
+                            if (/^[0-9]/.test(input.charAt(pos))) {
+                                result1 = input.charAt(pos);
+                                pos++;
+                            } else {
+                                result1 = null;
+                                if (reportFailures === 0) {
+                                    matchFailed("[0-9]");
+                                }
+                            }
+                        }
                     }
                     if (result1 !== null) {
                         result0 = [];
@@ -2917,6 +2928,17 @@ define("Parser/PEGParser", ["Parser/PEG", "Parser/AST/AST", "FSharp/FSharp"], fu
                                     result1 = null;
                                     if (reportFailures === 0) {
                                         matchFailed("\".\"");
+                                    }
+                                }
+                                if (result1 === null) {
+                                    if (/^[0-9]/.test(input.charAt(pos))) {
+                                        result1 = input.charAt(pos);
+                                        pos++;
+                                    } else {
+                                        result1 = null;
+                                        if (reportFailures === 0) {
+                                            matchFailed("[0-9]");
+                                        }
                                     }
                                 }
                             }
