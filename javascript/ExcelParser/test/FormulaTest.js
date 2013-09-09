@@ -297,234 +297,125 @@ define(["Utilities/Function", "Parser/Parser", "XClasses/XTypes", "XClasses/XTyp
             expect(Parser.parseFormula("=SUM(\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
             expect(Parser.parseFormula("=SUM(\"2asda\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
             expect(Parser.parseFormula("=SUM(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
-            expect(Parser.parseFormula("=SUM(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(DATE(1900,0,31),1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(new Date(1900, 0, 1), XTypes.Date));
 
-
-            expect(Parser.parseFormula("=SUM({1})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM({TRUE})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM({\"1\"})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM({#VALUE!})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUM(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 3, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 2, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(1,TRUE,\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual({value: 4, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUM(\"2asd\")", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUM({3,\"2asd\"})", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUM()", wb, ws).compute({}, {}, false, false, false)).toEqual({value: "#N/A", type: XTypes.Error});
+            expect(Parser.parseFormula("=SUM({1})", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUM({TRUE})", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUM({\"1\"})", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUM({#VALUE!})", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=SUM(1,2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(3, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(1,TRUE,\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(4, XTypes.Number));
+            expect(Parser.parseFormula("=SUM(\"2asd\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=SUM({3,\"2asd\"})", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=SUM()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
 
         });
 
 
-        xit("AVERAGE tests", function () {
+        it("AVERAGE tests", function () {
             wb = {Name: "book"};
             ws = {Name: "sheet"};
-            expect(Parser.parseFormula("=AVERAGE({1,2,3})", wb, ws).compute({}, {}, false, false)).toEqual({value: 2, type: XTypes.Number});
-            expect(Parser.parseFormula("=AVERAGE({TRUE})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#DIV/0!", type: XTypes.Error});
-            expect(Parser.parseFormula("=AVERAGE({\"1\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#DIV/0!", type: XTypes.Error});
-            expect(Parser.parseFormula("=AVERAGE({#VALUE!})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=AVERAGE(1,2,3)", wb, ws).compute({}, {}, false, false)).toEqual({value: 2, type: XTypes.Number});
-            expect(Parser.parseFormula("=AVERAGE(TRUE)", wb, ws).compute({}, {}, false, false)).toEqual({value: "#DIV/0!", type: XTypes.Error});
-            expect(Parser.parseFormula("=AVERAGE(\"1\")", wb, ws).compute({}, {}, false, false)).toEqual({value: "#DIV/0!", type: XTypes.Error});
-            expect(Parser.parseFormula("=AVERAGE(#VALUE!)", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-
-            expect(Parser.parseFormula("=AVERAGE({1,2,3})", wb, ws).compute({}, {}, true, false)).toEqual([
+            expect(Parser.parseFormula("=AVERAGE(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=AVERAGE(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#DIV/0!", XTypes.Error));
+            expect(Parser.parseFormula("=AVERAGE(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#DIV/0!", XTypes.Error));
+            expect(Parser.parseFormula("=AVERAGE(\"1\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#DIV/0!", XTypes.Error));
+            expect(Parser.parseFormula("=AVERAGE(#VALUE!)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=AVERAGE()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=AVERAGE(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=AVERAGE(1,2,3)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=AVERAGE({1,2,3})", wb, ws).compute({}, {}, true, false, false)).toEqual([
                 [
-                    {value: 2, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=AVERAGE({TRUE})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#DIV/0!", type: XTypes.Error}
-                ]
-            ]);
-            expect(Parser.parseFormula("=AVERAGE({\"1\"})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#DIV/0!", type: XTypes.Error}
-                ]
-            ]);
-            expect(Parser.parseFormula("=AVERAGE({#VALUE!})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#VALUE!", type: XTypes.Error}
+                    new XTypedValue(2, XTypes.Number)
                 ]
             ]);
         });
-
-
-        it("MAX tests", function () {
-            wb = {Name: "book"};
-            ws = {Name: "sheet"};
-            expect(Parser.parseFormula("=MAX({1,2,3})", wb, ws).compute({}, {}, false, false)).toEqual({value: 3, type: XTypes.Number});
-            expect(Parser.parseFormula("=MAX({TRUE})", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MAX({\"1\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MAX({\"asd\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MAX({\"asd\",1,2,3,TRUE,\"1\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 3, type: XTypes.Number});
-            expect(Parser.parseFormula("=MAX({\"asd\",1,2,3,TRUE,\"1\"})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 3, type: XTypes.Number}
-                ]
-            ]);
-
-            expect(Parser.parseFormula("=MAX({1,2,3})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 3, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=MAX({TRUE})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=MAX({\"1\"})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=MAX({#VALUE!})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#VALUE!", type: XTypes.Error}
-                ]
-            ]);
-        });
-
-        it("SUMPRODUCT tests", function () {
-            wb = {Name: "book"};
-            ws = {Name: "sheet"};
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2,3},{1,2,\"sda\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 5, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT(1,2,3)", wb, ws).compute({}, {}, false, false)).toEqual({value: 6, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT()", wb, ws).compute({}, {}, false, false)).toEqual({value: "#N/A", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2},{\"sad\",4})", wb, ws).compute({}, {}, false, false)).toEqual({value: 8, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT(\"13\",\"3\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 39, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT(TRUE,4)", wb, ws).compute({}, {}, false, false)).toEqual({value: 4, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT(\"24\",\"dsad\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT(\"dsa\",\"dsad\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2},{1})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2;3,4},{1,2;3,4})", wb, ws).compute({}, {}, false, false)).toEqual({value: 30, type: XTypes.Number});
-
-
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2,3},{1,2,\"sda\"})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 5, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT(1,2,3)", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 6, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT()", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#N/A", type: XTypes.Error}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2},{\"sad\",4})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 8, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT(\"13\",\"3\")", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 39, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT(TRUE,4)", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 4, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT(\"24\",\"dsad\")", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT(\"dsa\",\"dsad\")", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2},{1})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#VALUE!", type: XTypes.Error}
-                ]
-            ]);
-            expect(Parser.parseFormula("=SUMPRODUCT({1,2;3,4},{1,2;3,4})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 30, type: XTypes.Number}
-                ]
-            ]);
-        });
-
 
         it("PRODUCT tests", function () {
             wb = {Name: "book"};
             ws = {Name: "sheet"};
-            expect(Parser.parseFormula("=PRODUCT({1})", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT({TRUE})", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT({\"1\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT({#VALUE!})", wb, ws).compute({}, {}, false, false)).toEqual({value: "#VALUE!", type: XTypes.Error});
-            expect(Parser.parseFormula("=PRODUCT(1,2)", wb, ws).compute({}, {}, false, false)).toEqual({value: 2, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT(TRUE)", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT(\"2\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT(1,TRUE,\"2\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT(\"2asd\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT({3,\"2asd\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 3, type: XTypes.Number});
-            expect(Parser.parseFormula("=PRODUCT()", wb, ws).compute({}, {}, false, false)).toEqual({value: "#N/A", type: XTypes.Error});
+            expect(Parser.parseFormula("=PRODUCT(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(\"1\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(\"dasa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(DATE(1900,0,31),2)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT(DATE(1900,0,31),2,\"dsa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(2, XTypes.Number));
+            expect(Parser.parseFormula("=PRODUCT()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
 
-            expect(Parser.parseFormula("=PRODUCT({1})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 1, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT({TRUE})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT({\"1\"})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT({#VALUE!})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#VALUE!", type: XTypes.Error}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT(1,2)", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 2, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT(TRUE)", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT(\"2\")", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT(1,TRUE,\"2\")", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 1, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT(\"2asd\")", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 0, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT({3,\"2asd\"})", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: 3, type: XTypes.Number}
-                ]
-            ]);
-            expect(Parser.parseFormula("=PRODUCT()", wb, ws).compute({}, {}, true, false)).toEqual([
-                [
-                    {value: "#N/A", type: XTypes.Error}
-                ]
+            expect(Parser.parseFormula("=PRODUCT(DATE(1900,0,31),2,\"dsa\")", wb, ws).compute({}, {}, true, false, false)).toEqual([
+                [new XTypedValue(2, XTypes.Number)]
             ]);
 
+        });
+
+        it("MEDIAN tests", function () {
+            wb = {Name: "book"};
+            ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=MEDIAN(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(\"2\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(\"dsa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(\"2\",1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(2,1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1.5, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=MEDIAN(#VALUE!)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=MEDIAN(2,1)", wb, ws).compute({}, {}, true, false, false)).toEqual([
+                [new XTypedValue(1.5, XTypes.Number)]
+            ]);
+
+        });
+
+
+        it("SUMPRODUCT tests", function () {
+            wb = {Name: "book"};
+            ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=SUMPRODUCT(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(\"1\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(TRUE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(FALSE)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(\"dsa\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(\"\")", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(0, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(DATE(1900,0,31))", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT()", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#N/A", XTypes.Error));
+            expect(Parser.parseFormula("=SUMPRODUCT(#VALUE!)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+            expect(Parser.parseFormula("=SUMPRODUCT({1,2,3},{1,2,\"sda\"})", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(5, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(1,2,3)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(6, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(\"13\",\"3\")", wb, ws).compute({}, {}, false, false)).toEqual(new XTypedValue(39, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT(TRUE,4)", wb, ws).compute({}, {}, false, false)).toEqual(new XTypedValue(4, XTypes.Number));
+            expect(Parser.parseFormula("=SUMPRODUCT({1,2},{1})", wb, ws).compute({}, {}, false, false)).toEqual(new XTypedValue("#VALUE!", XTypes.Error));
+
+            expect(Parser.parseFormula("=SUMPRODUCT({1,2,3},{1,2,\"sda\"})", wb, ws).compute({}, {}, true, false, false)).toEqual([
+                [new XTypedValue(5, XTypes.Number)]
+            ]);
+        });
+
+        it("ARRAYFORMULA tests", function () {
+            wb = {Name: "book"};
+            ws = {Name: "sheet"};
+            expect(Parser.parseFormula("=ARRAYFORMULA(1)", wb, ws).compute({}, {}, false, true, false)).toEqual([
+                [new XTypedValue(1, XTypes.Number)]
+            ]);
+            expect(Parser.parseFormula("=ARRAYFORMULA(1)", wb, ws).compute({}, {}, true, false, false)).toEqual([
+                [new XTypedValue(1, XTypes.Number)]
+            ]);
+            expect(Parser.parseFormula("=ARRAYFORMULA(1)", wb, ws).compute({}, {}, false, false, true)).toEqual([
+                [new XTypedValue(1, XTypes.Number)]
+            ]);
+
+            expect(Parser.parseFormula("=ARRAYFORMULA(1)", wb, ws).compute({}, {}, false, true, false)).toEqual([
+                [new XTypedValue(1, XTypes.Number)]
+            ]);
+            expect(Parser.parseFormula("=ARRAYFORMULA(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(
+                new XTypedValue(1, XTypes.Number)
+            );
+
+            expect(Parser.parseFormula("=ARRAYFORMULA(SUMPRODUCT(\"1\"))", wb, ws).compute({}, {}, false,false, true)).toEqual([[new XTypedValue(1, XTypes.Number)]]);
         });
 
         xit("IF tests", function () {
@@ -586,19 +477,6 @@ define(["Utilities/Function", "Parser/Parser", "XClasses/XTypes", "XClasses/XTyp
             expect(Parser.parseFormula("=IF(#N/A,2,3)", wb, ws).compute({}, {}, true, false)).toEqual([
                 ["#N/A"]
             ]);
-        });
-
-        it("MEDIAN tests", function () {
-            wb = {Name: "book"};
-            ws = {Name: "sheet"};
-            expect(Parser.parseFormula("=MEDIAN(1,2)", wb, ws).compute({}, {}, false, false)).toEqual({value: 1.5, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN(1)", wb, ws).compute({}, {}, false, false)).toEqual({value: 1, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN(TRUE)", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN(FALSE)", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN(\"2\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN(\"sada\")", wb, ws).compute({}, {}, false, false)).toEqual({value: 0, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN({1,2,3})", wb, ws).compute({}, {}, false, false)).toEqual({value: 2, type: XTypes.Number});
-            expect(Parser.parseFormula("=MEDIAN({1,2,\"3\"})", wb, ws).compute({}, {}, false, false)).toEqual({value: 1.5, type: XTypes.Number});
         });
 
 

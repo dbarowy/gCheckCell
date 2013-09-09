@@ -886,13 +886,13 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
      */
     func.SUM = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
         var k, val, sum = 0, final_type = XTypes.Number, i, j, rng = false;
+        var AST = require("Parser/AST/AST");
         if (args.length === 0) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         }
-        console.log(require);
         for (k = 0; k < args.length; k++) {
             val = args[k].compute(app, source, array, true, true);
-            //rng = args[k] instanceof ReferenceExpr && args[k].Ref instanceof ReferenceRange;
+            rng = args[k] instanceof AST.ReferenceExpr && args[k].Ref instanceof AST.ReferenceRange;
             if (!(val instanceof Array)) {
                 val = [
                     [val]
@@ -927,8 +927,9 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
                                 sum += (+val[i][j].value);
 
                             } else {
-                                //TODO Temp fix:
-                                //return func._returnError(new XTypedValue("#VALUE!", XTypes.Error), array);
+                                if (!rng) {
+                                    return func._returnError(new XTypedValue("#VALUE!", XTypes.Error), array);
+                                }
                             }
                         }
                             break;
@@ -1115,21 +1116,6 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
             return sum;
         }
     };
-
-
-    /**
-     * @returns {*}
-     * @constructor
-     */
-    func.ARRAYFORMULA = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        if (args.length !== 1) {
-            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-
-        } else {
-            return args[0].compute(app, source, true, true, true);
-        }
-    };
-
     /**
      * @returns {*}
      * @constructor
@@ -1140,11 +1126,14 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
         } else {
             product = args[0].compute(app, source, true, true, true);
+
             for (i = 0; i < product.length; i++) {
                 for (j = 0; j < product[i].length; j++) {
+
                     switch (product[i][j].type) {
                         case XTypes.Date:
                         {
+
                             product[i][j].value = Util.getNumberFromDate(product[i][j].value);
                             product[i][j].type = XTypes.Number;
                         }
@@ -1157,8 +1146,10 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
                             break;
                         case XTypes.String:
                         {
-                            if (!isFinite(product[i][j].value) && product[i][j].value != "") {
+                            if (!isFinite(product[i][j].value)) {
                                 product[i][j].value = 0;
+                            } else {
+                                product[i][j].value = +product[i][j].value;
                             }
                             product[i][j].type = XTypes.Number;
                         }
@@ -1195,7 +1186,7 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
                                             break;
                                         case XTypes.String:
                                         {
-                                            if (isFinite(val[i][j].value) && val[i][j].value != "") {
+                                            if (isFinite(val[i][j].value)) {
                                                 product[i][j].value *= (+val[i][j].value);
                                             } else {
                                                 product[i][j].value = 0;
@@ -1244,31 +1235,284 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
         }
     };
 
+
     /**
      * @returns {*}
      * @constructor
      */
-    func.ImportRange = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        "use strict";
-        var val;
-        if (args.length !== 2) {
+    func.ARRAYFORMULA = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        if (args.length !== 1) {
             return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else if (args[0].Ref instanceof AST.ConstantString && args[1].Ref instanceof AST.ConstantString) {
-            try {
-                val = app.getExternalRange(args[0].Ref._value, args[1].Ref._value);
-                if (array || range || full_range) {
-                    return val;
-                } else {
-                    return val[0][0];
-                }
-            } catch (e) {
-                XLogger.log("ImportRange error " + e);
-                return func._returnError(new XTypedValue("#REF!", XTypes.Error), array);
-            }
         } else {
-            return func._returnError(new XTypedValue("#REF!", XTypes.Error), array);
+            if (array || full_range || range) {
+                return args[0].compute(app, source, true, true, full_range);
+            } else {
+                return (args[0].compute(app, source, true, true, full_range))[0][0];
+            }
         }
     };
+
+
+
+
+    func.MODE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        var k, val, i, j, arr = [], start, end, maxOcc, aux, res;
+        if (args.length === 0) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else {
+            for (k = 0; k < args.length; k++) {
+                val = args[k].compute(app, source, array, true, true);
+                if (!(val instanceof Array)) {
+                    val = [
+                        [val]
+                    ];
+                }
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        if (val[i][j].type === XTypes.Number) {
+                            arr.push(val[i][j].value);
+                        } else if (val[i][j].type === XTypes.Date) {
+                            arr.push(Util.getNumberFromDate(val[i][j].value));
+                        }
+                    }
+                }
+            }
+            if (arr.length === 0) {
+                return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+            } else {
+                arr.sort();
+                aux = arr[0];
+                start = 0;
+                end = 0;
+                maxOcc = 1;
+                for (i = 1; i < arr.length; i++) {
+                    if (arr[i] != aux) {
+                        if (i - start > maxOcc) {
+                            maxOcc = i - start;
+                            end = i - 1;
+                        }
+                        aux = arr[i];
+                        start = i;
+                    }
+                }
+                res = new XTypedValue(arr[end], XTypes.Number);
+                if (array) {
+                    res = [
+                        [res]
+                    ];
+                }
+                return res;
+            }
+        }
+    };
+
+    func.QUARTILE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        var res, categ, i, j, arr = [], aux;
+        if (args.length !== 2) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else {
+            res = args[0].compute(app, source, true, true, true);
+            categ = args[1].compute(app, source, true, false, true);
+            for (i = 0; i < res.length; i++) {
+                for (j = 0; j < res[i].length; j++) {
+                    switch (res[i][j].type) {
+                        case XTypes.Number:
+                        {
+                            arr.push(res[i][j].value);
+                        }
+                            break;
+                        case XTypes.Date:
+                        {
+                            arr.push(Util.getNumberFromDate(res[i][j].value));
+                        }
+                            break;
+                        case XTypes.Error:
+                        {
+                            return func._returnError(res[i][j], array);
+                        }
+                            break;
+                    }
+
+                }
+            }
+            if (arr.length === 0) {
+                return func._returnError(new XTypedValue("#NUM!", XTypes.Error), array);
+            } else {
+                //We will only get here if arr is filled with numbers
+                for (i = 0; i < categ.length; i++) {
+                    for (j = 0; j < categ[i].length; j++) {
+                        switch (categ[i][j].type) {
+                            case XTypes.Number:
+                            {
+                                aux = categ[i][j].value;
+                                if (aux < 0 || aux > 4) {
+                                    categ[i][j].value = "#NUM!";
+                                    categ[i][j].type = XTypes.Error;
+                                } else {
+                                    categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
+                                    categ[i][j].type = XTypes.Number;
+                                }
+                            }
+                                break;
+                            case XTypes.Date:
+                            {
+                                aux = Util.getNumberFromDate(categ[i][j].value);
+                                if (aux < 0 || aux > 4) {
+                                    categ[i][j].value = "#NUM!";
+                                    categ[i][j].type = XTypes.Error;
+                                } else {
+                                    categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
+                                    categ[i][j].type = XTypes.Number;
+                                }
+
+                            }
+                                break;
+                            case XTypes.Boolean:
+                            {
+                                aux = +categ[i][j].value;
+                                if (aux < 0 || aux > 4) {
+                                    categ[i][j].value = "#NUM!";
+                                    categ[i][j].type = XTypes.Error;
+                                } else {
+                                    categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
+                                    categ[i][j].type = XTypes.Number;
+                                }
+                            }
+                                break;
+                            case XTypes.String:
+                            {
+                                if (isFinite(categ[i][j].value) && categ[i][j].value != "") {
+                                    aux = +categ[i][j].value;
+                                    if (aux < 0 || aux > 4) {
+                                        categ[i][j].value = "#NUM!";
+                                        categ[i][j].type = XTypes.Error;
+                                    } else {
+                                        categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
+                                        categ[i][j].type = XTypes.Number;
+                                    }
+                                } else {
+                                    categ[i][j].value = "#VALUE!";
+                                    categ[i][j].type = XTypes.Error;
+
+                                }
+                            }
+                        }
+                    }
+                }
+                if (array || full_range || range) {
+                    return categ;
+                }
+                else {
+                    return categ[0][0];
+                }
+            }
+        }
+    };
+
+    func.SKEW = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        var i, j, k, val, arr = [], res;
+        if (args.length === 0) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else {
+            for (k = 0; k < args.length; k++) {
+                val = args[k].compute(app, source, true, true, true);
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        switch (val[i][j].type) {
+                            case XTypes.Number:
+                            {
+                                arr.push(val[i][j].value);
+                            }
+                                break;
+                            case XTypes.Date:
+                            {
+                                arr.push(Util.getNumberFromDate(val[i][j].value));
+                            }
+                                break;
+                            case XTypes.Error:
+                            {
+                                return func._returnError(val[i][j], array);
+                            }
+                                break;
+                            //Ignore the others
+                        }
+                    }
+                }
+
+            }
+            if (arr.length < 3) {
+                return func._returnError(new XTypedValue("#DIV/0!", XTypes.Error));
+            } else {
+                res = Formula.SKEW(arr);
+                if (!isFinite(res)) {
+                    res = new XTypedValue("#NUM!", XTypes.Error);
+                } else {
+                    res = new XTypedValue(res, XTypes.Number);
+                }
+                if (array) {
+                    return [
+                        [res]
+                    ];
+                } else {
+                    return res;
+                }
+            }
+        }
+    };
+
+    func.STDEV = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        var i, j, k, val, arr = [], res;
+        if (args.length === 0) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else {
+            for (k = 0; k < args.length; k++) {
+                val = args[k].compute(app, source, true, true, true);
+                for (i = 0; i < val.length; i++) {
+                    for (j = 0; j < val[i].length; j++) {
+                        switch (val[i][j].type) {
+                            case XTypes.Number:
+                            {
+                                arr.push(val[i][j].value);
+                            }
+                                break;
+                            case XTypes.Date:
+                            {
+                                arr.push(Util.getNumberFromDate(val[i][j].value));
+                            }
+                                break;
+                            case XTypes.Error:
+                            {
+                                return func._returnError(val[i][j], array);
+                            }
+                                break;
+                            //Ignore the others
+                        }
+                    }
+                }
+
+            }
+
+            res = Formula.STDEVA(arr);
+            if (!isFinite(res)) {
+                res = new XTypedValue("#NUM!", XTypes.Error);
+            } else {
+                res = new XTypedValue(res, XTypes.Number);
+            }
+            if (array) {
+                return [
+                    [res]
+                ];
+            } else {
+                return res;
+            }
+        }
+
+    };
+
+    func.NOW = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        return new XTypedValue(new Date(), XTypes.Date);
+    };
+
 
 
     /**
@@ -1625,266 +1869,44 @@ define("Utilities/Function", ["require", "Libraries/formula", "XClasses/XLogger"
         }
     };
 
-    func.MODE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var k, val, i, j, arr = [], start, end, maxOcc, aux, res;
-        if (args.length === 0) {
-            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else {
-            for (k = 0; k < args.length; k++) {
-                val = args[k].compute(app, source, array, true, true);
-                if (!(val instanceof Array)) {
-                    val = [
-                        [val]
-                    ];
-                }
-                for (i = 0; i < val.length; i++) {
-                    for (j = 0; j < val[i].length; j++) {
-                        if (val[i][j].type === XTypes.Number) {
-                            arr.push(val[i][j].value);
-                        } else if (val[i][j].type === XTypes.Date) {
-                            arr.push(Util.getNumberFromDate(val[i][j].value));
-                        }
-                    }
-                }
-            }
-            if (arr.length === 0) {
-                return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-            } else {
-                arr.sort();
-                aux = arr[0];
-                start = 0;
-                end = 0;
-                maxOcc = 1;
-                for (i = 1; i < arr.length; i++) {
-                    if (arr[i] != aux) {
-                        if (i - start > maxOcc) {
-                            maxOcc = i - start;
-                            end = i - 1;
-                        }
-                        aux = arr[i];
-                        start = i;
-                    }
-                }
-                res = new XTypedValue(arr[end], XTypes.Number);
-                if (array) {
-                    res = [
-                        [res]
-                    ];
-                }
-                return res;
-            }
-        }
-    };
 
-    func.QUARTILE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var res, categ, i, j, arr = [], aux;
-        if (args.length !== 2) {
-            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else {
-            res = args[0].compute(app, source, true, true, true);
-            categ = args[1].compute(app, source, true, false, true);
-            for (i = 0; i < res.length; i++) {
-                for (j = 0; j < res[i].length; j++) {
-                    switch (res[i][j].type) {
-                        case XTypes.Number:
-                        {
-                            arr.push(res[i][j].value);
-                        }
-                            break;
-                        case XTypes.Date:
-                        {
-                            arr.push(Util.getNumberFromDate(res[i][j].value));
-                        }
-                            break;
-                        case XTypes.Error:
-                        {
-                            return func._returnError(res[i][j], array);
-                        }
-                            break;
-                    }
-
-                }
-            }
-            if (arr.length === 0) {
-                return func._returnError(new XTypedValue("#NUM!", XTypes.Error), array);
-            } else {
-                //We will only get here if arr is filled with numbers
-                for (i = 0; i < categ.length; i++) {
-                    for (j = 0; j < categ[i].length; j++) {
-                        switch (categ[i][j].type) {
-                            case XTypes.Number:
-                            {
-                                aux = categ[i][j].value;
-                                if (aux < 0 || aux > 4) {
-                                    categ[i][j].value = "#NUM!";
-                                    categ[i][j].type = XTypes.Error;
-                                } else {
-                                    categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
-                                    categ[i][j].type = XTypes.Number;
-                                }
-                            }
-                                break;
-                            case XTypes.Date:
-                            {
-                                aux = Util.getNumberFromDate(categ[i][j].value);
-                                if (aux < 0 || aux > 4) {
-                                    categ[i][j].value = "#NUM!";
-                                    categ[i][j].type = XTypes.Error;
-                                } else {
-                                    categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
-                                    categ[i][j].type = XTypes.Number;
-                                }
-
-                            }
-                                break;
-                            case XTypes.Boolean:
-                            {
-                                aux = +categ[i][j].value;
-                                if (aux < 0 || aux > 4) {
-                                    categ[i][j].value = "#NUM!";
-                                    categ[i][j].type = XTypes.Error;
-                                } else {
-                                    categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
-                                    categ[i][j].type = XTypes.Number;
-                                }
-                            }
-                                break;
-                            case XTypes.String:
-                            {
-                                if (isFinite(categ[i][j].value) && categ[i][j].value != "") {
-                                    aux = +categ[i][j].value;
-                                    if (aux < 0 || aux > 4) {
-                                        categ[i][j].value = "#NUM!";
-                                        categ[i][j].type = XTypes.Error;
-                                    } else {
-                                        categ[i][j].value = Formula.QUARTILEINC(arr, Math.floor(aux));
-                                        categ[i][j].type = XTypes.Number;
-                                    }
-                                } else {
-                                    categ[i][j].value = "#VALUE!";
-                                    categ[i][j].type = XTypes.Error;
-
-                                }
-                            }
-                        }
-                    }
-                }
-                if (array || full_range || range) {
-                    return categ;
-                }
-                else {
-                    return categ[0][0];
-                }
-            }
-        }
-    };
-
-    func.SKEW = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var i, j, k, val, arr = [], res;
-        if (args.length === 0) {
-            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else {
-            for (k = 0; k < args.length; k++) {
-                val = args[k].compute(app, source, true, true, true);
-                for (i = 0; i < val.length; i++) {
-                    for (j = 0; j < val[i].length; j++) {
-                        switch (val[i][j].type) {
-                            case XTypes.Number:
-                            {
-                                arr.push(val[i][j].value);
-                            }
-                                break;
-                            case XTypes.Date:
-                            {
-                                arr.push(Util.getNumberFromDate(val[i][j].value));
-                            }
-                                break;
-                            case XTypes.Error:
-                            {
-                                return func._returnError(val[i][j], array);
-                            }
-                                break;
-                            //Ignore the others
-                        }
-                    }
-                }
-
-            }
-            if (arr.length < 3) {
-                return func._returnError(new XTypedValue("#DIV/0!", XTypes.Error));
-            } else {
-                res = Formula.SKEW(arr);
-                if (!isFinite(res)) {
-                    res = new XTypedValue("#NUM!", XTypes.Error);
-                } else {
-                    res = new XTypedValue(res, XTypes.Number);
-                }
-                if (array) {
-                    return [
-                        [res]
-                    ];
-                } else {
-                    return res;
-                }
-            }
-        }
-    };
-
-    func.STDEV = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        var i, j, k, val, arr = [], res;
-        if (args.length === 0) {
-            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
-        } else {
-            for (k = 0; k < args.length; k++) {
-                val = args[k].compute(app, source, true, true, true);
-                for (i = 0; i < val.length; i++) {
-                    for (j = 0; j < val[i].length; j++) {
-                        switch (val[i][j].type) {
-                            case XTypes.Number:
-                            {
-                                arr.push(val[i][j].value);
-                            }
-                                break;
-                            case XTypes.Date:
-                            {
-                                arr.push(Util.getNumberFromDate(val[i][j].value));
-                            }
-                                break;
-                            case XTypes.Error:
-                            {
-                                return func._returnError(val[i][j], array);
-                            }
-                                break;
-                            //Ignore the others
-                        }
-                    }
-                }
-
-            }
-
-            res = Formula.STDEVA(arr);
-            if (!isFinite(res)) {
-                res = new XTypedValue("#NUM!", XTypes.Error);
-            } else {
-                res = new XTypedValue(res, XTypes.Number);
-            }
-            if (array) {
-                return [
-                    [res]
-                ];
-            } else {
-                return res;
-            }
-        }
-
-    };
-
-    func.NOW = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        return new XTypedValue(new Date(), XTypes.Date);
-    };
 
     func.DATE = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
-        return new XTypedValue(new Date(1899, 11, 31), XTypes.Date);
+        if (array) {
+            return [
+                [new XTypedValue(new Date(1899, 11, 31), XTypes.Date)]
+            ];
+        } else {
+            return new XTypedValue(new Date(1899, 11, 31), XTypes.Date);
+        }
+
+    };
+
+    /**
+     * @returns {*}
+     * @constructor
+     */
+    func.ImportRange = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range, args) {
+        "use strict";
+        var val;
+        var ConstantString = require("Parser/AST/AST").ConstantString;
+        if (args.length !== 2) {
+            return func._returnError(new XTypedValue("#N/A", XTypes.Error), array);
+        } else if (args[0].Ref instanceof ConstantString && args[1].Ref instanceof ConstantString) {
+            try {
+                val = app.getExternalRange(args[0].Ref._value, args[1].Ref._value);
+                if (array || range || full_range) {
+                    return val;
+                } else {
+                    return val[0][0];
+                }
+            } catch (e) {
+                XLogger.log("ImportRange error " + e);
+                return func._returnError(new XTypedValue("#REF!", XTypes.Error), array);
+            }
+        } else {
+            return func._returnError(new XTypedValue("#REF!", XTypes.Error), array);
+        }
     };
     /**
      * @returns {*}
