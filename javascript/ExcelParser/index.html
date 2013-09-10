@@ -1,3 +1,6 @@
+<?!= include('JQueryCSS'); ?>
+
+
 <?!= include('require'); ?>
 <?!= include('jstat'); ?>
 <?!= include('lodash'); ?>
@@ -47,7 +50,6 @@
 <?!= include('InputSample'); ?>
 <?!= include('NodeTypes'); ?>
 <?!= include('TreeNode'); ?>
-<?!= include('JQueryCSS'); ?>
 <?!= include('Util'); ?>
 <?!= include('XTypedValue'); ?>
 <?!= include('XTypes'); ?>
@@ -71,7 +73,6 @@
     function finishInit(data) {
         require(["XClasses/XApplication", "Utilities/Profiler", "DataDebugMethods/AnalysisData", "DataDebugMethods/ConstructTree", "DataDebugMethods/Analysis", "Parser/AST/AST"], function (XApplication, Profiler, AnalysisData, ConstructTree, Analysis, AST) {
             var dat, NBOOTS, scores;
-            Profiler.start("Analysis");
             XApplication.setRangeData(data.named, data.external);
             dat = new AnalysisData();
             NBOOTS = Math.ceil(1000 * Math.exp(1.0));
@@ -83,22 +84,63 @@
             XApplication.startEngine(dat);
             scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
             google.script.run.colorCells(Analysis.ColorOutliers(scores));
-            Profiler.end("Analysis");
-            Profiler.report();
-            //       console.log("result"+XApplication.compute(new AST.Address(24,"B","Grades ","tIDPDVTGEFYrRcu2Knp4H5w"),false,false).value);
-//            XApplication.recompute_book();
-            //   google.script.run.compare(JSON.stringify(XApplication.exportData()));
 
-//                     
 
         });
     }
 
-
-    google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
-            .getData();
+    function runCheckCell() {
+        google.script.run.withSuccessHandler(startInit).withFailureHandler(failedInit)
+                .getData();
+    }
 
 
 </script>
+
+<style>
+    .ui-progressbar {
+        position: relative;
+    }
+
+    .progress-label {
+        position: absolute;
+        left: 50%;
+        top: 4px;
+        font-weight: bold;
+        text-shadow: 1px 1px 0 #fff;
+    }
+</style>
+<script>
+    var progressbar, progressLabel;
+    $(function () {
+        progressbar = $("#progressbar");
+        progressLabel = $(".progress-label");
+
+        progressbar.progressbar({
+            value: false,
+            change: function () {
+                progressLabel.text(progressbar.progressbar("value") + "%");
+            },
+            complete: function () {
+                progressLabel.text("Complete!");
+            }
+        });
+
+    });
+    function progress(value) {
+        var val = progressbar.progressbar("value") || 0;
+        if (val < value) {
+            progressbar.progressbar("value", value);
+        } else {
+            progressbar.progressbar("value", value + val);
+
+        }
+    }
+</script>
 <h1> First Google CheckCell Demo </h1>
+<div id="progressbar">
+    <div class="progress-label">Loading...</div>
+</div>
 <button onclick="runCheckCell()">Run CheckCell</button>
+<button onclick="progress(10)">Run CheckCell</button>
+

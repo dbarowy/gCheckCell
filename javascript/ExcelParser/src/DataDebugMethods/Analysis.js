@@ -316,7 +316,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
      * @param weighted
      * @returns {*}
      */
-    Analysis.scoreInputs = function (/*TreeNode[]*/ input_rngs, /*TreeNode[]*/output_fns, /*<TreeNode, string>*/initial_outputs, /*FunctionOutput<string>[][][]*/ boots, /*bool*/ weighted) {
+    Analysis.scoreInputs = function (/*TreeNode[]*/ input_rngs, /*TreeNode[]*/output_fns, /*<TreeNode, string>*/initial_outputs, /*FunctionOutput<string>[][][]*/ boots, /*bool*/ weighted, /*XApplication*/app) {
         var i, f, functionNode, rangeNode, s;
         //dict of exclusion scores for each input CELL TreeNode
         var iexc_scores = new HashMap();
@@ -336,6 +336,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 }
                 iexc_scores = this.dictAdd(iexc_scores, s);
             }
+            app.setProgressBarValue(60/input_rngs.length*i);
         }
         return iexc_scores;
     };
@@ -505,18 +506,17 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         resamples = new Array(input_rngs.length);
         // populate bootstrap array
         // for each input range (a TreeNode)
-        Profiler.start('resample');
+
         for (i = 0; i < input_rngs.length; i++) {
             resamples[i] = this.resample(num_bootstraps, initial_inputs.get(input_rngs[i]))
         }
-        Profiler.end('resample');
+        app.setProgressBarValue(24.3);
         //first index: the fth function output
         //second index: the ith input
         //third index: the bth bootstrap
-        Profiler.start('computeBoots');
         var boots = this.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
-        Profiler.end('computeBoots');
-        return this.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted);
+        app.setProgressBarValue(44.5);
+        return this.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted, app);
 
     };
 

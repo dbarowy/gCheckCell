@@ -9,7 +9,7 @@
  * @param wb
  * @constructor
  */
-define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function (XRange, PEGParser) {
+define("XClasses/XWorksheet", ["XClasses/XRange", "Parser/PEGParser"], function (XRange) {
     "use strict";
     function XWorksheet(/*Worksheet*/ws, /*XWorkbook*/wb) {
         this.Workbook = wb;

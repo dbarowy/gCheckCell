@@ -277,6 +277,9 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                     }
                 }
             }
+        },
+        setProgressBarValue: function (/*float*/value) {
+            progress(value);
         }
     };
 
