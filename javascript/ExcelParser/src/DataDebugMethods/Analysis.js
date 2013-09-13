@@ -341,7 +341,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         window.setTimeout(function(){
             google.script.run.colorCells(Analysis.ColorOutliers(iexc_scores));
             app.setProgressBarValue(100);
-        },50);
+        },10);
         return iexc_scores;
     };
 
@@ -527,9 +527,9 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
 
                 window.setTimeout(function(){
                     Analysis.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted, app);
-                },50);
-            }, 50);
-        },50);
+                },10);
+            }, 10);
+        },10);
 
     };
 
