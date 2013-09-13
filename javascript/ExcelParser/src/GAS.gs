@@ -1,9 +1,18 @@
+/**
+ * For each sheet extract all the charts.
+ * For each chart get all the ranges that feed into that chart and create a formula string using their addresses.
+ * Add the formulas to a temporary sheet in the spreadsheet, one in each cell, extract the sheet data as for any other sheet and return it.
+ * If there are no charts, return null.
+ * At this point, every computation involving
+ * @returns {*}
+ * @private
+ */
 function _getChartData() {
     var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
     var formulas = [
         []
     ];
-    var sheetName = "";
+    var sheetName = "_";
     for (i = 0; i < sheets.length; i++) {
         sheetName += sheets[i].getName();
         var charts = sheets[i].getCharts();
@@ -16,11 +25,11 @@ function _getChartData() {
             formulas[0].push(formula.substring(0, formula.length - 1) + ")");
         }
     }
-    var chartSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
-    chartSheet.getRange(1, 1, 1, formulas[0].length).setFormulas(formulas);
-    var values = chartSheet.getDataRange().getValues();
-    SpreadsheetApp.getActive().deleteSheet(chartSheet);
     if (formulas[0].length) {
+        var chartSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
+        chartSheet.getRange(1, 1, 1, formulas[0].length).setFormulas(formulas);
+        var values = chartSheet.getDataRange().getValues();
+        SpreadsheetApp.getActive().deleteSheet(chartSheet);
         return {
             name: sheetName,
             values: values,
@@ -29,6 +38,122 @@ function _getChartData() {
     } else {
         return null;
     }
+}
+/*
+ Cleans up the database of every object that has a spreadsheet_id field with the value of the active book's id
+ Each spreadsheet has some data associated with it in ScriptDb to keep track of the colors.
+ */
+function clean_up() {
+    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var db = ScriptDb.getMyDb();
+    var res = db.query({spreadsheet_id: spreadsheet.getId()});
+    if (res.hasNext()) {
+        db.removeById(res.next().getId());
+    }
+}
+/**
+ * Save the original backgrounds used for each sheet in this book in ScriptDb.
+ */
+function saveOriginalBackground() {
+    var book=SpreadsheetApp.getActive();
+    var primaryKey = book.getId(), cache = {}, secondaryKey = "", i;
+    var sheets = book.getSheets();
+    var db = ScriptDb.getMyDb();
+    for (i = 0; i < sheets.length; i++) {
+        secondaryKey += sheets[i].getName();
+    }
+    var res = db.query({spreadsheet_id: book.getId(), sheet_names: secondaryKey});
+    if (!res.hasNext()) {
+        //just clean up everything associated with this book to keep the database light
+        clean_up();
+        for (i = 0; i < sheets.length; i++) {
+            cache[sheets[i].getName()] = compressMatrix(sheets[i].getDataRange().getBackgrounds());
+        }
+        db.save({spreadsheet_id: primaryKey, sheet_names: secondaryKey, backgrounds: cache});
+    }
+}
+
+/**
+ * Compress the color matrix using a very naive algorithm.
+ * Go through the matrix row by row and column by column and for each color you encounter,count the number of times it appears in a row
+ * red red red blue blue
+ * blue green green green green =>[{color:"red",count:3},{color:"blue",count:3},{color:"green",count:4}]
+ * We also keep track of the number of rows and columns as we will need these to reconstruct the matrix
+ * @param backgrounds
+ * @returns {{colors: Array, rows: *, columns: *}}
+ */
+function compressMatrix(backgrounds) {
+    var i, j, aux, counter, res = [];
+    aux = backgrounds[0][0];
+    counter = 0;
+    for (i = 0; i < backgrounds.length; i++) {
+        for (j = 0; j < backgrounds[i].length; j++) {
+            if (aux != backgrounds[i][j]) {
+                res.push({color: aux, count: counter});
+                aux = backgrounds[i][j];
+                counter = 1;
+            } else {
+                counter++;
+            }
+        }
+    }
+    res.push({color: aux, count: counter});
+    return {colors: res, rows: backgrounds.length, columns: backgrounds[0].length};
+}
+
+/**
+ * Restore the original background of each sheet in the book.
+ * The background colors are retrieved from the database.
+ */
+function restoreOriginalBackgrounds() {
+    var book=SpreadsheetApp.getActive();
+    var secondaryKey = "", i;
+    var sheets = book.getSheets();
+    var db = ScriptDb.getMyDb();
+    for (i = 0; i < sheets.length; i++) {
+        secondaryKey += sheets[i].getName();
+    }
+    var res = db.query({spreadsheet_id: book.getId(), sheet_names: secondaryKey});
+    if (res.hasNext()) {
+        var bk  = res.next().backgrounds;
+        for (var sheet in bk) {
+            if (bk.hasOwnProperty(sheet)) {
+                var back = uncompressMatrix(bk[sheet]);
+                var sh = book.getSheetByName(sheet);
+                if (sh) {
+                    var rng = sh.getRange(1, 1, bk[sheet].rows, bk[sheet].columns);
+                    rng.setBackgrounds(back);
+                }
+            }
+        }
+    } else {
+        Logger.log("Empty cache");
+    }
+    clean_up();
+}
+
+/**
+ * Do the reverse of compressMatrix
+ * @param background
+ * @returns {Array}
+ */
+function uncompressMatrix(background) {
+    var i, j, c = 0, cols = background.columns;
+    var back = [], row = [];
+    var colors = background.colors;
+    for (i = 0; i < colors.length; i++) {
+        for (j = 0; j < colors[i].count; j++) {
+            if (c >= cols) {
+                back.push(row);
+                c = 0;
+                row = [];
+            }
+            row.push(colors[i].color);
+            c++;
+        }
+    }
+    back.push(row);
+    return back;
 }
 
 /**
@@ -161,7 +286,7 @@ function _getColorBook(book) {
 function colorCells(outliers) {
     "use strict";
     Logger.log("here");
-//Logger.log(outliers);  
+    Logger.log(outliers);
     var colors = _getColorData();
     for (var i = 0; i < outliers.length; i++) {
         var range = outliers[i];
@@ -208,7 +333,7 @@ function compare(data) {
         for (k = 0; k < sheetOrig.values.length; k++) {
             for (j = 0; j < sheetOrig.values[k].length; j++) {
                 if (sheetCalc.values[k][j] !== sheetOrig.values[k][j]) {
-                    Logger.log((k + 1) + " " + (j + 1) + " " + sheetCalc.values[k][j] + "!=" + sheetOrig.values[k][j] + " " + sheetOrig.formulas[k][j]);
+                    Logger.log(sheetCalc.name + (k + 1) + " " + (j + 1) + " " + sheetCalc.values[k][j] + "!=" + sheetOrig.values[k][j] + " " + sheetOrig.formulas[k][j]);
                 }
             }
         }
@@ -224,7 +349,7 @@ function onOpen() {
 
     var menu = [
         {name: 'Run', functionName: 'openDialog'},
-        {name: 'Aux', functionName: 'aux'}
+        {name: 'Clear coloring', functionName: 'restoreOriginalBackgrounds'}
     ];
     ss.addMenu('CheckCell', menu);
 }
@@ -239,6 +364,7 @@ function openDialog() {
     "use strict";
     var html = HtmlService.createTemplateFromFile('index')
         .evaluate().setSandboxMode(HtmlService.SandboxMode.NATIVE);
+    saveOriginalBackground();
     ss.show(html);
 }
 
