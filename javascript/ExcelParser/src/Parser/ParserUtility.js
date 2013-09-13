@@ -1,5 +1,24 @@
 /**
- * Author: Alexandru Toader
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description This module contains functions used to extract cell and range references from the AST
  */
 define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FSharp", "XClasses/XLogger"], function (AST, Parser, FSharp, XLogger) {
     "use strict";
@@ -9,7 +28,7 @@ define("Parser/ParserUtility", ["Parser/AST/AST", "Parser/Parser", "FSharp/FShar
      * @returns {boolean}
      */
     ParserUtility.puntedFunction = function (/*string*/fnname) {
-        var punted = ["ADDRESS", "AREAS", "CHOOSE", "COLUMN", "COLUMNS", "GETPIVOTDATA", "HLOOKUP", "HYPERLINK", "INDEX", "INDIRECT", "LOOKUP", "MATCH", "OFFSET", "ROW", "ROWS", "RTD", "TRANSPOSE", "VLOOKUP"];
+        var punted = ["INDEX", "HLOOKUP", "VLOOKUP", "LOOKUP", "OFFSET"];
         return (punted.indexOf(fnname) > -1);
     };
     ParserUtility.getRangeReferenceRanges = function (/*AST.ReferenceRange*/ ref) {

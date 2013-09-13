@@ -1,8 +1,30 @@
+/**
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description This file contains the TreeNode class.
+ */
 define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (NodeTypes) {
     "use strict";
     /**
      * Data structure for representing nodes of the dependence graph (DAG) internally.
-     * There are three type of nodes: cell, range, and formula nodes.
+     * There are three type of nodes: cell and range nodes
      * @param com Range object that represents the node in the document
      * @param ws Worksheet object associated with the node
      * @param wb Workbook object associated with the node
@@ -130,16 +152,6 @@ define("DataDebugMethods/TreeNode", ["DataDebugMethods/NodeTypes"], function (No
      */
     TreeNode.prototype.getHashCode = function () {
         return this.name;
-    };
-
-    TreeNode.prototype.isRange = function () {
-        return this.type === NodeTypes.Range;
-    };
-    TreeNode.prototype.isChart = function () {
-        return this.type === NodeTypes.Chart;
-    };
-    TreeNode.prototype.isCell = function () {
-        return this.type === NodeTypes.Cell;
     };
 
     return TreeNode;

@@ -1,5 +1,25 @@
 /**
- * Represents a range that is used as an input sample.
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ /**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description Represents a range that is used as an input sample.
  */
 define("DataDebugMethods/InputSample", function () {
     "use strict";
@@ -39,20 +59,35 @@ define("DataDebugMethods/InputSample", function () {
         this._i = this._maxSize;
         this.input_array = data;
     };
-
+    /**
+     * Used to convert a 1D index to a 2D index
+     * @param idx
+     * @returns {{col: number, row: number}}
+     */
     InputSample.prototype.oneDtoTwoD = function (/*int*/idx) {
         return {col: idx % this.cols, row: Math.floor(idx / this.cols)};
     };
 
+    /**
+     * Get the input at the respective index from the array
+     * @param num
+     * @returns {*}
+     */
     InputSample.prototype.getInput = function (/*int*/num) {
         var pair = this.oneDtoTwoD(num);
         return this.input_array[pair.row][pair.col];
     };
-
+    /**
+     * InputSample is used as a key in a HashMap and the "hashcode" identifies unique input samples.
+     * @returns {string}
+     */
     InputSample.prototype.getHashCode = function () {
         return this.includes.toString();
     };
-
+    /**
+     * Mark the elements that are included in this sample and those that are excluded.
+     * @param includes
+     */
     InputSample.prototype.setIncludes = function (/*int[]*/includes) {
         var i;
         this.includes = includes;

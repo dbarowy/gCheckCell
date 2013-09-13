@@ -1,4 +1,27 @@
-define("Parser/AST/ReferenceAddress", ["FSharp/FSharp", "Parser/AST/Reference", "Parser/AST/ReferenceRange"], function (FSharp, Reference, ReferenceRange) {
+/**
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description This file contains the ReferenceAddress class, used to wrap single cell references
+ */
+
+define("Parser/AST/ReferenceAddress", ["FSharp/FSharp", "Parser/AST/Reference"], function (FSharp, Reference) {
     "use strict";
     var inheritPrototype = function (subType, SuperType) {
         var prototype = Object.create(SuperType.prototype);
@@ -54,7 +77,7 @@ define("Parser/AST/ReferenceAddress", ["FSharp/FSharp", "Parser/AST/Reference", 
      */
     ReferenceAddress.prototype.compute = function (/*XApplication*/app, /*Address*/source, /*Boolean*/array, /*Boolean*/range, /*Boolean*/full_range) {
         //There is no point to pass around the original values of range and full_range
-        //as those are irrelevant for the result of an Address
+        //as those are irrelevant for the result of an Address. This enforces the rules for computing the values of individual cells
         return this.Address.compute(app, source, array, false, false);
     };
 

@@ -1,3 +1,25 @@
+/**
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description  This file contains the implementation of a basic HashMap..
+ */
 define("Utilities/Util", ["XClasses/XTypedValue", "XClasses/XTypes"], function (XTypedValue, XTypes) {
     var Util = {};
     /**
@@ -60,22 +82,38 @@ define("Utilities/Util", ["XClasses/XTypedValue", "XClasses/XTypes"], function (
         }
     };
 
+    /**
+     * Convert a date into a serial number.
+     * Each full day represents one unit and each milisecond represents 1/86400000 of a day.
+     * The starting date for our system is 31/12/1899 = 1
+     * @param date
+     * @returns {number}
+     */
     Util.getNumberFromDate = function (/*Date*/date) {
         if (date instanceof Date) {
-            return (date - (new Date(1899,11,30)))/86400000;
+            return (date - (new Date(1899, 11, 30))) / 86400000;
         } else {
             throw new Error("This is not a date" + date);
         }
 
     };
 
+    /**
+     * Get the string representation for the date
+     * @param date
+     * @returns {string}
+     */
     Util.getStringFromDate = function (/*Date*/date) {
         return date.toLocaleString();
     };
 
-
+    /**
+     * Convert a number to a date. 1= 31/12/1899, each full day represents a full day.
+     * @param nr
+     * @returns {Date}
+     */
     Util.getDateFromNumber = function (/*Number*/nr) {
-        return new Date((nr*86400000)+(+new Date(1899,11,30)));
+        return new Date((nr * 86400000) + (+new Date(1899, 11, 30)));
     };
     return Util;
 })

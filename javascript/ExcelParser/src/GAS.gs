@@ -1,4 +1,22 @@
 /**
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
  * For each sheet extract all the charts.
  * For each chart get all the ranges that feed into that chart and create a formula string using their addresses.
  * Add the formulas to a temporary sheet in the spreadsheet, one in each cell, extract the sheet data as for any other sheet and return it.
@@ -8,6 +26,8 @@
  * @private
  */
 function _getChartData() {
+    "use strict";
+    var i, j, k;
     var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
     var formulas = [
         []
@@ -55,7 +75,7 @@ function clean_up() {
  * Save the original backgrounds used for each sheet in this book in ScriptDb.
  */
 function saveOriginalBackground() {
-    var book=SpreadsheetApp.getActive();
+    var book = SpreadsheetApp.getActive();
     var primaryKey = book.getId(), cache = {}, secondaryKey = "", i;
     var sheets = book.getSheets();
     var db = ScriptDb.getMyDb();
@@ -106,7 +126,7 @@ function compressMatrix(backgrounds) {
  * The background colors are retrieved from the database.
  */
 function restoreOriginalBackgrounds() {
-    var book=SpreadsheetApp.getActive();
+    var book = SpreadsheetApp.getActive();
     var secondaryKey = "", i;
     var sheets = book.getSheets();
     var db = ScriptDb.getMyDb();
@@ -115,7 +135,7 @@ function restoreOriginalBackgrounds() {
     }
     var res = db.query({spreadsheet_id: book.getId(), sheet_names: secondaryKey});
     if (res.hasNext()) {
-        var bk  = res.next().backgrounds;
+        var bk = res.next().backgrounds;
         for (var sheet in bk) {
             if (bk.hasOwnProperty(sheet)) {
                 var back = uncompressMatrix(bk[sheet]);

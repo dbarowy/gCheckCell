@@ -1,3 +1,20 @@
+/**
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
 define(["XClasses/XApplication", "Parser/AST/AST", "Utilities/Profiler", "DataDebugMethods/ConstructTree", "DataDebugMethods/AnalysisData", "DataDebugMethods/Analysis", "DataDebugMethods/InputSample", "DataDebugMethods/FunctionOutput", "Utilities/HashMap"], function (XApplication, AST, Profiler, ConstructTree, AnalysisData, Analysis, InputSample, FunctionOutput, HashMap) {
     "use strict";
     xdescribe('BootTest', function () {
@@ -13,7 +30,7 @@ define(["XClasses/XApplication", "Parser/AST/AST", "Utilities/Profiler", "DataDe
                 var NBOOTS = Math.ceil(1000 * Math.exp(1.0));
                 ConstructTree.constructTree(dat, XApplication);
                 XApplication.startEngine(dat);
-                var scores = Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
+                Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
             //console.log(Analysis.ColorOutliers(scores));
             //console.log(counter);
 

@@ -1,5 +1,24 @@
 /**
- * This file contains the Range class which is used to represent ranges in the sheet.
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description This file contains the Range class which is used to represent ranges in the sheet.
  * Example: A2:A3
  */
 define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClasses/XTypes"], function (Address, XTypedValue, XTypes) {
@@ -82,7 +101,7 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
         }
 
         if (range || array) {
-            //If we need the entire range
+            //If we need the entire range, compute the value of each cell in the range and add it to a matrix of values
             sheetName = this._com.Worksheet.Name;
             wbName = this._com.Workbook.Name;
             for (i = this._com.startRow; i <= this._com.endRow; i++) {
@@ -94,6 +113,7 @@ define("Parser/AST/Range", ["Parser/AST/Address", "XClasses/XTypedValue", "XClas
             }
             return res;
         } else {
+            //otherwise perform implicit intersection
             //N*1 range
             if (this._com.getColumnCount() === 1) {
                 if (this._com.startRow <= source.Y && source.Y <= this._com.endRow) {

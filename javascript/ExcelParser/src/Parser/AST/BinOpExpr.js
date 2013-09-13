@@ -1,5 +1,24 @@
 /**
- * This file contains the BinOpExpr class.
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description This file contains the BinOpExpr class.
  * This class is used to represent expressions that involve an infix operator.
  */
 define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (Util, XTypes) {
@@ -35,7 +54,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
         };
 
         /**
-         * resolve the two terms that make up the binary operator expression
+         * Resolve the two terms that make up the binary operator expression to the given workbook and worksheet
          * @param wb
          * @param ws
          * @constructor

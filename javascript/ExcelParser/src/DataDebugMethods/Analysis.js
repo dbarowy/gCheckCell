@@ -1,3 +1,24 @@
+/**
+ This file is part of CheckCell for Google Spreadsheets and Office 2013.
+
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 2
+ of the License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with GCC; see the file COPYING3.  If not see
+ <http://www.gnu.org/licenses/>.
+ */
+/**
+ * @Author Alexandru Toader, alexandru.v.toader@gmail.com
+ * @Description This file contains the main logic used to perform the perturbation analysis
+ */
 define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", "DataDebugMethods/InputSample", "DataDebugMethods/BootMemo", "DataDebugMethods/FunctionOutput", "DataDebugMethods/TreeNode"], function (Profiler, HashMap, InputSample, BootMemo, FunctionOutput, TreeNode) {
     "use strict";
     var Analysis = {};
@@ -45,7 +66,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             s.addArray(com.getValues());
             d.put(inputs[i], s);
             //TODO
-           // BootMemo.replaceExcelRange(com, s)
+            // BootMemo.replaceExcelRange(com, s)
         }
         return d;
     };
@@ -338,10 +359,13 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
             }
         }
         app.setProgressBarValue(95);
-        window.setTimeout(function(){
-            google.script.run.colorCells(Analysis.ColorOutliers(iexc_scores));
-            app.setProgressBarValue(100);
-        },10);
+        window.setTimeout(function () {
+            console.log(iexc_scores);
+            if (typeof google !== "undefined") {
+                google.script.run.colorCells(Analysis.ColorOutliers(iexc_scores));
+                app.setProgressBarValue(100);
+            }
+        }, 10);
         return iexc_scores;
     };
 
@@ -512,24 +536,25 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         // populate bootstrap array
         // for each input range (a TreeNode)
         app.setProgressBarValue(3);
-        window.setTimeout(function(){
+
+        window.setTimeout(function () {
             for (i = 0; i < input_rngs.length; i++) {
                 resamples[i] = Analysis.resample(num_bootstraps, initial_inputs.get(input_rngs[i]))
             }
+
             app.setProgressBarValue(24.3);
-
-            //first index: the fth function output
-            //second index: the ith input
-            //third index: the bth bootstrap
-
-            window.setTimeout(function(){boots = Analysis.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
+            window.setTimeout(function () {
+                //first index: the fth function output
+                //second index: the ith input
+                //third index: the bth bootstrap
+                boots = Analysis.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
                 app.setProgressBarValue(44.5);
 
-                window.setTimeout(function(){
+                window.setTimeout(function () {
                     Analysis.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted, app);
-                },10);
+                }, 10);
             }, 10);
-        },10);
+        }, 10);
 
     };
 
