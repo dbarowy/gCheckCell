@@ -336,8 +336,12 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
                 }
                 iexc_scores = this.dictAdd(iexc_scores, s);
             }
-            app.setProgressBarValue(60/input_rngs.length*i);
         }
+        app.setProgressBarValue(95);
+        window.setTimeout(function(){
+            google.script.run.colorCells(Analysis.ColorOutliers(iexc_scores));
+            app.setProgressBarValue(100);
+        },50);
         return iexc_scores;
     };
 
@@ -494,6 +498,7 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
      */
     Analysis.Bootstrap = function (/*int*/num_bootstraps, /*AnalysisData*/data, /*XApplication*/app, /*Boolean*/weighted) {
         var output_fns, input_rngs, resamples, initial_inputs, initial_outputs, i, formula_nodes, node;
+        var boots;
         //this modifies the weights of each node
         Analysis._propagateWeights(data);
         // filter out non-terminal functions
@@ -506,17 +511,25 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         resamples = new Array(input_rngs.length);
         // populate bootstrap array
         // for each input range (a TreeNode)
+        app.setProgressBarValue(3);
+        window.setTimeout(function(){
+            for (i = 0; i < input_rngs.length; i++) {
+                resamples[i] = Analysis.resample(num_bootstraps, initial_inputs.get(input_rngs[i]))
+            }
+            app.setProgressBarValue(24.3);
 
-        for (i = 0; i < input_rngs.length; i++) {
-            resamples[i] = this.resample(num_bootstraps, initial_inputs.get(input_rngs[i]))
-        }
-        app.setProgressBarValue(24.3);
-        //first index: the fth function output
-        //second index: the ith input
-        //third index: the bth bootstrap
-        var boots = this.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
-        app.setProgressBarValue(44.5);
-        return this.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted, app);
+            //first index: the fth function output
+            //second index: the ith input
+            //third index: the bth bootstrap
+
+            window.setTimeout(function(){boots = Analysis.computeBootstraps(num_bootstraps, initial_inputs, resamples, input_rngs, output_fns, data);
+                app.setProgressBarValue(44.5);
+
+                window.setTimeout(function(){
+                    Analysis.scoreInputs(input_rngs, output_fns, initial_outputs, boots, weighted, app);
+                },50);
+            }, 50);
+        },50);
 
     };
 
