@@ -28,5 +28,9 @@ define("XClasses/XTypedValue", function () {
         this.type = type;
     }
 
+    XTypedValue.prototype.toString=function(){
+        return "{value:"+this.value+", type:"+this.type+"}";
+    };
+
     return XTypedValue;
 });

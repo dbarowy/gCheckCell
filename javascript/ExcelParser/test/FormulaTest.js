@@ -75,7 +75,7 @@ define(["Utilities/Function", "Parser/Parser", "XClasses/XTypes", "XClasses/XTyp
 
         });
 
-        it("SQRT tests", function () {
+        xit("SQRT tests", function () {
             wb = {Name: "book"};
             ws = {Name: "sheet"};
             expect(Parser.parseFormula("=SQRT(1)", wb, ws).compute({}, {}, false, false, false)).toEqual(new XTypedValue(1, XTypes.Number));

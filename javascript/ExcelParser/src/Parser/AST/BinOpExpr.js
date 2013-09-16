@@ -172,6 +172,8 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                                     switch (r[i][j].type) {
                                         case XTypes.Number:
                                         {
+
+
                                             l[i][j].value = Util.getDateFromNumber(Util.getNumberFromDate(l[i][j].value) + r[i][j].value);
                                         }
                                             break;
@@ -2179,6 +2181,7 @@ define("Parser/AST/BinOpExpr", ["Utilities/Util", "XClasses/XTypes"], function (
                     break;
             }
             //If we have an array formula, return the full array
+
             if (array) {
                 return l;
                 //otherwise, return the first element

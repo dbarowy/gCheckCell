@@ -241,7 +241,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
      */
     Parser.parseDate = function (/*string*/value, /*locale*/locale) {
         var date = Date.parse(value);
-        if (!isNaN(date)) {
+        if (isFinite(date)) {
             return new Date(date);
         } else {
             return null;
@@ -267,7 +267,7 @@ define("Parser/Parser", ["Parser/AST/AST", "FSharp/FSharp", "Parser/PEGParser", 
         } else if (value === "TRUE") {
             ret = new XTypedValue(true, XTypes.Boolean);
             //try to get the date from the string
-        } else if (ret = Parser.parseDate(value, locale) && !isFinite(value)) {
+        } else if ((ret = Parser.parseDate(value, locale)) && !isFinite(value)) {
             ret = new XTypedValue(ret, XTypes.Date);
         } else {
             //Just a string

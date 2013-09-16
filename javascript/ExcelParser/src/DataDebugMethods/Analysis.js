@@ -360,11 +360,8 @@ define("DataDebugMethods/Analysis", ["Utilities/Profiler", "Utilities/HashMap", 
         }
         app.setProgressBarValue(95);
         window.setTimeout(function () {
-            console.log(iexc_scores);
-            if (typeof google !== "undefined") {
-                google.script.run.colorCells(Analysis.ColorOutliers(iexc_scores));
-                app.setProgressBarValue(100);
-            }
+            app.colorOutliers(Analysis.ColorOutliers(iexc_scores));
+            app.setProgressBarValue(100);
         }, 10);
         return iexc_scores;
     };

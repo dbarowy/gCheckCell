@@ -74,6 +74,14 @@ define("XClasses/XWorkbook", ["XClasses/XWorksheet"], function (XWorksheet) {
                 return this._sheets[i];
             }
         }
+        //TODO Temporary, remove spaces
+        for (i = 0, len = this._sheets.length; i < len; i++) {
+            if (this._sheets[i].Name.replace(/\s+/g, "") === name) {
+                return this._sheets[i];
+            }
+        }
+
+
         throw new Error("This sheet does not exist");
     };
 

@@ -23,7 +23,7 @@
  * It is designed to be a scaled down equivalent of the SpreadsheetApp object in Google Spreadsheets
  * and Excel.Application in Microsoft Office. At the moment, we only have a Google Spreadsheets implementation
  */
-define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp) {
+define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp", "XClasses/XTypes", "XClasses/XTypedValue"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp,XTypes,XTypedValue) {
     "use strict";
     var XApplication = {
         _workbooks: [],//All the known workbooks
@@ -115,7 +115,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 val = this.compute(source, false, true);
             } catch (err) {
                 XLogger.log("Error recomputing " + err);
-                val = "#UNKNOWN?"
+                val = new XTypedValue("#UNKNOWN?",XTypes.Error);
             }
             if (val instanceof Array) {
                 source.getCOMObject(this).setTypedValue(val[0][0]);
@@ -300,8 +300,13 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
         },
         setProgressBarValue: function (/*float*/value) {
             //this is useful for debugging without the UI
-            if (typeof progress!=="undefined") {
+            if (typeof progress !== "undefined") {
                 progress(value);
+            }
+        },
+        colorOutliers: function (outliers) {
+            if (typeof google != "undefined") {
+                google.script.run.colorCells(outliers);
             }
         }
     };
