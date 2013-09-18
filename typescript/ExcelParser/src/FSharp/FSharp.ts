@@ -15,27 +15,27 @@
  along with GCC; see the file COPYING3.  If not see
  <http://www.gnu.org/licenses/>.
  */
+"use strict";
 
 /**
  * @Author Alexandru Toader
  * @Description This file contains implementation of FSharp specific objects or functionalities that were needed
  * to circumvent problems in PEG or other environment restrictions.
  */
-define("FSharp/FSharp", function () {
-    "use strict";
-    function FSharp() {
-    }
 
+export class None {
     /**
      * Null cannot be returned as the result of parsing an expression in PEGJS so None acts as a substitute.
      */
-    function None() {
+    constructor() {
     }
 
-    None.prototype.toString = function () {
+    public toString() {
         return "None";
-    };
+    }
+}
 
-    FSharp.None = None;
-    return FSharp;
-});
+export class FSharp {
+    constructor() {}
+    public static None = None;
+}
