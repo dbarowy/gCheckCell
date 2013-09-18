@@ -15,9 +15,9 @@
  along with GCC; see the file COPYING3.  If not see
  <http://www.gnu.org/licenses/>.
  */
+"use strict";
 
 /**
- * /**
  * @Author Alexandru Toader, alexandru.v.toader@gmail.com
  * @Description This file contains the TreeNode class.
  * This specifies the type of a TreeNode.
@@ -25,6 +25,5 @@
  * 1.Cell nodes, 1x1 ranges
  * 2.Range nodes, nxm ranges n>1||m>1
  */
-define("DataDebugMethods/NodeTypes", function () {
-    return {"Cell": 0, "Range": 1};
-});
+export var Cell = 0;
+export var Range = 1;

@@ -15,6 +15,10 @@
  along with GCC; see the file COPYING3.  If not see
  <http://www.gnu.org/licenses/>.
  */
+"use strict";
+import HashMap = require("../Utilities/HashMap");
+import FunctionOutput = require("FunctionOutput");
+import XApplication = require("../XClasses/XApplication");
 
 /**
  * @Author Alexandru Toader, alexandru.v.toader@gmail.com
@@ -22,12 +26,10 @@
  * The chances are that for small ranges, the same pattern of excluded elements will appear multimple times
  * There is no point in recomputing these ranges as we can just cache the results.
  */
-define("DataDebugMethods/BootMemo", ["Utilities/HashMap", "DataDebugMethods/FunctionOutput", "XClasses/XApplication"], function (HashMap, FunctionOutput, XApplication) {
-    "use strict";
-    function BootMemo() {
-        /*HashMap<InputSample, FunctionOutput<string>[]>*/
-        this._d = new HashMap();
-    }
+export class BootMemo {
+    /*HashMap<InputSample, FunctionOutput<string>[]>*/
+    public _d = new HashMap();
+    constructor() {}
 
     /**
      * Try to replace the values in the given range by the input sample.
@@ -39,7 +41,7 @@ define("DataDebugMethods/BootMemo", ["Utilities/HashMap", "DataDebugMethods/Func
      * @param replace_original
      * @returns {*}
      */
-    BootMemo.prototype.fastReplace = function (/*XRange*/com, /*InputSample*/orig, /*InputSample*/sample, /*TreeNode[]*/outputs, /*bool*/replace_original) {
+    public fastReplace(/*XRange*/com, /*InputSample*/orig, /*InputSample*/sample, /*TreeNode[]*/outputs, /*bool*/replace_original) {
         var fo_arr, k;
         if (typeof(fo_arr = this._d.get(sample)) === "undefined") {
             //replace the COM value
@@ -55,15 +57,15 @@ define("DataDebugMethods/BootMemo", ["Utilities/HashMap", "DataDebugMethods/Func
             }
         }
         return fo_arr;
-    };
+    }
+
     /**
      * Replace the values of the XRange with the input sample. And start the recomputation.
      * @param com
      * @param input
      */
-    BootMemo.replaceExcelRange = function (/*XRange*/com, /*InputSample*/input) {
+    public static replaceExcelRange(/*XRange*/com, /*InputSample*/input) {
         com.setValues(input.input_array);
         XApplication.recompute_book();
-    };
-    return BootMemo;
-});
+    }
+}

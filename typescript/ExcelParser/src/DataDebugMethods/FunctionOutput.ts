@@ -15,15 +15,17 @@
  along with GCC; see the file COPYING3.  If not see
  <http://www.gnu.org/licenses/>.
  */
+"use strict";
 
 /**
  * @Author Alexandru Toader, alexandru.v.toader@gmail.com
  * @Description Used to store the result of a formula
  */
-define("DataDebugMethods/FunctionOutput", function () {
-    function FunctionOutput(value, excludes) {
+export class FunctionOutput {
+    public value;
+    public excludes;
+    constructor(value, excludes) {
         this.value = value;
         this.excludes = excludes;     //HashSet<int> the indices of the values that were excluded from the computation of this formula
     }
-    return FunctionOutput;
-});
+}

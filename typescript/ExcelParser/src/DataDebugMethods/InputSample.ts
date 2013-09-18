@@ -15,21 +15,23 @@
  along with GCC; see the file COPYING3.  If not see
  <http://www.gnu.org/licenses/>.
  */
+"use strict";
 
 /**
- /**
  * @Author Alexandru Toader, alexandru.v.toader@gmail.com
  * @Description Represents a range that is used as an input sample.
  */
-define("DataDebugMethods/InputSample", function () {
-    "use strict";
-    function InputSample(/*int*/rows, /*int*/cols) {
-        this.rows = rows;  //number of rows in the range
-        this.cols = cols;  //number of columns in the range
-        this.excludes = {}; //list of inputs excluded in this sample
-        this.includes = []; //a counter of values included by this sample.
-        this.input_array = []; // Array of values used to replace the original range. This is a bidimensional array.
-        this._i = 0;  //internal length counter for Add
+export class InputSample {
+    public rows;                //number of rows in the range
+    public cols;                //number of columns in the range
+    public excludes = {};       //list of inputs excluded in this sample
+    public includes = [];       //a counter of values included by this sample.
+    public input_array = [];    // Array of values used to replace the original range. This is a bidimensional array.
+    public _i = 0;              //internal length counter for Add
+    public _maxSize;
+    constructor(/*int*/rows, /*int*/cols) {
+        this.rows = rows;
+        this.cols = cols;
         this._maxSize = rows * cols;
     }
 
@@ -37,7 +39,7 @@ define("DataDebugMethods/InputSample", function () {
      * Add an element to the input array. This will add the element in the next available position in the matrix
      * @param datum
      */
-    InputSample.prototype.add = function (/*string*/datum) {
+    public add(/*string*/datum) {
         if (this._i >= this._maxSize) {
             throw new Error("Exceeded maximum size.");
         }
@@ -47,9 +49,9 @@ define("DataDebugMethods/InputSample", function () {
         }
         this.input_array[pair.row][pair.col] = datum;
         this._i++;
-    };
+    }
 
-    InputSample.prototype.addArray = function (/*string[][]*/data) {
+    public addArray(/*string[][]*/data) {
         if (this._i !== 0) {
             throw new Error("You must EITHER Add or AddArray, but not both.");
         }
@@ -58,37 +60,40 @@ define("DataDebugMethods/InputSample", function () {
         }
         this._i = this._maxSize;
         this.input_array = data;
-    };
+    }
+
     /**
      * Used to convert a 1D index to a 2D index
      * @param idx
      * @returns {{col: number, row: number}}
      */
-    InputSample.prototype.oneDtoTwoD = function (/*int*/idx) {
+    public oneDtoTwoD(/*int*/idx) {
         return {col: idx % this.cols, row: Math.floor(idx / this.cols)};
-    };
+    }
 
     /**
      * Get the input at the respective index from the array
      * @param num
      * @returns {*}
      */
-    InputSample.prototype.getInput = function (/*int*/num) {
+    public getInput(/*int*/num) {
         var pair = this.oneDtoTwoD(num);
         return this.input_array[pair.row][pair.col];
-    };
+    }
+
     /**
      * InputSample is used as a key in a HashMap and the "hashcode" identifies unique input samples.
      * @returns {string}
      */
-    InputSample.prototype.getHashCode = function () {
+    public getHashCode() {
         return this.includes.toString();
-    };
+    }
+
     /**
      * Mark the elements that are included in this sample and those that are excluded.
      * @param includes
      */
-    InputSample.prototype.setIncludes = function (/*int[]*/includes) {
+    public setIncludes(/*int[]*/includes) {
         var i;
         this.includes = includes;
         for (i = 0; i < this.includes.length; i++) {
@@ -96,12 +101,9 @@ define("DataDebugMethods/InputSample", function () {
                 this.excludes[i] = i;
             }
         }
-    };
+    }
 
-
-    InputSample.prototype.toString = function () {
+    public toString() {
         return this.input_array.join(",");
-    };
-    return InputSample;
-
-});
+    }
+}

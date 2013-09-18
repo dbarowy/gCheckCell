@@ -15,25 +15,26 @@
  along with GCC; see the file COPYING3.  If not see
  <http://www.gnu.org/licenses/>.
  */
+"use strict";
+import HashMap = require("../Utilities/HashMap");
 
 /**
  * @Author Alexandru Toader, alexandru.v.toader@gmail.com
  * @Description The AnalysisData object holds the result of the construction of the dependence tree.
  *
  */
-define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap) {
-    "use strict";
-    function AnalysisData() {
-        this.input_ranges = [];//holds all the input ranges of TreeNodes in the Excel file.
-        this.formula_nodes = new HashMap();//a mapping from cells containing formulas to the corresponding tree node
-
-    }
+export class AnalysisData {
+    //holds all the input ranges of TreeNodes in the Excel file.
+    public input_ranges = [];
+    //a mapping from cells containing formulas to the corresponding tree node
+    public formula_nodes = new HashMap();
+    constructor() {}
 
     /**
      * Returns an array of formula nodes that do not have any parents.
      * @returns {Array}
      */
-    AnalysisData.prototype.getTerminalFormulaNodes = function () {
+    public getTerminalFormulaNodes() {
         var res = [], i, len, entrySet;
         // return only the formula nodes which do not provide
         // input to any other cell and which are also not
@@ -44,12 +45,13 @@ define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap
                 res.push(entrySet[i].value);
         }
         return res;
-    };
+    }
+
     /**
      * Returns ranges that can be perturbed and that do not have any children.
      * @returns {Array}
      */
-    AnalysisData.prototype.getTerminalInputNodes = function () {
+    public getTerminalInputNodes() {
         // this should filter out the following two cases:
         // 1. input range is intermediate (acts as input to a formula
         //    and also contains a formula which consumes input from
@@ -62,7 +64,5 @@ define("DataDebugMethods/AnalysisData", ["Utilities/HashMap"], function (HashMap
             }
         }
         return res;
-    };
-
-    return AnalysisData;
-});
+    }
+}
