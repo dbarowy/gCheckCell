@@ -167,7 +167,7 @@ define("DataDebugMethods/ConstructTree", [ "Parser/ParserUtility", "Utilities/Ha
             range_node = new TreeNode(range, range.Worksheet, formula_node.workbook);
             range_nodes.push(range_node);
         }
-        range_node.dont_perturb = range_node.com.containsFormula();
+        range_node.dont_perturb = range_node.com.containsFormula() || !range_node.com.containsValues();
         //if the range contains formulas, get the cell with formulas and set them as children of this range node
         if (range_node.dont_perturb && !found) {
             bookName = range.Workbook.Name;

@@ -206,6 +206,18 @@ define("XClasses/XRange", ["Parser/AST/AST", "Parser/Parser"], function (AST, Pa
         }
         return false;
     };
+
+    XRange.prototype.containsValues= function(){
+        var i, j;
+        for (i = this.startRow - 1; i < this.endRow; i++) {
+            for (j = this.startCol - 1; j < this.endCol; j++) {
+                if (this.Worksheet._values[i][j] !== "") {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }   ;
     /**
      * Check if the top left cell contains a formula;
      * @returns {boolean}

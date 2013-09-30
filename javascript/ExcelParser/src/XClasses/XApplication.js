@@ -23,7 +23,7 @@
  * It is designed to be a scaled down equivalent of the SpreadsheetApp object in Google Spreadsheets
  * and Excel.Application in Microsoft Office. At the moment, we only have a Google Spreadsheets implementation
  */
-define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp", "XClasses/XTypes", "XClasses/XTypedValue"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp,XTypes,XTypedValue) {
+define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XClasses/XWorksheet", "Utilities/HashMap", "Parser/AST/AST", "Parser/Parser", "FSharp/FSharp", "XClasses/XTypes", "XClasses/XTypedValue", "DataDebugMethods/ConstructTree"], function (XLogger, XWorkbook, XWorksheet, HashMap, AST, Parser, FSharp, XTypes, XTypedValue, ConstructTree) {
     "use strict";
     var XApplication = {
         _workbooks: [],//All the known workbooks
@@ -115,7 +115,7 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
                 val = this.compute(source, false, true);
             } catch (err) {
                 XLogger.log("Error recomputing " + err);
-                val = new XTypedValue("#UNKNOWN?",XTypes.Error);
+                val = new XTypedValue("#UNKNOWN?", XTypes.Error);
             }
             if (val instanceof Array) {
                 source.getCOMObject(this).setTypedValue(val[0][0]);
@@ -270,6 +270,11 @@ define("XClasses/XApplication", ["XClasses/XLogger", "XClasses/XWorkbook", "XCla
          */
         startEngine: function (analysis) {
             var i, j, k, cellMatrix, ranges, hash, len;
+            ConstructTree.constructTree(analysis, this);
+            if (analysis.getTerminalInputNodes().length == 0) {
+                alert("No ranges to analyze");
+                return;
+            }
             var input_ranges = analysis.input_ranges;
             //we monitor the terminal formula nodes
             this._terminal_formulas = analysis.getTerminalFormulaNodes();

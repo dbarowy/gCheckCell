@@ -104,11 +104,6 @@ along with GCC; see the file COPYING3.  If not see
             XApplication.setRangeData(data.named, data.external);
             dat = new AnalysisData();
             NBOOTS = Math.ceil(1000 * Math.exp(1.0));
-            ConstructTree.constructTree(dat, XApplication);
-            if (dat.getTerminalInputNodes().length == 0) {
-                alert("No ranges to analyze");
-                return;
-            }
             XApplication.startEngine(dat);
             Analysis.Bootstrap(NBOOTS, dat, XApplication, false);
 
