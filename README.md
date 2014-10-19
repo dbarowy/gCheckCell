@@ -6,16 +6,16 @@ CheckCell for Google Spreadsheet
 Instructions:
 CheckCell can be used by copying an existing instance of the project or by creating a new Google spreadsheet and Google code project from scratch.
 
-# Copy existing project
+### Copy existing project
 
-## Copy this Google Spreadsheet https://docs.google.com/spreadsheet/ccc?key=0Ar39NjA6XMesdDFSeWh3OXdpcmZzZXVZVUF2OVY5dUE&usp=sharing . This will also copy the underlying code project.
+####Copy this Google Spreadsheet https://docs.google.com/spreadsheet/ccc?key=0Ar39NjA6XMesdDFSeWh3OXdpcmZzZXVZVUF2OVY5dUE&usp=sharing . This will also copy the underlying code project.
 
-## (Optional) Replace the spreadsheet document with another one
+#### (Optional) Replace the spreadsheet document with another one
 
-## Run CheckCell by clicking CheckCell -> Run (You will have to grant permissions.)
+#### Run CheckCell by clicking CheckCell -> Run (You will have to grant permissions.)
 
 
-# Create project from scratch:
+### Create project from scratch:
 
 In order to use gCheckCell you have to first create a new spreadsheet in Google Docs.
 After creating the spreadsheet, go to: Tools->Script editor and create a new project.
