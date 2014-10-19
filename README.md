@@ -8,11 +8,11 @@ CheckCell can be used by copying an existing instance of the project or by creat
 
 ### Copy existing project
 
-####Copy this Google Spreadsheet https://docs.google.com/spreadsheet/ccc?key=0Ar39NjA6XMesdDFSeWh3OXdpcmZzZXVZVUF2OVY5dUE&usp=sharing . This will also copy the underlying code project.
+Copy this Google Spreadsheet https://docs.google.com/spreadsheet/ccc?key=0Ar39NjA6XMesdDFSeWh3OXdpcmZzZXVZVUF2OVY5dUE&usp=sharing . This will also copy the underlying code project.
 
-#### (Optional) Replace the spreadsheet document with another one
+(Optional) Replace the spreadsheet document with another one
 
-#### Run CheckCell by clicking CheckCell -> Run (You will have to grant permissions.)
+Run CheckCell by clicking CheckCell -> Run (You will have to grant permissions.)
 
 
 ### Create project from scratch:
