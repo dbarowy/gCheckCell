@@ -1,6 +1,8 @@
 gCheckCell
 ==========
 
+[![Join the chat at https://gitter.im/dbarowy/gCheckCell](https://badges.gitter.im/dbarowy/gCheckCell.svg)](https://gitter.im/dbarowy/gCheckCell?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 CheckCell for Google Spreadsheet
 
 Instructions:
